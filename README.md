@@ -1,34 +1,87 @@
 # BearWave
 
-BearWave is a desktop internet radio player for KDE Plasma, built with C++/Qt 6, QML, KDE Frameworks, and Phonon.
+KDE-focused desktop internet radio app for Linux, built with Qt 6, QML, KDE Frameworks, and Phonon.
 
-It is designed for fast station browsing, simple playback controls, and good integration into the Plasma desktop experience.
+BearWave is designed for fast station browsing, simple playback controls, favorites, resume support, tray behavior, and clean Plasma integration without turning into a heavy media suite.
 
-BearWave currently targets Linux desktop environments, with KDE Plasma as the primary focus.
+[![Build](https://github.com/spalencsar/bearwave/actions/workflows/build.yml/badge.svg)](https://github.com/spalencsar/bearwave/actions/workflows/build.yml)
+![Linux](https://img.shields.io/badge/platform-Linux-blue)
+![KDE Plasma](https://img.shields.io/badge/desktop-KDE%20Plasma-1f6feb)
+![Qt 6](https://img.shields.io/badge/Qt-6-41cd52)
+![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ## Screenshots
 
-![Main Window](screenshots/screen01.png)
-![Station Browser](screenshots/screen02.png)
+| Main window | Station browser |
+| --- | --- |
+| ![Main Window](screenshots/screen01.png) | ![Station Browser](screenshots/screen02.png) |
+
 ![About Dialog](screenshots/screen03.png)
 
-## Highlights
+Screenshots: KDE Plasma on Linux.
 
-- Internet radio via the Radio Browser API (with ultra-fast local JSON caching)
-- Station pages for Top, Germany, Netherlands, and global/genre filters
-- Real-time local search and filtering (name, genre, country)
-- Sorting (name, bitrate, votes)
-- Favorites with persistent local storage
-- Manual station add
-- Playback controls and metadata display (title/artist when available)
-- Resume support for last station and volume
-- MPRIS integration (Plasma media controls, media keys, media applets with cover art fallback)
-- System Tray integration for seamless background playback
-- About dialog with project links and embedded MIT license text
+---
+
+## Quick Start
+
+Two sensible paths right now:
+
+### Option A: Arch Linux
+
+Use the included `PKGBUILD`:
+
+```bash
+makepkg -si
+```
+
+### Option B: Local source build
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j"$(nproc)"
+cmake --install build --prefix "$HOME/.local"
+```
+
+Then launch:
+
+```bash
+~/.local/bin/bearwave
+```
+
+## What BearWave Is
+
+BearWave focuses on:
+
+- KDE-first internet radio playback
+- fast browsing via the Radio Browser API
+- favorites and resume support
+- lightweight desktop integration through tray + MPRIS
+- straightforward local installation and operation
+
+BearWave intentionally does not aim to be:
+
+- a local music library manager
+- a podcast client
+- a broad cross-platform media application
+- a feature-heavy all-purpose audio suite
+
+## Features
+
+- internet radio via the Radio Browser API with local JSON caching
+- station pages for Top, Germany, Netherlands, and quick world/genre filters
+- local search and filtering by name, genre, and country
+- sorting by name, bitrate, and votes
+- favorites with persistent local storage
+- manual station add
+- playback metadata display when streams provide it
+- resume support for last station and volume
+- MPRIS integration for Plasma media controls and media keys
+- system tray integration for background playback
+- embedded About dialog with links and MIT license text
 
 ## Project Status
 
-BearWave is a source-first desktop project in an early public stage.
+BearWave is an early public, source-first desktop project.
 
 It is already usable, but it should currently be treated as software for testers, contributors, and technically comfortable Linux users rather than a polished end-user release.
 
@@ -45,16 +98,16 @@ Current distribution status:
 - Arch Linux is the best-supported packaging path at the moment
 - no official Flatpak, AppImage, or broad distro release pipeline yet
 
-## Target Platform
+## Platform And Support
 
 BearWave is intentionally KDE-first.
 
-- primary desktop target: KDE Plasma 6
 - primary platform target: Linux
+- primary desktop target: KDE Plasma 6
 - primary development environment: Arch Linux
 - other Linux distributions may build from source, but are not yet documented or tested to the same level
 
-## Tested On
+### Tested On
 
 BearWave is currently aligned with and tested primarily against:
 
@@ -66,7 +119,7 @@ BearWave is currently aligned with and tested primarily against:
 
 If support for other distributions becomes reliable, they should be added here explicitly instead of implied.
 
-## Language Support
+### Language Support
 
 The current application UI is primarily in German.
 
@@ -74,43 +127,21 @@ The current application UI is primarily in German.
 - README, repository metadata, and development-facing material are in English
 - full localization support is not implemented yet
 
-If you open the project expecting a fully translated multi-language UI, that is not the current state yet.
+If you expect a fully translated multi-language UI, that is not the current state yet.
 
-## Tech Stack
+## Installation Status
 
-- **Language:** C++
-- **UI:** QML (`QtQuick`, `QtQuick.Controls`, `QtQuick.Layouts`)
-- **Frameworks:** Qt 6, KDE Frameworks 6 (Kirigami where available)
-- **Audio:** Phonon4Qt6 backend (e.g. VLC backend)
-- **Networking:** `QNetworkAccessManager` against Radio Browser
-- **Build system:** CMake
+BearWave should currently be understood as:
 
-## Project Layout
+- officially documented for source builds
+- most naturally aligned with Arch Linux packaging
+- likely portable to other Linux distributions with Qt 6 / KF6 / Phonon packages available
+- not yet positioned as a broadly packaged consumer desktop app
 
-```text
-bearwave/
-  CMakeLists.txt
-  LICENSE
-  README.md
-  org.kde.bearwave.desktop.in
-  src/
-    main.cpp
-    radiobackend.*
-    radiobrowser.*
-    radiostation.*
-    bearplayer.*
-    mprisadaptor.*
-    bearwavecontroladaptor.*
-    qml/Main.qml
-    qml.qrc
-```
+If you want the least surprising path today, use either:
 
-## Runtime Requirements
-
-- Linux desktop session (KDE Plasma recommended)
-- Qt 6 runtime libraries
-- Phonon4Qt6 + a Phonon backend (VLC backend recommended)
-- Network access to Radio Browser instances
+- a local source build
+- the included Arch `PKGBUILD`
 
 ## Dependencies
 
@@ -130,21 +161,7 @@ sudo apt install cmake ninja-build qt6-base-dev qt6-declarative-dev qt6-tools-de
 
 Note: exact package names can vary between distro releases, and non-Arch dependency sets should currently be treated as best-effort guidance rather than a guaranteed tested path.
 
-## Installation Status
-
-BearWave should currently be understood as:
-
-- officially documented for source builds
-- most naturally aligned with Arch Linux packaging
-- likely portable to other Linux distributions with Qt 6 / KF6 / Phonon packages available
-- not yet positioned as a broadly packaged consumer desktop app
-
-If you want the least surprising path today, use either:
-
-- a local source build
-- the included Arch `PKGBUILD`
-
-## Build
+## Build And Install
 
 From the repository root:
 
@@ -153,24 +170,7 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j"$(nproc)"
 ```
 
-If you want a clean rebuild:
-
-```bash
-rm -rf build
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j"$(nproc)"
-```
-
-## Arch Linux (PKGBUILD)
-
-For a clean, system-wide installation on Arch Linux, use the included `PKGBUILD`:
-
-```bash
-makepkg -si
-```
-This will automatically resolve dependencies, compile BearWave, and install it via pacman (`bearwave-git`).
-
-## Install (User-local)
+Optional local install:
 
 ```bash
 cmake --install build --prefix "$HOME/.local"
@@ -180,50 +180,57 @@ kbuildsycoca6
 
 This installs:
 
-- Binary: `~/.local/bin/bearwave`
-- Desktop file: `~/.local/share/applications/org.kde.bearwave.desktop`
-- Icon: `~/.local/share/icons/hicolor/256x256/apps/org.kde.bearwave.png`
+- binary: `~/.local/bin/bearwave`
+- desktop file: `~/.local/share/applications/org.kde.bearwave.desktop`
+- icon: `~/.local/share/icons/hicolor/256x256/apps/org.kde.bearwave.png`
 
 Note: the generated desktop file uses the install prefix chosen during `cmake --install`.
 
-## Run
-
-- From launcher/menu: search for **BearWave**
-- Or terminal:
+If you want a clean rebuild:
 
 ```bash
-~/.local/bin/bearwave
+rm -rf build
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j"$(nproc)"
 ```
 
-## Usage Guide
+## Runtime Requirements
 
-### Basic Flow
+- Linux desktop session
+- KDE Plasma recommended
+- Qt 6 runtime libraries
+- Phonon4Qt6 with a working backend
+- network access to Radio Browser instances
 
-1. Open a station page (Top/DE/NL/Favorites or quick filters)
-2. Pick a station and press play
-3. Add favorites for quick access
-4. Use Resume to continue from last session
+## Usage
 
-### Keyboard Shortcuts
+### Basic flow
 
-- `Space`: Play/Pause
-- `Ctrl+F`: Focus search field
+1. Open a station page such as Top, DE, NL, Favorites, or a quick filter.
+2. Select a station and start playback.
+3. Add favorites for quick reuse.
+4. Use Resume to continue from the last station and volume state.
+
+### Keyboard shortcuts
+
+- `Space`: play/pause
+- `Ctrl+F`: focus search field
 
 ### Sorting
 
-Use the sort controls to reorder station lists by:
+Sort station lists by:
 
-- Name (A-Z)
-- Bitrate
-- Votes
+- name
+- bitrate
+- votes
 
-## Data and Persistence
+## Data And Persistence
 
 BearWave stores user state under:
 
-- Favorites: `~/.config/bearwave/favorites.json`
-- Last station + volume: `~/.config/bearwave/state.json`
-- API Cache (RadioBrowser): `~/.cache/bearwave/api_cache/`
+- favorites: `~/.config/bearwave/favorites.json`
+- last station + volume: `~/.config/bearwave/state.json`
+- API cache: `~/.cache/bearwave/api_cache/`
 
 If these files are removed, app state resets to defaults or performs a fresh API sync.
 
@@ -232,26 +239,10 @@ If these files are removed, app state resets to defaults or performs a fresh API
 BearWave exposes playback through MPRIS, so it works with:
 
 - Plasma media applets/widgets
-- Global media key handling
-- External MPRIS-capable controllers
+- global media key handling
+- external MPRIS-capable controllers
 
-## Scope
-
-BearWave is intentionally focused.
-
-What it is:
-
-- a KDE-oriented internet radio desktop app
-- a lightweight browser/player for online radio streams
-- a Plasma-friendly app with MPRIS and tray integration
-
-What it is not:
-
-- a local music library manager
-- a general-purpose podcast client
-- a cross-platform media suite targeting every desktop equally
-
-## Autostart (Optional)
+## Autostart
 
 Enable autostart:
 
@@ -270,26 +261,33 @@ rm -f "$HOME/.config/autostart/org.kde.bearwave.desktop"
 
 ### No audio playback
 
-- Ensure `phonon-qt6` and `phonon-qt6-vlc` (or equivalent) are installed
-- Ensure `vlc` is installed
-- Test another station URL (some streams go offline)
+- ensure `phonon-qt6` and `phonon-qt6-vlc` or equivalent are installed
+- ensure `vlc` is installed
+- test another station URL because some streams go offline
 
-### App icon/menu entry not updating
+### App icon or launcher entry not updating
 
-- Re-run:
+Re-run:
 
 ```bash
 update-desktop-database "$HOME/.local/share/applications"
 kbuildsycoca6
 ```
 
-- Log out/in if desktop cache is stale
+If desktop caches are stale, a logout/login cycle may still be required.
 
 ### Station list empty or slow
 
-- Verify internet connectivity
-- Radio Browser endpoint may be rate-limited temporarily
-- Try another station category/filter
+- verify internet connectivity
+- Radio Browser may be temporarily rate-limited or degraded
+- try another station category or filter
+
+## Current Limitations
+
+- UI language is currently primarily German
+- packaging and install guidance are strongest on Arch Linux
+- broader distro support is not yet validated to the same standard
+- there are no official binary releases for non-technical end users yet
 
 ## Contributing
 
@@ -304,34 +302,16 @@ Before opening a larger change, it is worth checking whether it matches the proj
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for local build and review expectations.
 
-## Release Notes
-
-For an initial public repository, the recommended install paths are:
-
-- build from source
-- user-local install via CMake
-- Arch Linux via the included `PKGBUILD`
-
-If broader distribution is added later, Flatpak or AppImage would be reasonable follow-ups.
-
-## Current Limitations
-
-- UI language is currently primarily German
-- packaging and install guidance are strongest on Arch Linux
-- broader distro support is not yet validated to the same standard
-- there are no official binary releases for non-technical end users yet
-
 ## Development Notes
 
-- Main UI: `src/qml/Main.qml`
-- Backend orchestration: `src/radiobackend.cpp`
-- Stream playback: `src/bearplayer.cpp`
+- main UI: `src/qml/Main.qml`
+- backend orchestration: `src/radiobackend.cpp`
+- stream playback: `src/bearplayer.cpp`
 - API layer: `src/radiobrowser.cpp`
 - MPRIS adapter: `src/mprisadaptor.cpp`
 
-For contributor/agent workflow and guardrails, see `AGENTS.md`.
+For contributor and agent guardrails, see `AGENTS.md`.
 
 ## License
 
-This project is licensed under the MIT License.
-See `LICENSE` for full text.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
