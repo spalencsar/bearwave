@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=BearWave
+Comment=Internet Radio Player for KDE
+Exec=@CMAKE_INSTALL_PREFIX@/bin/bearwave
+Icon=org.kde.bearwave
+Terminal=false
+Categories=Audio;Music;Player;KDE;
+Keywords=radio;stream;internet;audio;music;
+StartupNotify=true
+StartupWMClass=org.kde.bearwave

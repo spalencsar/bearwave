@@ -1,0 +1,38 @@
+## Local agent/contributor notes (not for GitHub)
+AGENTS.md
+
+## Build directories
+build/
+build-ci/
+cmake-build-*/
+
+## CMake artifacts
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+CTestTestfile.cmake
+install_manifest.txt
+Makefile
+
+## Qt autogen artifacts
+*.autogen/
+
+## Editor / IDE
+.idea/
+.vscode/
+.clangd
+*.swp
+*.swo
+
+## Runtime files
+*.log
+
+## Local caches / user state
+.cache/
+
+## Installed or generated desktop files
+org.kde.bearwave.desktop
+
+## OS noise
+.DS_Store

@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="Main.qml">qml/Main.qml</file>
+        <file alias="bearwave.png">../bearwave.png</file>
+        <file alias="globe.svg">../globe.svg</file>
+        <file alias="github.svg">../github.svg</file>
+        <file alias="linkedin.svg">../linkedin.svg</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,18 @@
+{
+  "KPackageStructure": "Plasma/Applet",
+  "KPlugin": {
+    "Id": "org.kde.plasma.bearwave",
+    "Name": "BearWave Control",
+    "Description": "Panel controls and station lists for BearWave",
+    "Icon": "audio-x-generic",
+    "Version": "0.1.0",
+    "Category": "Multimedia",
+    "Authors": [
+      {
+        "Name": "BearWave"
+      }
+    ],
+    "License": "GPL-3.0-or-later"
+  },
+  "X-Plasma-API-Minimum-Version": "6.0"
+}
