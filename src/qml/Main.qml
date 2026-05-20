@@ -127,24 +127,26 @@ ApplicationWindow {
 
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: compactMode ? 208 : 176
+            Layout.preferredHeight: compactMode ? (headerContent.implicitHeight + 20) : 176
             radius: 12
             color: panel
             border.color: cardBorder
 
             ColumnLayout {
+                id: headerContent
                 anchors.fill: parent
                 anchors.margins: 10
                 spacing: 8
 
                 RowLayout {
+                    visible: !compactMode
                     Layout.fillWidth: true
                     spacing: 8
 
                     Image {
-                        Layout.preferredWidth: compactMode ? 88 : 112
-                        Layout.preferredHeight: compactMode ? 32 : 40
-                        source: "qrc:/assets/app/bearwave.png"
+                        Layout.preferredWidth: 112
+                        Layout.preferredHeight: 40
+                        source: "qrc:/assets/app/bearwave_line.png"
                         fillMode: Image.PreserveAspectFit
                         smooth: true
                         mipmap: true
@@ -222,7 +224,98 @@ ApplicationWindow {
                     }
                 }
 
+                ColumnLayout {
+                    visible: compactMode
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+
+                        Image {
+                            Layout.preferredWidth: 96
+                            Layout.preferredHeight: 34
+                            source: "qrc:/assets/app/bearwave_line.png"
+                            fillMode: Image.PreserveAspectFit
+                            smooth: true
+                            mipmap: true
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Button {
+                            text: "+"
+                            onClicked: addDialog.open()
+                        }
+
+                        Button {
+                            text: qsTr("About")
+                            onClicked: aboutDialog.open()
+                        }
+
+                        Button {
+                            visible: backend && backend.canResumeLastStation
+                            text: "↺"
+                            onClicked: {
+                                if (backend) {
+                                    backend.resumeLastStation()
+                                }
+                            }
+                        }
+                    }
+
+                    Flow {
+                        Layout.fillWidth: true
+                        width: parent.width
+                        spacing: 8
+
+                        Button {
+                            text: qsTr("Top")
+                            highlighted: currentPage === "top"
+                            onClicked: {
+                                if (!backend) return
+                                currentPage = "top"
+                                activeQuickFilter = ""
+                                backend.loadTopStations()
+                            }
+                        }
+
+                        Button {
+                            text: qsTr("DE")
+                            highlighted: currentPage === "german"
+                            onClicked: {
+                                if (!backend) return
+                                currentPage = "german"
+                                activeQuickFilter = ""
+                                backend.loadGermanStations()
+                            }
+                        }
+
+                        Button {
+                            text: qsTr("NL")
+                            highlighted: currentPage === "dutch"
+                            onClicked: {
+                                if (!backend) return
+                                currentPage = "dutch"
+                                activeQuickFilter = ""
+                                backend.loadDutchStations()
+                            }
+                        }
+
+                        Button {
+                            text: qsTr("Favorites")
+                            highlighted: currentPage === "favorites"
+                            onClicked: {
+                                currentPage = "favorites"
+                                activeQuickFilter = ""
+                            }
+                        }
+                    }
+                }
+
                 RowLayout {
+                    visible: !compactMode
                     Layout.fillWidth: true
                     spacing: 8
 
@@ -280,15 +373,93 @@ ApplicationWindow {
                     }
                 }
 
+                ColumnLayout {
+                    visible: compactMode
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    TextField {
+                        id: compactSearchField
+                        Layout.fillWidth: true
+                        placeholderText: qsTr("Search stations (name, genre, country)")
+                        text: searchField.text
+                        onTextChanged: {
+                            if (searchField.text !== text) {
+                                searchField.text = text
+                            }
+                            if (backend) {
+                                backend.filterQuery = text
+                            }
+                        }
+                        onAccepted: {
+                            if (text.length < 2 || !backend) return
+                            currentPage = "search"
+                            backend.searchStations(text)
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+
+                        Item { Layout.fillWidth: true }
+
+                        Button {
+                            text: qsTr("Search")
+                            highlighted: true
+                            onClicked: {
+                                if (compactSearchField.text.length < 2 || !backend) return
+                                currentPage = "search"
+                                backend.searchStations(compactSearchField.text)
+                            }
+                        }
+                    }
+
+                    Flow {
+                        Layout.fillWidth: true
+                        width: parent.width
+                        spacing: 8
+
+                        Button {
+                            text: "A-Z"
+                            onClicked: {
+                                if (backend && currentPage !== "favorites") {
+                                    backend.sortStations("name")
+                                }
+                            }
+                        }
+
+                        Button {
+                            text: "kb"
+                            onClicked: {
+                                if (backend && currentPage !== "favorites") {
+                                    backend.sortStations("bitrate")
+                                }
+                            }
+                        }
+
+                        Button {
+                            text: "❤"
+                            onClicked: {
+                                if (backend && currentPage !== "favorites") {
+                                    backend.sortStations("votes")
+                                }
+                            }
+                        }
+                    }
+                }
+
                 Label {
                     Layout.fillWidth: true
                     text: qsTr("Tip: you are not limited to DE/NL. Search worldwide by country, genre, or station name.")
                     color: textMuted
                     font.pixelSize: 11
-                    elide: Text.ElideRight
+                    wrapMode: compactMode ? Text.WordWrap : Text.NoWrap
+                    elide: compactMode ? Text.ElideNone : Text.ElideRight
                 }
 
                 RowLayout {
+                    visible: !compactMode
                     Layout.fillWidth: true
                     spacing: 6
 
@@ -384,6 +555,117 @@ ApplicationWindow {
                     }
 
                     Item { Layout.fillWidth: true }
+                }
+
+                ColumnLayout {
+                    visible: compactMode
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Flow {
+                        Layout.fillWidth: true
+                        width: parent.width
+                        spacing: 8
+
+                        Label {
+                            text: qsTr("Genre:")
+                            color: textMuted
+                            font.pixelSize: 11
+                            verticalAlignment: Text.AlignVCenter
+                            padding: 8
+                        }
+
+                        Button {
+                            text: qsTr("Rock")
+                            highlighted: activeQuickFilter === "tag:rock"
+                            onClicked: {
+                                if (!backend) return
+                                currentPage = "genre-rock"
+                                activeQuickFilter = "tag:rock"
+                                backend.loadByTag("rock")
+                            }
+                        }
+
+                        Button {
+                            text: qsTr("News")
+                            highlighted: activeQuickFilter === "tag:news"
+                            onClicked: {
+                                if (!backend) return
+                                currentPage = "genre-news"
+                                activeQuickFilter = "tag:news"
+                                backend.loadByTag("news")
+                            }
+                        }
+
+                        Button {
+                            text: qsTr("Jazz")
+                            highlighted: activeQuickFilter === "tag:jazz"
+                            onClicked: {
+                                if (!backend) return
+                                currentPage = "genre-jazz"
+                                activeQuickFilter = "tag:jazz"
+                                backend.loadByTag("jazz")
+                            }
+                        }
+                    }
+
+                    Flow {
+                        Layout.fillWidth: true
+                        width: parent.width
+                        spacing: 8
+
+                        Label {
+                            text: qsTr("Country:")
+                            color: textMuted
+                            font.pixelSize: 11
+                            verticalAlignment: Text.AlignVCenter
+                            padding: 8
+                        }
+
+                        Button {
+                            text: qsTr("US")
+                            highlighted: activeQuickFilter === "cc:US"
+                            onClicked: {
+                                if (!backend) return
+                                currentPage = "country-us"
+                                activeQuickFilter = "cc:US"
+                                backend.loadByCountryCode("US")
+                            }
+                        }
+
+                        Button {
+                            text: qsTr("UK")
+                            highlighted: activeQuickFilter === "cc:GB"
+                            onClicked: {
+                                if (!backend) return
+                                currentPage = "country-gb"
+                                activeQuickFilter = "cc:GB"
+                                backend.loadByCountryCode("GB")
+                            }
+                        }
+
+                        Button {
+                            text: qsTr("FR")
+                            highlighted: activeQuickFilter === "cc:FR"
+                            onClicked: {
+                                if (!backend) return
+                                currentPage = "country-fr"
+                                activeQuickFilter = "cc:FR"
+                                backend.loadByCountryCode("FR")
+                            }
+                        }
+
+                        Button {
+                            text: qsTr("WORLD")
+                            highlighted: activeQuickFilter === "world"
+                            onClicked: {
+                                if (!backend) return
+                                currentPage = "world"
+                                activeQuickFilter = "world"
+                                backend.loadWorldStations()
+                            }
+                        }
+                    }
                 }
 
                 Label {
@@ -782,6 +1064,14 @@ ApplicationWindow {
                     color: textMuted
                     font.pixelSize: 14
                 }
+
+                Label {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: qsTr("Public beta")
+                    color: accent
+                    font.pixelSize: 12
+                    font.bold: true
+                }
             }
 
             // --- CREDITS & LINKS ---
@@ -806,12 +1096,19 @@ ApplicationWindow {
                     ToolButton {
                         Layout.preferredWidth: 40
                         Layout.preferredHeight: 40
-                        icon.source: "qrc:/assets/ui/globe.svg"
-                        icon.width: 19
-                        icon.height: 19
                         onClicked: Qt.openUrlExternally("https://palencsar.pro")
                         ToolTip.visible: hovered
                         ToolTip.text: qsTr("Open website")
+                        contentItem: Item {
+                            Image {
+                                anchors.centerIn: parent
+                                width: 19
+                                height: 19
+                                source: "qrc:/assets/ui/globe.svg"
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true
+                            }
+                        }
                         background: Rectangle {
                             radius: 20
                             color: parent.hovered ? "#274261" : "#1f3147"
@@ -823,12 +1120,19 @@ ApplicationWindow {
                     ToolButton {
                         Layout.preferredWidth: 40
                         Layout.preferredHeight: 40
-                        icon.source: "qrc:/assets/ui/github.svg"
-                        icon.width: 19
-                        icon.height: 19
                         onClicked: Qt.openUrlExternally("https://github.com/spalencsar")
                         ToolTip.visible: hovered
                         ToolTip.text: qsTr("Open GitHub")
+                        contentItem: Item {
+                            Image {
+                                anchors.centerIn: parent
+                                width: 19
+                                height: 19
+                                source: "qrc:/assets/ui/github.svg"
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true
+                            }
+                        }
                         background: Rectangle {
                             radius: 20
                             color: parent.hovered ? "#274261" : "#1f3147"
@@ -840,12 +1144,19 @@ ApplicationWindow {
                     ToolButton {
                         Layout.preferredWidth: 40
                         Layout.preferredHeight: 40
-                        icon.source: "qrc:/assets/ui/linkedin.svg"
-                        icon.width: 19
-                        icon.height: 19
                         onClicked: Qt.openUrlExternally("https://www.linkedin.com/in/spalencsar/")
                         ToolTip.visible: hovered
                         ToolTip.text: qsTr("Open LinkedIn")
+                        contentItem: Item {
+                            Image {
+                                anchors.centerIn: parent
+                                width: 19
+                                height: 19
+                                source: "qrc:/assets/ui/linkedin.svg"
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true
+                            }
+                        }
                         background: Rectangle {
                             radius: 20
                             color: parent.hovered ? "#274261" : "#1f3147"

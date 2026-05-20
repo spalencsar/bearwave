@@ -83,6 +83,8 @@ BearWave intentionally does not aim to be:
 
 BearWave is an early public, source-first desktop project.
 
+BearWave is currently in public beta and is best supported on Arch Linux and KDE Plasma.
+
 It is already usable, but it should currently be treated as software for testers, contributors, and technically comfortable Linux users rather than a polished end-user release.
 
 Current priorities:
