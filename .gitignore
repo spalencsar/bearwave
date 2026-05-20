@@ -4,6 +4,7 @@ AGENTS.md
 ## Build directories
 build/
 build-ci/
+build-arch-ci/
 cmake-build-*/
 
 ## CMake artifacts
