@@ -573,7 +573,7 @@ ApplicationWindow {
                     Image {
                         id: coverImage
                         anchors.fill: parent
-                        source: backend && backend.player && backend.player.currentCoverArtUrl ? backend.player.currentCoverArtUrl : "qrc:/bearwave.png"
+                        source: backend && backend.player && backend.player.currentCoverArtUrl ? backend.player.currentCoverArtUrl : "qrc:/assets/app/bearwave.png"
                         fillMode: backend && backend.player && backend.player.currentCoverArtUrl ? Image.PreserveAspectCrop : Image.PreserveAspectFit
                         smooth: true
                         asynchronous: true
@@ -761,7 +761,7 @@ ApplicationWindow {
                     Layout.preferredHeight: 72
                     sourceSize.width: 72
                     sourceSize.height: 72
-                    source: "qrc:/bearwave.png"
+                    source: "qrc:/assets/app/bearwave.png"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                 }
@@ -804,7 +804,7 @@ ApplicationWindow {
                     ToolButton {
                         Layout.preferredWidth: 40
                         Layout.preferredHeight: 40
-                        icon.source: "qrc:/globe.svg"
+                        icon.source: "qrc:/assets/ui/globe.svg"
                         icon.width: 19
                         icon.height: 19
                         onClicked: Qt.openUrlExternally("https://palencsar.pro")
@@ -821,7 +821,7 @@ ApplicationWindow {
                     ToolButton {
                         Layout.preferredWidth: 40
                         Layout.preferredHeight: 40
-                        icon.source: "qrc:/github.svg"
+                        icon.source: "qrc:/assets/ui/github.svg"
                         icon.width: 19
                         icon.height: 19
                         onClicked: Qt.openUrlExternally("https://github.com/spalencsar")
@@ -838,7 +838,7 @@ ApplicationWindow {
                     ToolButton {
                         Layout.preferredWidth: 40
                         Layout.preferredHeight: 40
-                        icon.source: "qrc:/linkedin.svg"
+                        icon.source: "qrc:/assets/ui/linkedin.svg"
                         icon.width: 19
                         icon.height: 19
                         onClicked: Qt.openUrlExternally("https://www.linkedin.com/in/spalencsar/")

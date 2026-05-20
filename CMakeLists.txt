@@ -32,4 +32,4 @@ configure_file(
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/org.kde.bearwave.desktop DESTINATION share/applications)
 
 # Install app icon
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/bearwave.png DESTINATION share/icons/hicolor/256x256/apps RENAME org.kde.bearwave.png)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/assets/app/bearwave.png DESTINATION share/icons/hicolor/256x256/apps RENAME org.kde.bearwave.png)
