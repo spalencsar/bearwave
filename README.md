@@ -6,6 +6,12 @@ It is designed for fast station browsing, simple playback controls, and good int
 
 BearWave currently targets Linux desktop environments, with KDE Plasma as the primary focus.
 
+## Screenshots
+
+![Main Window](screenshots/screen01.png)
+![Station Browser](screenshots/screen02.png)
+![About Dialog](screenshots/screen03.png)
+
 ## Highlights
 
 - Internet radio via the Radio Browser API (with ultra-fast local JSON caching)
@@ -22,7 +28,9 @@ BearWave currently targets Linux desktop environments, with KDE Plasma as the pr
 
 ## Project Status
 
-BearWave is usable and actively evolving, but still early-stage software.
+BearWave is a source-first desktop project in an early public stage.
+
+It is already usable, but it should currently be treated as software for testers, contributors, and technically comfortable Linux users rather than a polished end-user release.
 
 Current priorities:
 
@@ -30,6 +38,43 @@ Current priorities:
 - predictable KDE/Plasma integration
 - conservative packaging and installation behavior
 - keeping the codebase small and maintainable
+
+Current distribution status:
+
+- source repository is the primary delivery format
+- Arch Linux is the best-supported packaging path at the moment
+- no official Flatpak, AppImage, or broad distro release pipeline yet
+
+## Target Platform
+
+BearWave is intentionally KDE-first.
+
+- primary desktop target: KDE Plasma 6
+- primary platform target: Linux
+- primary development environment: Arch Linux
+- other Linux distributions may build from source, but are not yet documented or tested to the same level
+
+## Tested On
+
+BearWave is currently aligned with and tested primarily against:
+
+- Arch Linux
+- KDE Plasma 6
+- Qt 6
+- KDE Frameworks 6
+- Phonon4Qt6
+
+If support for other distributions becomes reliable, they should be added here explicitly instead of implied.
+
+## Language Support
+
+The current application UI is primarily in German.
+
+- UI labels, dialogs, and user-facing controls are currently mostly German
+- README, repository metadata, and development-facing material are in English
+- full localization support is not implemented yet
+
+If you open the project expecting a fully translated multi-language UI, that is not the current state yet.
 
 ## Tech Stack
 
@@ -72,7 +117,7 @@ bearwave/
 ### Arch Linux
 
 ```bash
-sudo pacman -S cmake extra-cmake-modules qt6-base qt6-declarative qt6-quickcontrols2 \
+sudo pacman -S cmake extra-cmake-modules qt6-base qt6-declarative qt6-tools \
   kirigami phonon-qt6 phonon-qt6-vlc vlc
 ```
 
@@ -83,7 +128,21 @@ sudo apt install cmake ninja-build qt6-base-dev qt6-declarative-dev qt6-tools-de
   libkf6kirigami-dev libkf6i18n-dev libkf6coreaddons-dev phonon4qt6-dev
 ```
 
-Note: exact package names can vary between distro releases.
+Note: exact package names can vary between distro releases, and non-Arch dependency sets should currently be treated as best-effort guidance rather than a guaranteed tested path.
+
+## Installation Status
+
+BearWave should currently be understood as:
+
+- officially documented for source builds
+- most naturally aligned with Arch Linux packaging
+- likely portable to other Linux distributions with Qt 6 / KF6 / Phonon packages available
+- not yet positioned as a broadly packaged consumer desktop app
+
+If you want the least surprising path today, use either:
+
+- a local source build
+- the included Arch `PKGBUILD`
 
 ## Build
 
@@ -176,6 +235,22 @@ BearWave exposes playback through MPRIS, so it works with:
 - Global media key handling
 - External MPRIS-capable controllers
 
+## Scope
+
+BearWave is intentionally focused.
+
+What it is:
+
+- a KDE-oriented internet radio desktop app
+- a lightweight browser/player for online radio streams
+- a Plasma-friendly app with MPRIS and tray integration
+
+What it is not:
+
+- a local music library manager
+- a general-purpose podcast client
+- a cross-platform media suite targeting every desktop equally
+
 ## Autostart (Optional)
 
 Enable autostart:
@@ -238,6 +313,13 @@ For an initial public repository, the recommended install paths are:
 - Arch Linux via the included `PKGBUILD`
 
 If broader distribution is added later, Flatpak or AppImage would be reasonable follow-ups.
+
+## Current Limitations
+
+- UI language is currently primarily German
+- packaging and install guidance are strongest on Arch Linux
+- broader distro support is not yet validated to the same standard
+- there are no official binary releases for non-technical end users yet
 
 ## Development Notes
 
