@@ -141,11 +141,13 @@ ApplicationWindow {
                     Layout.fillWidth: true
                     spacing: 8
 
-                    Label {
-                        text: qsTr("BearWave")
-                        color: textMain
-                        font.pixelSize: compactMode ? 18 : 22
-                        font.bold: true
+                    Image {
+                        Layout.preferredWidth: compactMode ? 88 : 112
+                        Layout.preferredHeight: compactMode ? 32 : 40
+                        source: "qrc:/assets/app/bearwave.svg"
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                        mipmap: true
                     }
 
                     Rectangle {
@@ -573,7 +575,7 @@ ApplicationWindow {
                     Image {
                         id: coverImage
                         anchors.fill: parent
-                        source: backend && backend.player && backend.player.currentCoverArtUrl ? backend.player.currentCoverArtUrl : "qrc:/assets/app/bearwave.png"
+                        source: backend && backend.player && backend.player.currentCoverArtUrl ? backend.player.currentCoverArtUrl : "qrc:/assets/app/bearwave.svg"
                         fillMode: backend && backend.player && backend.player.currentCoverArtUrl ? Image.PreserveAspectCrop : Image.PreserveAspectFit
                         smooth: true
                         asynchronous: true
@@ -761,7 +763,7 @@ ApplicationWindow {
                     Layout.preferredHeight: 72
                     sourceSize.width: 72
                     sourceSize.height: 72
-                    source: "qrc:/assets/app/bearwave.png"
+                    source: "qrc:/assets/app/bearwave.svg"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                 }
