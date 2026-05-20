@@ -10,7 +10,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 # Qt6
-find_package(Qt6 REQUIRED COMPONENTS Core DBus Quick QuickControls2 Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core DBus Quick QuickControls2 Widgets LinguistTools)
 
 # KDE Frameworks
 find_package(KF6Kirigami REQUIRED)

@@ -5,7 +5,7 @@ import Qt.labs.platform 1.1 as Platform
 
 ApplicationWindow {
     id: root
-    title: "BearWave"
+    title: qsTr("BearWave")
     width: 980
     height: 700
     minimumWidth: 520
@@ -21,11 +21,11 @@ ApplicationWindow {
         id: systray
         visible: true
         icon.name: "multimedia-player"
-        tooltip: "BearWave"
+        tooltip: qsTr("BearWave")
 
         menu: Platform.Menu {
             Platform.MenuItem {
-                text: backend && backend.player && backend.player.playing ? "Pause" : "Play"
+                text: backend && backend.player && backend.player.playing ? qsTr("Pause") : qsTr("Play")
                 onTriggered: {
                     if (backend && backend.player) {
                         backend.player.togglePlayPause()
@@ -33,7 +33,7 @@ ApplicationWindow {
                 }
             }
             Platform.MenuItem {
-                text: root.visible ? "Verstecken" : "Zeigen"
+                text: root.visible ? qsTr("Hide") : qsTr("Show")
                 onTriggered: {
                     if (root.visible) {
                         root.hide()
@@ -46,7 +46,7 @@ ApplicationWindow {
             }
             Platform.MenuSeparator {}
             Platform.MenuItem {
-                text: "Beenden"
+                text: qsTr("Quit")
                 onTriggered: Qt.quit()
             }
         }
@@ -142,7 +142,7 @@ ApplicationWindow {
                     spacing: 8
 
                     Label {
-                        text: "BearWave"
+                        text: qsTr("BearWave")
                         color: textMain
                         font.pixelSize: compactMode ? 18 : 22
                         font.bold: true
@@ -156,7 +156,7 @@ ApplicationWindow {
                     }
 
                     Button {
-                        text: "Top"
+                        text: qsTr("Top")
                         highlighted: currentPage === "top"
                         onClicked: {
                             if (!backend) return
@@ -167,7 +167,7 @@ ApplicationWindow {
                     }
 
                     Button {
-                        text: "DE"
+                        text: qsTr("DE")
                         highlighted: currentPage === "german"
                         onClicked: {
                             if (!backend) return
@@ -178,7 +178,7 @@ ApplicationWindow {
                     }
 
                     Button {
-                        text: "NL"
+                        text: qsTr("NL")
                         highlighted: currentPage === "dutch"
                         onClicked: {
                             if (!backend) return
@@ -189,7 +189,7 @@ ApplicationWindow {
                     }
 
                     Button {
-                        text: "Favoriten"
+                        text: qsTr("Favorites")
                         highlighted: currentPage === "favorites"
                         onClicked: {
                             currentPage = "favorites"
@@ -200,18 +200,18 @@ ApplicationWindow {
                     Item { Layout.fillWidth: true }
 
                     Button {
-                        text: compactMode ? "+" : "Manuell +"
+                        text: compactMode ? "+" : qsTr("Manual +")
                         onClicked: addDialog.open()
                     }
 
                     Button {
-                        text: "About"
+                        text: qsTr("About")
                         onClicked: aboutDialog.open()
                     }
 
                     Button {
                         visible: backend && backend.canResumeLastStation
-                        text: compactMode ? "↺" : "Resume"
+                        text: compactMode ? "↺" : qsTr("Resume")
                         onClicked: {
                             if (backend) {
                                 backend.resumeLastStation()
@@ -227,7 +227,7 @@ ApplicationWindow {
                     TextField {
                         id: searchField
                         Layout.fillWidth: true
-                        placeholderText: "Sender suchen (Name, Genre, Land)"
+                        placeholderText: qsTr("Search stations (name, genre, country)")
                         onTextChanged: {
                             if (backend) {
                                 backend.filterQuery = text
@@ -241,7 +241,7 @@ ApplicationWindow {
                     }
 
                     Button {
-                        text: "Suche"
+                        text: qsTr("Search")
                         highlighted: true
                         onClicked: {
                             if (searchField.text.length < 2 || !backend) return
@@ -251,7 +251,7 @@ ApplicationWindow {
                     }
 
                     Button {
-                        text: compactMode ? "A-Z" : "Sort A-Z"
+                        text: compactMode ? "A-Z" : qsTr("Sort A-Z")
                         onClicked: {
                             if (backend && currentPage !== "favorites") {
                                 backend.sortStations("name")
@@ -260,7 +260,7 @@ ApplicationWindow {
                     }
 
                     Button {
-                        text: compactMode ? "kb" : "Sort Bitrate"
+                        text: compactMode ? "kb" : qsTr("Sort Bitrate")
                         onClicked: {
                             if (backend && currentPage !== "favorites") {
                                 backend.sortStations("bitrate")
@@ -269,7 +269,7 @@ ApplicationWindow {
                     }
 
                     Button {
-                        text: compactMode ? "❤" : "Sort Votes"
+                        text: compactMode ? "❤" : qsTr("Sort Votes")
                         onClicked: {
                             if (backend && currentPage !== "favorites") {
                                 backend.sortStations("votes")
@@ -280,7 +280,7 @@ ApplicationWindow {
 
                 Label {
                     Layout.fillWidth: true
-                    text: "Tipp: Du bist nicht auf DE/NL begrenzt - suche nach Ländern, Genres oder Sendernamen weltweit."
+                    text: qsTr("Tip: you are not limited to DE/NL. Search worldwide by country, genre, or station name.")
                     color: textMuted
                     font.pixelSize: 11
                     elide: Text.ElideRight
@@ -291,13 +291,13 @@ ApplicationWindow {
                     spacing: 6
 
                     Label {
-                        text: "Genre:"
+                        text: qsTr("Genre:")
                         color: textMuted
                         font.pixelSize: 11
                     }
 
                     Button {
-                        text: "Rock"
+                        text: qsTr("Rock")
                         highlighted: activeQuickFilter === "tag:rock"
                         onClicked: {
                             if (!backend) return
@@ -308,7 +308,7 @@ ApplicationWindow {
                     }
 
                     Button {
-                        text: "News"
+                        text: qsTr("News")
                         highlighted: activeQuickFilter === "tag:news"
                         onClicked: {
                             if (!backend) return
@@ -319,7 +319,7 @@ ApplicationWindow {
                     }
 
                     Button {
-                        text: "Jazz"
+                        text: qsTr("Jazz")
                         highlighted: activeQuickFilter === "tag:jazz"
                         onClicked: {
                             if (!backend) return
@@ -332,13 +332,13 @@ ApplicationWindow {
                     Item { Layout.preferredWidth: 10 }
 
                     Label {
-                        text: "Land:"
+                        text: qsTr("Country:")
                         color: textMuted
                         font.pixelSize: 11
                     }
 
                     Button {
-                        text: "US"
+                        text: qsTr("US")
                         highlighted: activeQuickFilter === "cc:US"
                         onClicked: {
                             if (!backend) return
@@ -349,7 +349,7 @@ ApplicationWindow {
                     }
 
                     Button {
-                        text: "UK"
+                        text: qsTr("UK")
                         highlighted: activeQuickFilter === "cc:GB"
                         onClicked: {
                             if (!backend) return
@@ -360,7 +360,7 @@ ApplicationWindow {
                     }
 
                     Button {
-                        text: "FR"
+                        text: qsTr("FR")
                         highlighted: activeQuickFilter === "cc:FR"
                         onClicked: {
                             if (!backend) return
@@ -371,7 +371,7 @@ ApplicationWindow {
                     }
 
                     Button {
-                        text: "WORLD"
+                        text: qsTr("WORLD")
                         highlighted: activeQuickFilter === "world"
                         onClicked: {
                             if (!backend) return
@@ -387,7 +387,7 @@ ApplicationWindow {
                 Label {
                     Layout.fillWidth: true
                     visible: backend && backend.lastError.length > 0
-                    text: backend ? ("Fehler: " + backend.lastError) : ""
+                    text: backend ? (qsTr("Error: ") + backend.lastError) : ""
                     color: warn
                     elide: Text.ElideRight
                     font.pixelSize: 12
@@ -473,7 +473,7 @@ ApplicationWindow {
 
                             Label {
                                 anchors.centerIn: parent
-                                text: "FM"
+                                text: qsTr("FM")
                                 color: "#d8ecff"
                                 font.bold: true
                                 visible: !parent.children[0].visible
@@ -496,7 +496,7 @@ ApplicationWindow {
                             Label {
                                 Layout.fillWidth: true
                                 text: stationCard.modelData.country + "  •  "
-                                      + (stationCard.modelData.bitrate > 0 ? stationCard.modelData.bitrate + " kbps" : "Stream")
+                                      + (stationCard.modelData.bitrate > 0 ? stationCard.modelData.bitrate + " kbps" : qsTr("Stream"))
                                 color: textMuted
                                 font.pixelSize: 11
                                 elide: Text.ElideRight
@@ -510,7 +510,7 @@ ApplicationWindow {
                             onClicked: {
                                 if (!backend) return
                                 backend.toggleFavoriteById(stationCard.modelData.uuid, stationCard.modelData.urlResolved)
-                                toast(stationCard.modelData.isFavorite ? "Aus Favoriten entfernt" : "Zu Favoriten hinzugefügt")
+                                toast(stationCard.modelData.isFavorite ? qsTr("Removed from favorites") : qsTr("Added to favorites"))
                             }
                         }
 
@@ -538,13 +538,13 @@ ApplicationWindow {
                 visible: stationList.count === 0
 
                 Label {
-                    text: "Noch keine Sender geladen"
+                    text: qsTr("No stations loaded yet")
                     color: textMain
                     font.bold: true
                 }
 
                 Label {
-                    text: "Lade DE/NL oder nutze die Suche"
+                    text: qsTr("Load DE/NL stations or use search")
                     color: textMuted
                 }
             }
@@ -588,7 +588,7 @@ ApplicationWindow {
 
                     Label {
                         Layout.fillWidth: true
-                        text: backend && backend.player ? (backend.player.currentStationName || "Kein Sender ausgewählt") : "Kein Sender ausgewählt"
+                        text: backend && backend.player ? (backend.player.currentStationName || qsTr("No station selected")) : qsTr("No station selected")
                         color: textMain
                         font.pixelSize: 16
                         font.bold: true
@@ -598,8 +598,8 @@ ApplicationWindow {
                     Label {
                         Layout.fillWidth: true
                         text: backend && backend.player && backend.player.currentNowPlaying.length > 0
-                              ? ("Jetzt läuft: " + backend.player.currentNowPlaying)
-                              : "Jetzt läuft: Keine Titelinfo"
+                              ? (qsTr("Now playing: ") + backend.player.currentNowPlaying)
+                              : qsTr("Now playing: No track info")
                         color: textMuted
                         font.pixelSize: 12
                         elide: Text.ElideRight
@@ -652,7 +652,7 @@ ApplicationWindow {
                         }
 
                         Label {
-                            text: "Lautstärke"
+                            text: qsTr("Volume")
                             color: textMuted
                         }
 
@@ -699,7 +699,7 @@ ApplicationWindow {
                 }
 
                 Label {
-                    text: "Lade Sender..."
+                    text: qsTr("Loading stations...")
                     color: textMain
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
@@ -715,7 +715,7 @@ ApplicationWindow {
 
     Dialog {
         id: addDialog
-        title: "Sender manuell hinzufügen"
+        title: qsTr("Add station manually")
         modal: true
         anchors.centerIn: parent
         width: compactMode ? 320 : 420
@@ -723,15 +723,15 @@ ApplicationWindow {
 
         contentItem: ColumnLayout {
             spacing: 8
-            TextField { id: manualName; Layout.fillWidth: true; placeholderText: "Name" }
-            TextField { id: manualUrl; Layout.fillWidth: true; placeholderText: "Stream URL (http/https)" }
-            TextField { id: manualCountry; Layout.fillWidth: true; placeholderText: "Land (optional)" }
+            TextField { id: manualName; Layout.fillWidth: true; placeholderText: qsTr("Name") }
+            TextField { id: manualUrl; Layout.fillWidth: true; placeholderText: qsTr("Stream URL (http/https)") }
+            TextField { id: manualCountry; Layout.fillWidth: true; placeholderText: qsTr("Country (optional)") }
         }
 
         onAccepted: {
             if (backend) {
                 backend.addManualStation(manualName.text, manualUrl.text, manualCountry.text)
-                toast("Sender hinzugefügt")
+                toast(qsTr("Station added"))
             }
             manualName.text = ""
             manualUrl.text = ""
@@ -768,7 +768,7 @@ ApplicationWindow {
 
                 Label {
                     Layout.alignment: Qt.AlignHCenter
-                    text: "BearWave"
+                    text: qsTr("BearWave")
                     color: textMain
                     font.bold: true
                     font.pixelSize: 26
@@ -776,7 +776,7 @@ ApplicationWindow {
 
                 Label {
                     Layout.alignment: Qt.AlignHCenter
-                    text: "Internet Radio Player for KDE"
+                    text: qsTr("Internet Radio Player for KDE")
                     color: textMuted
                     font.pixelSize: 14
                 }
@@ -791,7 +791,7 @@ ApplicationWindow {
 
                 Label {
                     Layout.alignment: Qt.AlignHCenter
-                    text: "Autor: Sebastian Palencsár"
+                    text: qsTr("Author: Sebastian Palencsár")
                     color: textMain
                     font.bold: true
                     font.pixelSize: 14
@@ -809,7 +809,7 @@ ApplicationWindow {
                         icon.height: 19
                         onClicked: Qt.openUrlExternally("https://palencsar.pro")
                         ToolTip.visible: hovered
-                        ToolTip.text: "Website öffnen"
+                        ToolTip.text: qsTr("Open website")
                         background: Rectangle {
                             radius: 20
                             color: parent.hovered ? "#274261" : "#1f3147"
@@ -826,7 +826,7 @@ ApplicationWindow {
                         icon.height: 19
                         onClicked: Qt.openUrlExternally("https://github.com/spalencsar")
                         ToolTip.visible: hovered
-                        ToolTip.text: "GitHub öffnen"
+                        ToolTip.text: qsTr("Open GitHub")
                         background: Rectangle {
                             radius: 20
                             color: parent.hovered ? "#274261" : "#1f3147"
@@ -843,7 +843,7 @@ ApplicationWindow {
                         icon.height: 19
                         onClicked: Qt.openUrlExternally("https://www.linkedin.com/in/spalencsar/")
                         ToolTip.visible: hovered
-                        ToolTip.text: "LinkedIn öffnen"
+                        ToolTip.text: qsTr("Open LinkedIn")
                         background: Rectangle {
                             radius: 20
                             color: parent.hovered ? "#274261" : "#1f3147"
@@ -864,12 +864,12 @@ ApplicationWindow {
                     Layout.fillWidth: true
                     Label {
                         Layout.fillWidth: true
-                        text: "MIT License"
+                        text: qsTr("MIT License")
                         color: textMain
                         font.bold: true
                     }
                     Label {
-                        text: "Copyright (c) 2026"
+                        text: qsTr("Copyright (c) 2026")
                         color: textMuted
                         font.pixelSize: 11
                     }

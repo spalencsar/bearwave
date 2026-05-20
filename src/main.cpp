@@ -1,8 +1,10 @@
 #include <QApplication>
 #include <QDBusConnection>
 #include <QIcon>
+#include <QLocale>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QTranslator>
 
 #include "radiobackend.h"
 #include "mprisadaptor.h"
@@ -19,6 +21,11 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     app.setWindowIcon(QIcon::fromTheme(QStringLiteral("org.kde.bearwave")));
     app.setQuitOnLastWindowClosed(false);
+
+    QTranslator appTranslator;
+    if (appTranslator.load(QLocale::system(), QStringLiteral("bearwave"), QStringLiteral("_"), QStringLiteral(":/i18n"))) {
+        app.installTranslator(&appTranslator);
+    }
 
     QQmlApplicationEngine engine;
 

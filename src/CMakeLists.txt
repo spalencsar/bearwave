@@ -18,6 +18,22 @@ add_executable(bearwave ${SOURCES})
 # Qt Resources
 target_sources(bearwave PRIVATE qml.qrc)
 
+qt_add_lrelease(
+    TS_FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/../translations/bearwave_de.ts
+    QM_FILES_OUTPUT_VARIABLE bearwave_qm_files
+)
+
+foreach(qm_file IN LISTS bearwave_qm_files)
+    get_filename_component(qm_name "${qm_file}" NAME)
+    set_source_files_properties("${qm_file}" PROPERTIES QT_RESOURCE_ALIAS "${qm_name}")
+endforeach()
+
+qt_add_resources(bearwave bearwave_translations
+    PREFIX /i18n
+    FILES ${bearwave_qm_files}
+)
+
 # Link libraries
 target_link_libraries(bearwave PRIVATE
     Qt6::Core

@@ -98,7 +98,7 @@ void RadioBrowser::onReplyFinished()
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
 
     if (!reply) {
-        emit error("Network error");
+        emit error(tr("Network error"));
         return;
     }
 

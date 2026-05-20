@@ -311,7 +311,7 @@ void RadioBackend::addManualStation(const QString &name, const QString &url, con
     station->setName(name.trimmed());
     station->setUrl(url.trimmed());
     station->setUrlResolved(url.trimmed());
-    station->setCountry(country.trimmed().isEmpty() ? QStringLiteral("Manual") : country.trimmed());
+    station->setCountry(country.trimmed().isEmpty() ? tr("Manual") : country.trimmed());
     station->setCodec(QStringLiteral("unknown"));
     station->setBitrate(0);
     station->setVotes(0);
@@ -406,11 +406,11 @@ void RadioBackend::resumeLastStation()
         return;
     }
     QVariantMap station;
-    station.insert(QStringLiteral("name"), m_lastStationName.isEmpty() ? QStringLiteral("Zuletzt gehoert") : m_lastStationName);
+    station.insert(QStringLiteral("name"), m_lastStationName.isEmpty() ? tr("Last played") : m_lastStationName);
     station.insert(QStringLiteral("urlResolved"), m_lastStationUrl);
     recordRecentStation(station);
     saveState();
-    m_player->playUrl(m_lastStationUrl, m_lastStationName.isEmpty() ? QStringLiteral("Zuletzt gehört") : m_lastStationName);
+    m_player->playUrl(m_lastStationUrl, m_lastStationName.isEmpty() ? tr("Last played") : m_lastStationName);
 }
 
 void RadioBackend::loadFavorites()

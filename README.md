@@ -121,13 +121,14 @@ If support for other distributions becomes reliable, they should be added here e
 
 ### Language Support
 
-The current application UI is primarily in German.
+BearWave currently supports English and German.
 
-- UI labels, dialogs, and user-facing controls are currently mostly German
-- README, repository metadata, and development-facing material are in English
-- full localization support is not implemented yet
+- the application uses the system locale to select its UI language
+- English is the base UI language
+- German is provided as a bundled translation
+- README, repository metadata, and development-facing material remain in English
 
-If you expect a fully translated multi-language UI, that is not the current state yet.
+If the system language is German, BearWave appears in German. Otherwise it falls back to English.
 
 ## Installation Status
 
@@ -284,7 +285,6 @@ If desktop caches are stale, a logout/login cycle may still be required.
 
 ## Current Limitations
 
-- UI language is currently primarily German
 - packaging and install guidance are strongest on Arch Linux
 - broader distro support is not yet validated to the same standard
 - there are no official binary releases for non-technical end users yet
