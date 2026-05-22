@@ -1336,6 +1336,13 @@ ApplicationWindow {
 
                 Label {
                     Layout.alignment: Qt.AlignHCenter
+                    text: qsTr("Version: %1").arg(Qt.application.version)
+                    color: textMuted
+                    font.pixelSize: 12
+                }
+
+                Label {
+                    Layout.alignment: Qt.AlignHCenter
                     text: qsTr("Public beta")
                     color: accent
                     font.pixelSize: 12
