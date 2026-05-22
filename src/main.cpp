@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     QApplication::setApplicationName(QStringLiteral("BearWave"));
     QApplication::setDesktopFileName(QStringLiteral("org.kde.bearwave.desktop"));
     QApplication::setOrganizationName(QStringLiteral("BearWave"));
-    QApplication::setApplicationVersion(QStringLiteral("1.0.0"));
+    QApplication::setApplicationVersion(QStringLiteral("1.0.1"));
 
     QApplication app(argc, argv);
     app.setWindowIcon(QIcon::fromTheme(QStringLiteral("org.kde.bearwave")));

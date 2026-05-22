@@ -80,20 +80,31 @@ void NotificationManager::onTrackInfoChanged()
         return;
     }
 
-    if (coverUrl.isEmpty()) {
+    QString targetUrl = coverUrl;
+    if (targetUrl.isEmpty() && m_backend) {
+        QObject *stationObj = m_backend->currentStation();
+        if (stationObj) {
+            targetUrl = stationObj->property("favicon").toString();
+            if (!targetUrl.startsWith(QLatin1String("https://"))) {
+                targetUrl.clear();
+            }
+        }
+    }
+
+    if (targetUrl.isEmpty()) {
         if (!m_notifyTimer.isActive()) {
             m_notifyTimer.start(800);
         }
     } else {
-        m_notifiedCoverUrl = coverUrl;
-        const QString hash = QString(QCryptographicHash::hash(coverUrl.toUtf8(), QCryptographicHash::Md5).toHex());
+        m_notifiedCoverUrl = targetUrl;
+        const QString hash = QString(QCryptographicHash::hash(targetUrl.toUtf8(), QCryptographicHash::Md5).toHex());
         const QString filePath = m_coversDir + "/" + hash + ".jpg";
 
         if (QFile::exists(filePath)) {
             m_activeCoverPath = filePath;
             triggerNotification();
         } else {
-            downloadCover(coverUrl);
+            downloadCover(targetUrl);
             if (!m_notifyTimer.isActive()) {
                 m_notifyTimer.start(800);
             }

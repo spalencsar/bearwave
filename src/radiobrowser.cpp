@@ -9,6 +9,7 @@
 #include <QDir>
 #include <QFile>
 #include <QCryptographicHash>
+#include <QDebug>
 
 namespace {
 QString apiCacheDir()
@@ -25,7 +26,15 @@ RadioBrowser::RadioBrowser(QObject *parent)
 
 void RadioBrowser::search(const QString &query)
 {
-    QString endpoint = "/stations/byname/" + QUrl::toPercentEncoding(query);
+    QUrlQuery queryParams;
+    queryParams.addQueryItem("name", query);
+    queryParams.addQueryItem("hidebroken", "true");
+    queryParams.addQueryItem("limit", "50");
+    queryParams.addQueryItem("order", "votes");
+    queryParams.addQueryItem("reverse", "true");
+
+    QString endpoint = "/stations/search?" + queryParams.toString(QUrl::FullyEncoded);
+    qDebug() << "RadioBrowser: Searching with endpoint:" << endpoint;
     makeRequest(endpoint);
 }
 

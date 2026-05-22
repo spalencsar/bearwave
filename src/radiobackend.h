@@ -27,6 +27,7 @@ class RadioBackend : public QObject
     Q_PROPERTY(QVariantList recentStations READ recentStations NOTIFY listsChanged)
     Q_PROPERTY(QString currentStationUuid READ currentStationUuid NOTIFY currentStationChanged)
     Q_PROPERTY(QString currentStationUrl READ currentStationUrl NOTIFY currentStationChanged)
+    Q_PROPERTY(QObject* currentStation READ currentStation NOTIFY currentStationChanged)
 
 public:
     explicit RadioBackend(QObject *parent = nullptr);
@@ -34,6 +35,7 @@ public:
     QList<QObject*> stations() const;
     QList<QObject*> favoriteStations() const;
     QVariantList recentStations() const;
+    QObject* currentStation() const;
     QString currentStationUuid() const { return m_currentStationUuid; }
     QString currentStationUrl() const { return m_currentStationUrl; }
     BearPlayer* player() const { return m_player; }
@@ -61,6 +63,7 @@ public:
     Q_INVOKABLE void toggleFavorite(int index);
     Q_INVOKABLE void toggleFavoriteById(const QString &uuid, const QString &urlResolved);
     Q_INVOKABLE void addManualStation(const QString &name, const QString &url, const QString &country);
+    Q_INVOKABLE void editManualStation(QObject *stationObj, const QString &name, const QString &url, const QString &country);
     Q_INVOKABLE void sortStations(const QString &mode);
     Q_INVOKABLE QVariantList getRecentStations() const;
     Q_INVOKABLE QVariantList getFavoriteStations() const;

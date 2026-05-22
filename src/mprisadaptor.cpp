@@ -217,8 +217,19 @@ QVariantMap MprisPlayerAdaptor::metadata() const
     if (!artist.isEmpty()) {
         map.insert(QStringLiteral("xesam:artist"), QStringList{artist});
     }
-    if (!coverUrl.isEmpty()) {
-        map.insert(QStringLiteral("mpris:artUrl"), coverUrl);
+    QString artUrl = coverUrl;
+    if (artUrl.isEmpty() && m_backend) {
+        QObject *stationObj = m_backend->currentStation();
+        if (stationObj) {
+            QString fav = stationObj->property("favicon").toString();
+            if (fav.startsWith(QLatin1String("https://"))) {
+                artUrl = fav;
+            }
+        }
+    }
+
+    if (!artUrl.isEmpty()) {
+        map.insert(QStringLiteral("mpris:artUrl"), artUrl);
     } else {
         QString iconPath = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QStringLiteral("icons/hicolor/256x256/apps/org.kde.bearwave.png"));
         if (!iconPath.isEmpty()) {

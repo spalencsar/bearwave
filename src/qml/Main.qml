@@ -133,7 +133,7 @@ ApplicationWindow {
 
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: compactMode ? (headerContent.implicitHeight + 20) : 176
+            Layout.preferredHeight: headerContent.implicitHeight + 20
             radius: 12
             color: panel
             border.color: cardBorder
@@ -338,6 +338,13 @@ ApplicationWindow {
                     }
                 }
 
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 1
+                    color: cardBorder
+                    opacity: 0.6
+                }
+
                 RowLayout {
                     visible: !compactMode
                     Layout.fillWidth: true
@@ -351,6 +358,7 @@ ApplicationWindow {
                             if (backend) {
                                 backend.filterQuery = text
                             }
+                            searchTimer.restart()
                         }
                         onAccepted: {
                             if (text.length < 2 || !backend) return
@@ -491,6 +499,7 @@ ApplicationWindow {
                         text: qsTr("Genre:")
                         color: textMuted
                         font.pixelSize: 11
+                        rightPadding: 10
                     }
 
                     Button {
@@ -526,12 +535,13 @@ ApplicationWindow {
                         }
                     }
 
-                    Item { Layout.preferredWidth: 10 }
+                    Item { Layout.preferredWidth: 20 }
 
                     Label {
                         text: qsTr("Country:")
                         color: textMuted
                         font.pixelSize: 11
+                        rightPadding: 10
                     }
 
                     Button {
@@ -596,7 +606,10 @@ ApplicationWindow {
                             color: textMuted
                             font.pixelSize: 11
                             verticalAlignment: Text.AlignVCenter
-                            padding: 8
+                            leftPadding: 8
+                            rightPadding: 16
+                            topPadding: 8
+                            bottomPadding: 8
                         }
 
                         Button {
@@ -643,7 +656,10 @@ ApplicationWindow {
                             color: textMuted
                             font.pixelSize: 11
                             verticalAlignment: Text.AlignVCenter
-                            padding: 8
+                            leftPadding: 8
+                            rightPadding: 16
+                            topPadding: 8
+                            bottomPadding: 8
                         }
 
                         Button {
@@ -791,6 +807,7 @@ ApplicationWindow {
                                 border.color: accent
 
                                 Image {
+                                    id: stationFavicon
                                     anchors.fill: parent
                                     anchors.margins: 3
                                     source: (stationCard.modelData.favicon && stationCard.modelData.favicon.startsWith("https://"))
@@ -802,12 +819,13 @@ ApplicationWindow {
                                     visible: source !== "" && status === Image.Ready
                                 }
 
-                                Label {
-                                    anchors.centerIn: parent
-                                    text: qsTr("FM")
-                                    color: "#d8ecff"
-                                    font.bold: true
-                                    visible: !parent.children[0].visible
+                                Image {
+                                    anchors.fill: parent
+                                    anchors.margins: 6
+                                    source: "qrc:/assets/app/bearwave.png"
+                                    fillMode: Image.PreserveAspectFit
+                                    smooth: true
+                                    visible: !stationFavicon.visible
                                 }
                             }
 
@@ -889,10 +907,24 @@ ApplicationWindow {
                                 Label {
                                     Layout.fillWidth: true
                                     text: stationCard.modelData.country + "  •  "
+                                          + (stationCard.modelData.codec && stationCard.modelData.codec !== "unknown" && stationCard.modelData.codec !== "" ? stationCard.modelData.codec.toUpperCase() + "  •  " : "")
                                           + (stationCard.modelData.bitrate > 0 ? stationCard.modelData.bitrate + " kbps" : qsTr("Stream"))
                                     color: textMuted
                                     font.pixelSize: 11
                                     elide: Text.ElideRight
+                                }
+                            }
+
+                            Button {
+                                visible: !stationCard.modelData.uuid
+                                Layout.preferredWidth: compactMode ? 34 : 40
+                                Layout.preferredHeight: 40
+                                text: "✏"
+                                ToolTip.visible: hovered
+                                ToolTip.text: qsTr("Edit Station")
+                                onClicked: {
+                                    editDialog.stationObject = stationCard.modelData
+                                    editDialog.setupAndOpen()
                                 }
                             }
 
@@ -972,11 +1004,27 @@ ApplicationWindow {
                     Image {
                         id: coverImage
                         anchors.fill: parent
-                        source: backend && backend.player && backend.player.currentCoverArtUrl ? backend.player.currentCoverArtUrl : "qrc:/assets/app/bearwave.png"
-                        fillMode: backend && backend.player && backend.player.currentCoverArtUrl ? Image.PreserveAspectCrop : Image.PreserveAspectFit
+                        source: {
+                            if (backend && backend.player && backend.player.currentCoverArtUrl && backend.player.currentCoverArtUrl !== "") {
+                                return backend.player.currentCoverArtUrl;
+                            }
+                            if (backend && backend.currentStation && backend.currentStation.favicon && backend.currentStation.favicon.startsWith("https://")) {
+                                return backend.currentStation.favicon;
+                            }
+                            return "qrc:/assets/app/bearwave.png";
+                        }
+                        fillMode: (backend && backend.player && backend.player.currentCoverArtUrl && backend.player.currentCoverArtUrl !== "") ? Image.PreserveAspectCrop : Image.PreserveAspectFit
                         smooth: true
                         asynchronous: true
-                        anchors.margins: backend && backend.player && backend.player.currentCoverArtUrl ? 0 : 16
+                        anchors.margins: {
+                            if (backend && backend.player && backend.player.currentCoverArtUrl && backend.player.currentCoverArtUrl !== "") {
+                                return 0;
+                            }
+                            if (backend && backend.currentStation && backend.currentStation.favicon && backend.currentStation.favicon.startsWith("https://")) {
+                                return 8;
+                            }
+                            return 16;
+                        }
                     }
                 }
 
@@ -985,13 +1033,58 @@ ApplicationWindow {
                     Layout.fillHeight: true
                     spacing: 6
 
-                    Label {
+                    RowLayout {
                         Layout.fillWidth: true
-                        text: backend && backend.player ? (backend.player.currentStationName || qsTr("No station selected")) : qsTr("No station selected")
-                        color: textMain
-                        font.pixelSize: 16
-                        font.bold: true
-                        elide: Text.ElideRight
+                        spacing: 8
+
+                        Label {
+                            Layout.fillWidth: true
+                            text: backend && backend.player ? (backend.player.currentStationName || qsTr("No station selected")) : qsTr("No station selected")
+                            color: textMain
+                            font.pixelSize: 16
+                            font.bold: true
+                            elide: Text.ElideRight
+                        }
+
+                        Rectangle {
+                            id: codecBadge
+                            visible: backend && backend.currentStation && backend.currentStation.codec && backend.currentStation.codec !== "unknown" && backend.currentStation.codec !== ""
+                            height: 18
+                            width: codecLabel.implicitWidth + 12
+                            radius: 4
+                            color: "transparent"
+                            border.color: accent
+                            border.width: 1
+
+                            Label {
+                                id: codecLabel
+                                anchors.centerIn: parent
+                                text: (backend && backend.currentStation && backend.currentStation.codec) ? backend.currentStation.codec.toUpperCase() : ""
+                                color: accent
+                                font.pixelSize: 9
+                                font.bold: true
+                            }
+                        }
+
+                        Rectangle {
+                            id: bitrateBadge
+                            visible: backend && backend.currentStation && backend.currentStation.bitrate > 0
+                            height: 18
+                            width: bitrateLabel.implicitWidth + 12
+                            radius: 4
+                            color: accent
+                            border.color: accent
+                            border.width: 1
+
+                            Label {
+                                id: bitrateLabel
+                                anchors.centerIn: parent
+                                text: (backend && backend.currentStation) ? backend.currentStation.bitrate + " kbps" : ""
+                                color: "#ffffff"
+                                font.pixelSize: 9
+                                font.bold: true
+                            }
+                        }
                     }
 
                     Label {
@@ -1050,9 +1143,25 @@ ApplicationWindow {
                             }
                         }
 
-                        Label {
-                            text: qsTr("Volume")
-                            color: textMuted
+                        Button {
+                            id: muteButton
+                            text: (backend && backend.player && backend.player.volume > 0) ? "🔊" : "🔇"
+                            Layout.preferredWidth: 44
+                            property real lastVolume: 0.5
+
+                            ToolTip.visible: hovered
+                            ToolTip.text: (backend && backend.player && backend.player.volume > 0) ? qsTr("Mute") : qsTr("Unmute")
+
+                            onClicked: {
+                                if (backend && backend.player) {
+                                    if (backend.player.volume > 0) {
+                                        lastVolume = backend.player.volume
+                                        backend.player.setVolume(0)
+                                    } else {
+                                        backend.player.setVolume(lastVolume > 0 ? lastVolume : 0.5)
+                                    }
+                                }
+                            }
                         }
 
                         Slider {
@@ -1135,6 +1244,51 @@ ApplicationWindow {
             manualName.text = ""
             manualUrl.text = ""
             manualCountry.text = ""
+        }
+    }
+
+    Dialog {
+        id: editDialog
+        title: qsTr("Edit station")
+        modal: true
+        anchors.centerIn: parent
+        width: compactMode ? 320 : 420
+        standardButtons: Dialog.Ok | Dialog.Cancel
+
+        property var stationObject: null
+
+        contentItem: ColumnLayout {
+            spacing: 8
+            TextField { id: editName; Layout.fillWidth: true; placeholderText: qsTr("Name") }
+            TextField { id: editUrl; Layout.fillWidth: true; placeholderText: qsTr("Stream URL (http/https)") }
+            TextField { id: editCountry; Layout.fillWidth: true; placeholderText: qsTr("Country (optional)") }
+        }
+
+        function setupAndOpen() {
+            if (stationObject) {
+                editName.text = stationObject.name || ""
+                editUrl.text = stationObject.url || ""
+                editCountry.text = (stationObject.country === qsTr("Manual") ? "" : (stationObject.country || ""))
+                open()
+            }
+        }
+
+        onAccepted: {
+            if (backend && stationObject) {
+                backend.editManualStation(stationObject, editName.text, editUrl.text, editCountry.text)
+                toast(qsTr("Station updated"))
+            }
+            stationObject = null
+            editName.text = ""
+            editUrl.text = ""
+            editCountry.text = ""
+        }
+
+        onRejected: {
+            stationObject = null
+            editName.text = ""
+            editUrl.text = ""
+            editCountry.text = ""
         }
     }
 
@@ -1354,6 +1508,21 @@ ApplicationWindow {
             running: toastPopup.visible
             repeat: false
             onTriggered: toastPopup.close()
+        }
+    }
+
+    Timer {
+        id: searchTimer
+        interval: 600
+        repeat: false
+        onTriggered: {
+            var text = searchField.text.trim()
+            if (text.length < 2 || !backend) return
+
+            if (currentPage === "search" || stationList.count === 0) {
+                currentPage = "search"
+                backend.searchStations(text)
+            }
         }
     }
 

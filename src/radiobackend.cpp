@@ -148,6 +148,7 @@ void RadioBackend::searchStations(const QString &query)
     if (query.isEmpty()) {
         return;
     }
+    qDebug() << "RadioBackend: searchStations called with query:" << query;
     setLoading(true);
     m_radioBrowser->search(query);
 }
@@ -692,6 +693,74 @@ void RadioBackend::playCurrentSelection()
     m_player->playUrl(url, station->name());
 }
 
+QObject* RadioBackend::currentStation() const
+{
+    for (RadioStation *s : m_favorites) {
+        if (matchesStation(s, m_currentStationUuid, m_currentStationUrl)) {
+            return s;
+        }
+    }
+    for (RadioStation *s : m_stations) {
+        if (matchesStation(s, m_currentStationUuid, m_currentStationUrl)) {
+            return s;
+        }
+    }
+    return nullptr;
+}
+
+void RadioBackend::editManualStation(QObject *stationObj, const QString &name, const QString &url, const QString &country)
+{
+    RadioStation *station = qobject_cast<RadioStation*>(stationObj);
+    if (!station || name.trimmed().isEmpty() || url.trimmed().isEmpty()) {
+        return;
+    }
+
+    QString oldUrl = station->url();
+    QString oldUrlResolved = station->urlResolved();
+
+    station->setName(name.trimmed());
+    station->setUrl(url.trimmed());
+    station->setUrlResolved(url.trimmed());
+    station->setCountry(country.trimmed().isEmpty() ? tr("Manual") : country.trimmed());
+
+    // Update in favorites list if present
+    for (RadioStation *fav : m_favorites) {
+        if (fav == station || (fav->uuid().isEmpty() && (fav->url() == oldUrl || fav->urlResolved() == oldUrlResolved))) {
+            fav->setName(station->name());
+            fav->setUrl(station->url());
+            fav->setUrlResolved(station->urlResolved());
+            fav->setCountry(station->country());
+        }
+    }
+
+    // Save updated favorites
+    saveFavorites();
+
+    // Update in main stations list if present
+    for (RadioStation *s : m_stations) {
+        if (s == station || (s->uuid().isEmpty() && (s->url() == oldUrl || s->urlResolved() == oldUrlResolved))) {
+            s->setName(station->name());
+            s->setUrl(station->url());
+            s->setUrlResolved(station->urlResolved());
+            s->setCountry(station->country());
+        }
+    }
+
+    // If it's the currently playing station, update player stream info
+    if (m_currentStationUrl == oldUrl || m_currentStationUrl == oldUrlResolved) {
+        m_currentStationUrl = station->urlResolved();
+        m_lastStationUrl = station->urlResolved();
+        m_lastStationName = station->name();
+        saveState();
+        emit resumeStateChanged();
+        emit currentStationChanged();
+    }
+
+    emit stationsChanged();
+    emit favoritesChanged();
+    emit listsChanged();
+}
+
 QVariantMap RadioBackend::toVariantMap(const RadioStation *station)
 {
     QVariantMap map;
@@ -705,6 +774,7 @@ QVariantMap RadioBackend::toVariantMap(const RadioStation *station)
     map.insert(QStringLiteral("isFavorite"), station->isFavorite());
     map.insert(QStringLiteral("favicon"), station->favicon());
     map.insert(QStringLiteral("urlResolved"), station->urlResolved());
+    map.insert(QStringLiteral("codec"), station->codec());
     return map;
 }
 
