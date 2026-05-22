@@ -24,12 +24,18 @@ class RadioBackend : public QObject
     Q_PROPERTY(bool canResumeLastStation READ canResumeLastStation NOTIFY resumeStateChanged)
     Q_PROPERTY(QString lastStationName READ lastStationName NOTIFY resumeStateChanged)
     Q_PROPERTY(QString filterQuery READ filterQuery WRITE setFilterQuery NOTIFY filterQueryChanged)
+    Q_PROPERTY(QVariantList recentStations READ recentStations NOTIFY listsChanged)
+    Q_PROPERTY(QString currentStationUuid READ currentStationUuid NOTIFY currentStationChanged)
+    Q_PROPERTY(QString currentStationUrl READ currentStationUrl NOTIFY currentStationChanged)
 
 public:
     explicit RadioBackend(QObject *parent = nullptr);
 
     QList<QObject*> stations() const;
     QList<QObject*> favoriteStations() const;
+    QVariantList recentStations() const;
+    QString currentStationUuid() const { return m_currentStationUuid; }
+    QString currentStationUrl() const { return m_currentStationUrl; }
     BearPlayer* player() const { return m_player; }
     bool loading() const { return m_loading; }
     QString lastError() const { return m_lastError; }
@@ -70,6 +76,7 @@ signals:
     void lastErrorChanged();
     void resumeStateChanged();
     void filterQueryChanged();
+    void currentStationChanged();
 
 private slots:
     void onStationsLoaded(const QList<RadioStation*> &stations);
@@ -88,6 +95,8 @@ private:
     QString m_lastStationUrl;
     QString m_filterQuery;
     QVariantList m_recentStations;
+    QString m_currentStationUuid;
+    QString m_currentStationUrl;
 
     void setupConnections();
     void loadFavorites();

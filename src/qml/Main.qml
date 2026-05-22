@@ -90,7 +90,13 @@ ApplicationWindow {
         if (!backend) {
             return []
         }
-        return currentPage === "favorites" ? backend.favoriteStations : backend.stations
+        if (currentPage === "favorites") {
+            return backend.favoriteStations
+        } else if (currentPage === "history") {
+            return backend.recentStations
+        } else {
+            return backend.stations
+        }
     }
 
     onCurrentPageChanged: {
@@ -197,6 +203,15 @@ ApplicationWindow {
                         highlighted: currentPage === "favorites"
                         onClicked: {
                             currentPage = "favorites"
+                            activeQuickFilter = ""
+                        }
+                    }
+
+                    Button {
+                        text: qsTr("History")
+                        highlighted: currentPage === "history"
+                        onClicked: {
+                            currentPage = "history"
                             activeQuickFilter = ""
                         }
                     }
@@ -308,6 +323,15 @@ ApplicationWindow {
                             highlighted: currentPage === "favorites"
                             onClicked: {
                                 currentPage = "favorites"
+                                activeQuickFilter = ""
+                            }
+                        }
+
+                        Button {
+                            text: qsTr("History")
+                            highlighted: currentPage === "history"
+                            onClicked: {
+                                currentPage = "history"
                                 activeQuickFilter = ""
                             }
                         }
@@ -713,106 +737,197 @@ ApplicationWindow {
                         width: stationScrollView.availableWidth
                         height: compactMode ? 72 : 78
                         radius: 10
-                    color: cardMouse.containsMouse ? cardHover : card
-                    border.color: cardBorder
 
-                    MouseArea {
-                        id: cardMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        acceptedButtons: Qt.LeftButton
-                        onClicked: {
-                            if (!backend) return
-                            if (currentPage === "favorites") {
-                                backend.playFavoriteStation(index)
-                            } else {
-                                backend.playStation(index)
+                        readonly property bool isCurrent: {
+                            if (!backend || !modelData) return false;
+                            var currentUuid = backend.currentStationUuid;
+                            var currentUrl = backend.currentStationUrl;
+                            var cardUuid = modelData.uuid || "";
+                            var cardUrl = modelData.urlResolved || modelData.url || "";
+                            if (currentUuid !== "" && cardUuid !== "") {
+                                return currentUuid === cardUuid;
                             }
+                            return currentUrl !== "" && currentUrl === cardUrl;
                         }
-                    }
+                        readonly property bool isPlaying: isCurrent && backend && backend.player && backend.player.playing
 
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.margins: 10
-                        spacing: 10
+                        color: stationCard.isCurrent
+                            ? (cardMouse.containsMouse ? "#1d3350" : "#16283e")
+                            : (cardMouse.containsMouse ? cardHover : card)
+                        border.color: stationCard.isCurrent ? accent : cardBorder
+                        border.width: stationCard.isCurrent ? 2 : 1
 
-                        Rectangle {
-                            Layout.preferredWidth: 44
-                            Layout.preferredHeight: 44
-                            radius: 8
-                            color: "#123154"
-                            border.color: accent
-
-                            Image {
-                                anchors.fill: parent
-                                anchors.margins: 3
-                                source: (stationCard.modelData.favicon && stationCard.modelData.favicon.startsWith("https://"))
-                                        ? stationCard.modelData.favicon
-                                        : ""
-                                fillMode: Image.PreserveAspectFit
-                                asynchronous: true
-                                cache: true
-                                visible: source !== "" && status === Image.Ready
-                            }
-
-                            Label {
-                                anchors.centerIn: parent
-                                text: qsTr("FM")
-                                color: "#d8ecff"
-                                font.bold: true
-                                visible: !parent.children[0].visible
-                            }
-                        }
-
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 2
-
-                            Label {
-                                Layout.fillWidth: true
-                                text: stationCard.modelData.name
-                                color: textMain
-                                font.bold: true
-                                font.pixelSize: compactMode ? 13 : 14
-                                elide: Text.ElideRight
-                            }
-
-                            Label {
-                                Layout.fillWidth: true
-                                text: stationCard.modelData.country + "  •  "
-                                      + (stationCard.modelData.bitrate > 0 ? stationCard.modelData.bitrate + " kbps" : qsTr("Stream"))
-                                color: textMuted
-                                font.pixelSize: 11
-                                elide: Text.ElideRight
-                            }
-                        }
-
-                        Button {
-                            Layout.preferredWidth: compactMode ? 34 : 40
-                            Layout.preferredHeight: 40
-                            text: stationCard.modelData.isFavorite ? "★" : "☆"
+                        MouseArea {
+                            id: cardMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            acceptedButtons: Qt.LeftButton
                             onClicked: {
                                 if (!backend) return
-                                backend.toggleFavoriteById(stationCard.modelData.uuid, stationCard.modelData.urlResolved)
-                                toast(stationCard.modelData.isFavorite ? qsTr("Removed from favorites") : qsTr("Added to favorites"))
-                            }
-                        }
-
-                        Button {
-                            Layout.preferredWidth: compactMode ? 34 : 40
-                            Layout.preferredHeight: 40
-                            text: "▶"
-                            onClicked: {
-                                if (!backend) return
-                                if (currentPage === "favorites") {
-                                    backend.playFavoriteStation(index)
+                                if (stationCard.isCurrent) {
+                                    backend.player.togglePlayPause()
                                 } else {
-                                    backend.playStation(index)
+                                    if (currentPage === "favorites") {
+                                        backend.playFavoriteStation(index)
+                                    } else if (currentPage === "history") {
+                                        backend.playRecentByUuid(modelData.uuid, modelData.urlResolved)
+                                    } else {
+                                        backend.playStation(index)
+                                    }
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.margins: 10
+                            spacing: 10
+
+                            Rectangle {
+                                Layout.preferredWidth: 44
+                                Layout.preferredHeight: 44
+                                radius: 8
+                                color: "#123154"
+                                border.color: accent
+
+                                Image {
+                                    anchors.fill: parent
+                                    anchors.margins: 3
+                                    source: (stationCard.modelData.favicon && stationCard.modelData.favicon.startsWith("https://"))
+                                            ? stationCard.modelData.favicon
+                                            : ""
+                                    fillMode: Image.PreserveAspectFit
+                                    asynchronous: true
+                                    cache: true
+                                    visible: source !== "" && status === Image.Ready
+                                }
+
+                                Label {
+                                    anchors.centerIn: parent
+                                    text: qsTr("FM")
+                                    color: "#d8ecff"
+                                    font.bold: true
+                                    visible: !parent.children[0].visible
+                                }
+                            }
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 2
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 6
+
+                                    Label {
+                                        Layout.fillWidth: true
+                                        text: stationCard.modelData.name
+                                        color: stationCard.isCurrent ? accent : textMain
+                                        font.bold: true
+                                        font.pixelSize: compactMode ? 13 : 14
+                                        elide: Text.ElideRight
+                                    }
+
+                                    Row {
+                                        id: eqAnimation
+                                        spacing: 2
+                                        Layout.alignment: Qt.AlignVCenter
+                                        visible: stationCard.isPlaying
+
+                                        Rectangle {
+                                            id: bar1
+                                            width: 2
+                                            height: 12
+                                            color: accent
+                                            radius: 1
+                                            Behavior on height {
+                                                NumberAnimation { duration: 120 }
+                                            }
+                                        }
+                                        Rectangle {
+                                            id: bar2
+                                            width: 2
+                                            height: 12
+                                            color: accent
+                                            radius: 1
+                                            Behavior on height {
+                                                NumberAnimation { duration: 120 }
+                                            }
+                                        }
+                                        Rectangle {
+                                            id: bar3
+                                            width: 2
+                                            height: 12
+                                            color: accent
+                                            radius: 1
+                                            Behavior on height {
+                                                NumberAnimation { duration: 120 }
+                                            }
+                                        }
+
+                                        Timer {
+                                            interval: 150
+                                            running: stationCard.isPlaying
+                                            repeat: true
+                                            onTriggered: {
+                                                bar1.height = Math.floor(Math.random() * 11) + 3
+                                                bar2.height = Math.floor(Math.random() * 11) + 3
+                                                bar3.height = Math.floor(Math.random() * 11) + 3
+                                            }
+                                        }
+
+                                        onVisibleChanged: {
+                                            if (!visible) {
+                                                bar1.height = 12
+                                                bar2.height = 12
+                                                bar3.height = 12
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Label {
+                                    Layout.fillWidth: true
+                                    text: stationCard.modelData.country + "  •  "
+                                          + (stationCard.modelData.bitrate > 0 ? stationCard.modelData.bitrate + " kbps" : qsTr("Stream"))
+                                    color: textMuted
+                                    font.pixelSize: 11
+                                    elide: Text.ElideRight
+                                }
+                            }
+
+                            Button {
+                                Layout.preferredWidth: compactMode ? 34 : 40
+                                Layout.preferredHeight: 40
+                                text: stationCard.modelData.isFavorite ? "★" : "☆"
+                                onClicked: {
+                                    if (!backend) return
+                                    backend.toggleFavoriteById(stationCard.modelData.uuid, stationCard.modelData.urlResolved)
+                                    toast(stationCard.modelData.isFavorite ? qsTr("Removed from favorites") : qsTr("Added to favorites"))
+                                }
+                            }
+
+                            Button {
+                                Layout.preferredWidth: compactMode ? 34 : 40
+                                Layout.preferredHeight: 40
+                                text: (stationCard.isCurrent && backend && backend.player && backend.player.playing) ? "⏸" : "▶"
+                                onClicked: {
+                                    if (!backend) return
+                                    if (stationCard.isCurrent) {
+                                        backend.player.togglePlayPause()
+                                    } else {
+                                        if (currentPage === "favorites") {
+                                            backend.playFavoriteStation(index)
+                                        } else if (currentPage === "history") {
+                                            backend.playRecentByUuid(modelData.uuid, modelData.urlResolved)
+                                        } else {
+                                            backend.playStation(index)
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
-                }
             }
             }
 
@@ -822,13 +937,13 @@ ApplicationWindow {
                 visible: stationList.count === 0
 
                 Label {
-                    text: qsTr("No stations loaded yet")
+                    text: currentPage === "history" ? qsTr("No playback history") : qsTr("No stations loaded yet")
                     color: textMain
                     font.bold: true
                 }
 
                 Label {
-                    text: qsTr("Load DE/NL stations or use search")
+                    text: currentPage === "history" ? qsTr("Play some stations to build history") : qsTr("Load DE/NL stations or use search")
                     color: textMuted
                 }
             }

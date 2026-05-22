@@ -77,6 +77,7 @@ BearWave intentionally does not aim to be:
 - resume support for last station and volume
 - MPRIS integration for Plasma media controls and media keys
 - system tray integration for background playback
+- desktop notifications for song/track changes with local cover art caching
 - embedded About dialog with links and MIT license text
 
 ## Project Status
@@ -234,6 +235,7 @@ BearWave stores user state under:
 - favorites: `~/.config/bearwave/favorites.json`
 - last station + volume: `~/.config/bearwave/state.json`
 - API cache: `~/.cache/bearwave/api_cache/`
+- cover art cache: `~/.cache/bearwave/covers/`
 
 If these files are removed, app state resets to defaults or performs a fresh API sync.
 
@@ -311,6 +313,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for local build and review expectations.
 - stream playback: `src/bearplayer.cpp`
 - API layer: `src/radiobrowser.cpp`
 - MPRIS adapter: `src/mprisadaptor.cpp`
+- desktop notifications: `src/notificationmanager.cpp`
 
 For contributor and agent guardrails, see `AGENTS.md`.
 

@@ -62,6 +62,10 @@ void RadioBackend::setupConnections()
             m_lastStationName = name;
             emit resumeStateChanged();
             saveState();
+        } else {
+            m_currentStationUuid.clear();
+            m_currentStationUrl.clear();
+            emit currentStationChanged();
         }
     });
 
@@ -344,6 +348,28 @@ QVariantList RadioBackend::getRecentStations() const
     return m_recentStations;
 }
 
+QVariantList RadioBackend::recentStations() const
+{
+    QVariantList updatedList;
+    for (const QVariant &entry : m_recentStations) {
+        QVariantMap station = entry.toMap();
+        const QString uuid = station.value(QStringLiteral("uuid")).toString();
+        const QString urlResolved = station.value(QStringLiteral("urlResolved")).toString();
+
+        bool isFav = false;
+        for (const RadioStation *fav : m_favorites) {
+            if ((!uuid.isEmpty() && fav->uuid() == uuid) ||
+                (uuid.isEmpty() && !urlResolved.isEmpty() && fav->urlResolved() == urlResolved)) {
+                isFav = true;
+                break;
+            }
+        }
+        station.insert(QStringLiteral("isFavorite"), isFav);
+        updatedList.append(station);
+    }
+    return updatedList;
+}
+
 QVariantList RadioBackend::getFavoriteStations() const
 {
     QVariantList result;
@@ -363,6 +389,9 @@ bool RadioBackend::playRecentByUuid(const QString &uuid, const QString &urlResol
             emit resumeStateChanged();
             recordRecentStation(toVariantMap(station));
             saveState();
+            m_currentStationUuid = station->uuid();
+            m_currentStationUrl = url;
+            emit currentStationChanged();
             m_player->playUrl(url, station->name());
             return true;
         }
@@ -381,6 +410,9 @@ bool RadioBackend::playRecentByUuid(const QString &uuid, const QString &urlResol
             emit resumeStateChanged();
             recordRecentStation(station);
             saveState();
+            m_currentStationUuid = station.value(QStringLiteral("uuid")).toString();
+            m_currentStationUrl = url;
+            emit currentStationChanged();
             m_player->playUrl(url, m_lastStationName);
             return true;
         }
@@ -410,6 +442,26 @@ void RadioBackend::resumeLastStation()
     station.insert(QStringLiteral("urlResolved"), m_lastStationUrl);
     recordRecentStation(station);
     saveState();
+
+    QString resolvedUuid;
+    for (const RadioStation *s : m_stations) {
+        if (s->urlResolved() == m_lastStationUrl || s->url() == m_lastStationUrl) {
+            resolvedUuid = s->uuid();
+            break;
+        }
+    }
+    if (resolvedUuid.isEmpty()) {
+        for (const RadioStation *s : m_favorites) {
+            if (s->urlResolved() == m_lastStationUrl || s->url() == m_lastStationUrl) {
+                resolvedUuid = s->uuid();
+                break;
+            }
+        }
+    }
+    m_currentStationUuid = resolvedUuid;
+    m_currentStationUrl = m_lastStationUrl;
+    emit currentStationChanged();
+
     m_player->playUrl(m_lastStationUrl, m_lastStationName.isEmpty() ? tr("Last played") : m_lastStationName);
 }
 
@@ -634,6 +686,9 @@ void RadioBackend::playCurrentSelection()
     emit resumeStateChanged();
     recordRecentStation(toVariantMap(station));
     saveState();
+    m_currentStationUuid = station->uuid();
+    m_currentStationUrl = url;
+    emit currentStationChanged();
     m_player->playUrl(url, station->name());
 }
 

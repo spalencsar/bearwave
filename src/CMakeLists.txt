@@ -10,6 +10,7 @@ set(SOURCES
     coverartfetcher.cpp
     mprisadaptor.cpp
     bearwavecontroladaptor.cpp
+    notificationmanager.cpp
 )
 
 # Create executable

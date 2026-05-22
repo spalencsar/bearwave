@@ -211,6 +211,18 @@
       <source>Copyright (c) 2026</source>
       <translation>Copyright (c) 2026</translation>
     </message>
+    <message>
+      <source>History</source>
+      <translation>Verlauf</translation>
+    </message>
+    <message>
+      <source>No playback history</source>
+      <translation>Kein Wiedergabeverlauf</translation>
+    </message>
+    <message>
+      <source>Play some stations to build history</source>
+      <translation>Spiele Sender ab, um einen Verlauf aufzubauen</translation>
+    </message>
   </context>
   <context>
     <name>RadioBackend</name>

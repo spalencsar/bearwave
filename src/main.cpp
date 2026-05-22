@@ -9,6 +9,7 @@
 #include "radiobackend.h"
 #include "mprisadaptor.h"
 #include "bearwavecontroladaptor.h"
+#include "notificationmanager.h"
 
 
 int main(int argc, char *argv[])
@@ -35,9 +36,11 @@ int main(int argc, char *argv[])
     MprisRootAdaptor mprisRoot(&backend, &app);
     MprisPlayerAdaptor mprisPlayer(&backend);
     BearWaveControlAdaptor controlAdaptor(&backend);
+    NotificationManager notificationManager(&backend);
     Q_UNUSED(mprisRoot)
     Q_UNUSED(mprisPlayer)
     Q_UNUSED(controlAdaptor)
+    Q_UNUSED(notificationManager)
 
     QDBusConnection sessionBus = QDBusConnection::sessionBus();
     sessionBus.registerObject(QStringLiteral("/org/mpris/MediaPlayer2"), &backend, QDBusConnection::ExportAdaptors);
