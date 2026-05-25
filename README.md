@@ -15,8 +15,7 @@ BearWave is designed for fast station browsing, simple playback controls, favori
 | Main window | Station browser |
 | --- | --- |
 | ![Main Window](screenshots/screen01.png) | ![Station Browser](screenshots/screen02.png) |
-
-![About Dialog](screenshots/screen03.png)
+| ![About Dialog](screenshots/screen03.png) | ![Additional View](screenshots/screen04.png) |
 
 Screenshots: KDE Plasma on Linux.
 

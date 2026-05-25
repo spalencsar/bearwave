@@ -41,6 +41,10 @@
       <image>https://raw.githubusercontent.com/spalencsar/bearwave/main/screenshots/screen03.png</image>
       <caption>The About dialog showing application info</caption>
     </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/spalencsar/bearwave/main/screenshots/screen04.png</image>
+      <caption>Application view</caption>
+    </screenshot>
   </screenshots>
   
   <url type="homepage">https://github.com/spalencsar/bearwave</url>
