@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>org.kde.bearwave</id>
+  <id>de.nerdbear.bearwave</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>MIT</project_license>
   
@@ -26,7 +26,7 @@
     </ul>
   </description>
   
-  <launchable type="desktop-id">org.kde.bearwave.desktop</launchable>
+  <launchable type="desktop-id">de.nerdbear.bearwave.desktop</launchable>
   
   <screenshots>
     <screenshot type="default">

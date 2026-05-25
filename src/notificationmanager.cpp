@@ -214,7 +214,7 @@ void NotificationManager::showNotification(const QString &station, const QString
     }
 
     QVariantMap hints;
-    hints.insert(QStringLiteral("desktop-entry"), QStringLiteral("org.kde.bearwave"));
+    hints.insert(QStringLiteral("desktop-entry"), QStringLiteral("de.nerdbear.bearwave"));
     if (!coverPath.isEmpty()) {
         hints.insert(QStringLiteral("image-path"), coverPath);
         hints.insert(QStringLiteral("image_path"), coverPath);
@@ -223,7 +223,7 @@ void NotificationManager::showNotification(const QString &station, const QString
     QList<QVariant> args;
     args << QStringLiteral("BearWave")
          << m_lastNotificationId
-         << QStringLiteral("org.kde.bearwave")
+         << QStringLiteral("de.nerdbear.bearwave")
          << summary
          << body
          << QStringList()

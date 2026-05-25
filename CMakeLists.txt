@@ -24,14 +24,14 @@ add_subdirectory(src)
 
 # Configure and install desktop file with correct binary path
 configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/org.kde.bearwave.desktop.in
-    ${CMAKE_CURRENT_BINARY_DIR}/org.kde.bearwave.desktop
+    ${CMAKE_CURRENT_SOURCE_DIR}/de.nerdbear.bearwave.desktop.in
+    ${CMAKE_CURRENT_BINARY_DIR}/de.nerdbear.bearwave.desktop
     @ONLY
 )
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/org.kde.bearwave.desktop DESTINATION share/applications)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/de.nerdbear.bearwave.desktop DESTINATION share/applications)
 
 # Install app icon
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/assets/app/bearwave.png DESTINATION share/icons/hicolor/256x256/apps RENAME org.kde.bearwave.png)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/assets/app/bearwave.png DESTINATION share/icons/hicolor/256x256/apps RENAME de.nerdbear.bearwave.png)
 
 # Install AppStream metadata
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/org.kde.bearwave.metainfo.xml DESTINATION share/metainfo)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/de.nerdbear.bearwave.metainfo.xml DESTINATION share/metainfo)

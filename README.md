@@ -53,8 +53,8 @@ Then launch:
 If you have `flatpak` and `flatpak-builder` installed, you can build and install BearWave via Flatpak:
 
 ```bash
-flatpak-builder build-dir org.kde.bearwave.json --force-clean --user --install
-flatpak run org.kde.bearwave
+flatpak-builder build-dir de.nerdbear.bearwave.json --force-clean --user --install
+flatpak run de.nerdbear.bearwave
 ```
 
 
@@ -194,8 +194,8 @@ kbuildsycoca6
 This installs:
 
 - binary: `~/.local/bin/bearwave`
-- desktop file: `~/.local/share/applications/org.kde.bearwave.desktop`
-- icon: `~/.local/share/icons/hicolor/256x256/apps/org.kde.bearwave.png`
+- desktop file: `~/.local/share/applications/de.nerdbear.bearwave.desktop`
+- icon: `~/.local/share/icons/hicolor/256x256/apps/de.nerdbear.bearwave.png`
 
 Note: the generated desktop file uses the install prefix chosen during `cmake --install`.
 
@@ -262,13 +262,13 @@ Enable autostart:
 
 ```bash
 mkdir -p "$HOME/.config/autostart"
-cp "$HOME/.local/share/applications/org.kde.bearwave.desktop" "$HOME/.config/autostart/"
+cp "$HOME/.local/share/applications/de.nerdbear.bearwave.desktop" "$HOME/.config/autostart/"
 ```
 
 Disable autostart:
 
 ```bash
-rm -f "$HOME/.config/autostart/org.kde.bearwave.desktop"
+rm -f "$HOME/.config/autostart/de.nerdbear.bearwave.desktop"
 ```
 
 ## Troubleshooting

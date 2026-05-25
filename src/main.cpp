@@ -15,12 +15,12 @@
 int main(int argc, char *argv[])
 {
     QApplication::setApplicationName(QStringLiteral("BearWave"));
-    QApplication::setDesktopFileName(QStringLiteral("org.kde.bearwave"));
+    QApplication::setDesktopFileName(QStringLiteral("de.nerdbear.bearwave"));
     QApplication::setOrganizationName(QStringLiteral("BearWave"));
     QApplication::setApplicationVersion(QStringLiteral("1.0.1"));
 
     QApplication app(argc, argv);
-    app.setWindowIcon(QIcon::fromTheme(QStringLiteral("org.kde.bearwave")));
+    app.setWindowIcon(QIcon::fromTheme(QStringLiteral("de.nerdbear.bearwave")));
     app.setQuitOnLastWindowClosed(false);
 
     QTranslator appTranslator;

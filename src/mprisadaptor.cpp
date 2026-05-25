@@ -70,7 +70,7 @@ QString MprisRootAdaptor::identity() const
 
 QString MprisRootAdaptor::desktopEntry() const
 {
-    return QStringLiteral("org.kde.bearwave");
+    return QStringLiteral("de.nerdbear.bearwave");
 }
 
 QStringList MprisRootAdaptor::supportedUriSchemes() const
@@ -231,7 +231,7 @@ QVariantMap MprisPlayerAdaptor::metadata() const
     if (!artUrl.isEmpty()) {
         map.insert(QStringLiteral("mpris:artUrl"), artUrl);
     } else {
-        QString iconPath = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QStringLiteral("icons/hicolor/256x256/apps/org.kde.bearwave.png"));
+        QString iconPath = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QStringLiteral("icons/hicolor/256x256/apps/de.nerdbear.bearwave.png"));
         if (!iconPath.isEmpty()) {
             map.insert(QStringLiteral("mpris:artUrl"), QStringLiteral("file://") + iconPath);
         }

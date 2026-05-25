@@ -1,5 +1,5 @@
 {
-    "app-id": "org.kde.bearwave",
+    "app-id": "de.nerdbear.bearwave",
     "runtime": "org.kde.Platform",
     "runtime-version": "6.6",
     "sdk": "org.kde.Sdk",
