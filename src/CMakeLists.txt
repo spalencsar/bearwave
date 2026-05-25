@@ -11,6 +11,7 @@ set(SOURCES
     mprisadaptor.cpp
     bearwavecontroladaptor.cpp
     notificationmanager.cpp
+    icyreader.cpp
 )
 
 # Create executable

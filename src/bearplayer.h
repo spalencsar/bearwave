@@ -7,7 +7,7 @@
 #include <QMediaPlayer>
 #include <QAudioOutput>
 #include "coverartfetcher.h"
-
+#include "icyreader.h"
 class BearPlayer : public QObject
 {
     Q_OBJECT
@@ -48,6 +48,7 @@ private slots:
     void onMediaStatusChanged(QMediaPlayer::MediaStatus status);
     void onMetaDataChanged();
     void onCoverUrlReady(const QString &url);
+    void onIcyMetaDataReceived(const QString &artist, const QString &title);
 
 private:
     void clearTrackInfo();
@@ -63,6 +64,7 @@ private:
     QString m_lastName;
     QString m_currentCoverArtUrl;
     CoverArtFetcher *m_coverArtFetcher = nullptr;
+    IcyReader *m_icyReader = nullptr;
     int m_retryAttempts = 0;
     bool m_playing = false;
 };

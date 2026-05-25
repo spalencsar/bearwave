@@ -16,6 +16,9 @@ BearPlayer::BearPlayer(QObject *parent)
     m_coverArtFetcher = new CoverArtFetcher(this);
     connect(m_coverArtFetcher, &CoverArtFetcher::coverUrlReady, this, &BearPlayer::onCoverUrlReady);
 
+    m_icyReader = new IcyReader(this);
+    connect(m_icyReader, &IcyReader::metaDataReceived, this, &BearPlayer::onIcyMetaDataReceived);
+
     connect(m_mediaPlayer, &QMediaPlayer::playbackStateChanged,
             this, &BearPlayer::onPlaybackStateChanged);
     connect(m_mediaPlayer, &QMediaPlayer::mediaStatusChanged,
@@ -56,6 +59,7 @@ void BearPlayer::playUrl(const QString &url, const QString &name)
 
     m_mediaPlayer->setSource(QUrl(url));
     m_mediaPlayer->play();
+    m_icyReader->start(url);
 
     qDebug() << "Playing:" << name << url;
 }
@@ -63,6 +67,7 @@ void BearPlayer::playUrl(const QString &url, const QString &name)
 void BearPlayer::stop()
 {
     m_mediaPlayer->stop();
+    m_icyReader->stop();
     m_currentStationName.clear();
     m_lastName.clear();
     m_lastUrl.clear();
@@ -143,6 +148,19 @@ void BearPlayer::onCoverUrlReady(const QString &url)
         m_currentCoverArtUrl = url;
         emit trackInfoChanged();
     }
+}
+
+void BearPlayer::onIcyMetaDataReceived(const QString &artist, const QString &title)
+{
+    if (m_currentTrackArtist == artist && m_currentTrackTitle == title) {
+        return;
+    }
+
+    m_currentTrackArtist = artist;
+    m_currentTrackTitle = title;
+    m_currentCoverArtUrl.clear();
+    m_coverArtFetcher->fetch(artist, title);
+    emit trackInfoChanged();
 }
 
 QString BearPlayer::currentNowPlaying() const
