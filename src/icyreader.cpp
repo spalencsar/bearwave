@@ -25,6 +25,8 @@ void IcyReader::start(const QString &url)
     request.setRawHeader("Icy-MetaData", "1");
     // Some streams require a User-Agent to send ICY metadata
     request.setRawHeader("User-Agent", "VLC/3.0.16 LibVLC/3.0.16");
+    // Streams often use 302 redirects to load balancers/relays
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
 
     m_reply = m_nam->get(request);
 
