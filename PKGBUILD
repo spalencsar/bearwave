@@ -1,30 +1,37 @@
+# Maintainer: Sebastian Palencsar <spalencsar@nerdbear.de>
 pkgname=bearwave-git
-pkgver=1.0.1
+pkgver=1.0.1.r4.ccbf5b4 # Wird von makepkg automatisch aktualisiert
 pkgrel=1
-pkgdesc="A KDE-focused desktop internet radio app"
+pkgdesc="KDE-focused desktop internet radio app"
 arch=('x86_64')
-url="https://github.com/bearwave/bearwave" # Replace with actual URL if different
+url="https://github.com/spalencsar/bearwave"
 license=('MIT')
-depends=('qt6-base' 'qt6-declarative' 'kirigami' 'ki18n' 'kcoreaddons' 'qt6-multimedia')
-makedepends=('cmake' 'extra-cmake-modules' 'git')
+depends=('qt6-base' 'qt6-declarative' 'kirigami' 'ki18n' 'kcoreaddons' 'qt6-multimedia' 'qt6-multimedia-ffmpeg')
+makedepends=('cmake' 'extra-cmake-modules' 'git' 'ninja')
 provides=('bearwave')
 conflicts=('bearwave')
-source=("git+file://${PWD}")
+source=("git+${url}.git")
 md5sums=('SKIP')
 
 pkgver() {
   cd "${srcdir}/${pkgname%-git}"
+  # Holt das letzte Tag (z.B. 1.0.1), die Anzahl der Commits danach und den Hash
+  git describe --long --tags 2>/dev/null | sed 's/\([^-]*-\)g/r\1/;s/-/./g' || \
   printf "1.0.1.r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
 }
 
 build() {
+  # Wechsel auf Ninja spart Build-Zeit auf schwächeren Kisten
   cmake -B build -S "${pkgname%-git}" \
+    -G Ninja \
     -DCMAKE_BUILD_TYPE='Release' \
     -DCMAKE_INSTALL_PREFIX='/usr'
-  cmake --build build -j"$(nproc)"
+  cmake --build build
 }
 
 package() {
   DESTDIR="$pkgdir" cmake --install build
-  install -Dm644 "${pkgname%-git}/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  
+  # Lizenz sauber hinterlegen
+  install -Dm644 "${srcdir}/${pkgname%-git}/LICENSE" "$pkgdir/usr/share/licenses/${pkgname}/LICENSE"
 }
