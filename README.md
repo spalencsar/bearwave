@@ -1,6 +1,6 @@
 # BearWave
 
-KDE-focused desktop internet radio app for Linux, built with Qt 6, QML, KDE Frameworks, and Phonon.
+KDE-focused desktop internet radio app for Linux, built with Qt 6, QML, KDE Frameworks, and QtMultimedia.
 
 BearWave is designed for fast station browsing, simple playback controls, favorites, resume support, tray behavior, and clean Plasma integration without turning into a heavy media suite.
 
@@ -47,6 +47,16 @@ Then launch:
 ```bash
 ~/.local/bin/bearwave
 ```
+
+### Option C: Flatpak (Local Build)
+
+If you have `flatpak` and `flatpak-builder` installed, you can build and install BearWave via Flatpak:
+
+```bash
+flatpak-builder build-dir org.kde.bearwave.json --force-clean --user --install
+flatpak run org.kde.bearwave
+```
+
 
 ## What BearWave Is
 
@@ -98,8 +108,7 @@ Current priorities:
 Current distribution status:
 
 - source repository is the primary delivery format
-- Arch Linux is the best-supported packaging path at the moment
-- no official Flatpak, AppImage, or broad distro release pipeline yet
+- experimental Flatpak manifest included for local sandbox building
 
 ## Platform And Support
 
@@ -118,7 +127,7 @@ BearWave is currently aligned with and tested primarily against:
 - KDE Plasma 6
 - Qt 6
 - KDE Frameworks 6
-- Phonon4Qt6
+- Qt6 Multimedia
 
 If support for other distributions becomes reliable, they should be added here explicitly instead of implied.
 
@@ -139,7 +148,7 @@ BearWave should currently be understood as:
 
 - officially documented for source builds
 - most naturally aligned with Arch Linux packaging
-- likely portable to other Linux distributions with Qt 6 / KF6 / Phonon packages available
+- likely portable to other Linux distributions with Qt 6 / KF6 / QtMultimedia packages available
 - not yet positioned as a broadly packaged consumer desktop app
 
 If you want the least surprising path today, use either:
@@ -153,14 +162,14 @@ If you want the least surprising path today, use either:
 
 ```bash
 sudo pacman -S cmake extra-cmake-modules qt6-base qt6-declarative qt6-tools \
-  kirigami phonon-qt6 phonon-qt6-vlc vlc
+  kirigami qt6-multimedia qt6-multimedia-ffmpeg
 ```
 
 ### KDE Neon / Ubuntu-based
 
 ```bash
 sudo apt install cmake ninja-build qt6-base-dev qt6-declarative-dev qt6-tools-dev \
-  libkf6kirigami-dev libkf6i18n-dev libkf6coreaddons-dev phonon4qt6-dev
+  libkf6kirigami-dev libkf6i18n-dev libkf6coreaddons-dev qt6-multimedia-dev
 ```
 
 Note: exact package names can vary between distro releases, and non-Arch dependency sets should currently be treated as best-effort guidance rather than a guaranteed tested path.
@@ -203,7 +212,7 @@ cmake --build build -j"$(nproc)"
 - Linux desktop session
 - KDE Plasma recommended
 - Qt 6 runtime libraries
-- Phonon4Qt6 with a working backend
+- Qt6 Multimedia backend (e.g. ffmpeg or gstreamer)
 - network access to Radio Browser instances
 
 ## Usage
@@ -266,8 +275,7 @@ rm -f "$HOME/.config/autostart/org.kde.bearwave.desktop"
 
 ### No audio playback
 
-- ensure `phonon-qt6` and `phonon-qt6-vlc` or equivalent are installed
-- ensure `vlc` is installed
+- ensure `qt6-multimedia` and a backend like `qt6-multimedia-ffmpeg` or `gst-plugins-good` are installed
 - test another station URL because some streams go offline
 
 ### App icon or launcher entry not updating

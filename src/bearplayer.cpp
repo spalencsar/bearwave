@@ -2,36 +2,25 @@
 
 #include <QUrl>
 #include <QDebug>
+#include <QMediaMetaData>
 
-namespace {
-QString firstMetaValue(const QMultiMap<QString, QString> &meta, const QStringList &keys)
-{
-    for (const QString &key : keys) {
-        if (meta.contains(key)) {
-            const QString value = meta.value(key).trimmed();
-            if (!value.isEmpty()) {
-                return value;
-            }
-        }
-    }
-    return QString();
-}
-}
+
 
 BearPlayer::BearPlayer(QObject *parent)
     : QObject(parent)
 {
-    m_mediaObject = new Phonon::MediaObject(this);
-    m_audioOutput = new Phonon::AudioOutput(Phonon::MusicCategory, this);
+    m_audioOutput = new QAudioOutput(this);
+    m_mediaPlayer = new QMediaPlayer(this);
+    m_mediaPlayer->setAudioOutput(m_audioOutput);
 
     m_coverArtFetcher = new CoverArtFetcher(this);
     connect(m_coverArtFetcher, &CoverArtFetcher::coverUrlReady, this, &BearPlayer::onCoverUrlReady);
 
-    Phonon::createPath(m_mediaObject, m_audioOutput);
-
-    connect(m_mediaObject, &Phonon::MediaObject::stateChanged,
-            this, &BearPlayer::onStateChanged);
-    connect(m_mediaObject, &Phonon::MediaObject::metaDataChanged,
+    connect(m_mediaPlayer, &QMediaPlayer::playbackStateChanged,
+            this, &BearPlayer::onPlaybackStateChanged);
+    connect(m_mediaPlayer, &QMediaPlayer::mediaStatusChanged,
+            this, &BearPlayer::onMediaStatusChanged);
+    connect(m_mediaPlayer, &QMediaPlayer::metaDataChanged,
             this, &BearPlayer::onMetaDataChanged);
 
     m_retryTimer.setSingleShot(true);
@@ -41,8 +30,8 @@ BearPlayer::BearPlayer(QObject *parent)
             return;
         }
         ++m_retryAttempts;
-        m_mediaObject->setCurrentSource(QUrl(m_lastUrl));
-        m_mediaObject->play();
+        m_mediaPlayer->setSource(QUrl(m_lastUrl));
+        m_mediaPlayer->play();
         qDebug() << "Retry stream" << m_retryAttempts << m_lastName;
     });
 }
@@ -65,15 +54,15 @@ void BearPlayer::playUrl(const QString &url, const QString &name)
     emit currentStationChanged(m_currentStationName);
     clearTrackInfo();
 
-    m_mediaObject->setCurrentSource(QUrl(url));
-    m_mediaObject->play();
+    m_mediaPlayer->setSource(QUrl(url));
+    m_mediaPlayer->play();
 
     qDebug() << "Playing:" << name << url;
 }
 
 void BearPlayer::stop()
 {
-    m_mediaObject->stop();
+    m_mediaPlayer->stop();
     m_currentStationName.clear();
     m_lastName.clear();
     m_lastUrl.clear();
@@ -85,9 +74,9 @@ void BearPlayer::stop()
 void BearPlayer::togglePlayPause()
 {
     if (m_playing) {
-        m_mediaObject->pause();
+        m_mediaPlayer->pause();
     } else {
-        m_mediaObject->play();
+        m_mediaPlayer->play();
     }
 }
 
@@ -97,18 +86,23 @@ void BearPlayer::setVolume(qreal vol)
     emit volumeChanged(m_audioOutput->volume());
 }
 
-void BearPlayer::onStateChanged(int state)
+void BearPlayer::onPlaybackStateChanged(QMediaPlayer::PlaybackState state)
 {
-    switch (state) {
-    case 2:
-        m_playing = true;
-        break;
-    default:
-        m_playing = false;
-        scheduleRetry();
-        break;
-    }
+    m_playing = (state == QMediaPlayer::PlayingState);
     emit playingChanged(m_playing);
+
+    if (state == QMediaPlayer::StoppedState) {
+        scheduleRetry();
+    }
+}
+
+void BearPlayer::onMediaStatusChanged(QMediaPlayer::MediaStatus status)
+{
+    if (status == QMediaPlayer::InvalidMedia) {
+        m_playing = false;
+        emit playingChanged(m_playing);
+        scheduleRetry();
+    }
 }
 
 void BearPlayer::scheduleRetry()
@@ -123,27 +117,14 @@ void BearPlayer::scheduleRetry()
 
 void BearPlayer::onMetaDataChanged()
 {
-    const QMultiMap<QString, QString> meta = m_mediaObject->metaData();
+    QMediaMetaData meta = m_mediaPlayer->metaData();
 
-    const QString artist = firstMetaValue(meta, {
-        QStringLiteral("ARTIST"),
-        QStringLiteral("artist"),
-        QStringLiteral("Artist")
-    });
-
-    QString title = firstMetaValue(meta, {
-        QStringLiteral("TITLE"),
-        QStringLiteral("title"),
-        QStringLiteral("Title")
-    });
-
-    if (title.isEmpty()) {
-        title = firstMetaValue(meta, {
-            QStringLiteral("icy-title"),
-            QStringLiteral("Icy-Title"),
-            QStringLiteral("StreamTitle")
-        });
+    QString artist = meta.stringValue(QMediaMetaData::ContributingArtist);
+    if (artist.isEmpty()) {
+        artist = meta.stringValue(QMediaMetaData::Author);
     }
+
+    QString title = meta.stringValue(QMediaMetaData::Title);
 
     if (m_currentTrackArtist == artist && m_currentTrackTitle == title) {
         return;

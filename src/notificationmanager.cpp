@@ -45,9 +45,11 @@ void NotificationManager::onTrackInfoChanged()
     if (artist.isEmpty() && title.isEmpty()) {
         m_notifyTimer.stop();
         if (m_currentReply) {
-            m_currentReply->abort();
-            m_currentReply->deleteLater();
+            QNetworkReply *reply = m_currentReply;
             m_currentReply = nullptr;
+            reply->disconnect(this);
+            reply->abort();
+            reply->deleteLater();
         }
         closeNotification();
         m_lastArtist.clear();
@@ -64,9 +66,11 @@ void NotificationManager::onTrackInfoChanged()
     if (trackChanged) {
         m_notifyTimer.stop();
         if (m_currentReply) {
-            m_currentReply->abort();
-            m_currentReply->deleteLater();
+            QNetworkReply *reply = m_currentReply;
             m_currentReply = nullptr;
+            reply->disconnect(this);
+            reply->abort();
+            reply->deleteLater();
         }
         m_lastArtist = artist;
         m_lastTitle = title;
@@ -115,9 +119,11 @@ void NotificationManager::onTrackInfoChanged()
 void NotificationManager::downloadCover(const QString &url)
 {
     if (m_currentReply) {
-        m_currentReply->abort();
-        m_currentReply->deleteLater();
+        QNetworkReply *reply = m_currentReply;
         m_currentReply = nullptr;
+        reply->disconnect(this);
+        reply->abort();
+        reply->deleteLater();
     }
 
     m_pendingCoverUrl = url;

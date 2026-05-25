@@ -4,8 +4,8 @@
 #include <QObject>
 #include <QTimer>
 
-#include <phonon4qt6/phonon/MediaObject>
-#include <phonon4qt6/phonon/AudioOutput>
+#include <QMediaPlayer>
+#include <QAudioOutput>
 #include "coverartfetcher.h"
 
 class BearPlayer : public QObject
@@ -44,7 +44,8 @@ signals:
     void trackInfoChanged();
 
 private slots:
-    void onStateChanged(int state);
+    void onPlaybackStateChanged(QMediaPlayer::PlaybackState state);
+    void onMediaStatusChanged(QMediaPlayer::MediaStatus status);
     void onMetaDataChanged();
     void onCoverUrlReady(const QString &url);
 
@@ -52,8 +53,8 @@ private:
     void clearTrackInfo();
     void scheduleRetry();
 
-    Phonon::MediaObject *m_mediaObject = nullptr;
-    Phonon::AudioOutput *m_audioOutput = nullptr;
+    QMediaPlayer *m_mediaPlayer = nullptr;
+    QAudioOutput *m_audioOutput = nullptr;
     QTimer m_retryTimer;
     QString m_currentStationName;
     QString m_currentTrackTitle;

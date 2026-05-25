@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.kde.bearwave</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  
+  <name>BearWave</name>
+  <summary>KDE-focused desktop internet radio app</summary>
+  
+  <description>
+    <p>
+      BearWave is designed for fast station browsing, simple playback controls, favorites, resume support, tray behavior, and clean Plasma integration without turning into a heavy media suite.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>Internet radio via the Radio Browser API with local JSON caching</li>
+      <li>Station pages for Top, Germany, Netherlands, and quick world/genre filters</li>
+      <li>Local search and filtering by name, genre, and country</li>
+      <li>Sorting by name, bitrate, and votes</li>
+      <li>Favorites with persistent local storage</li>
+      <li>Playback metadata display when streams provide it</li>
+      <li>Resume support for last station and volume</li>
+      <li>MPRIS integration for Plasma media controls and media keys</li>
+      <li>System tray integration for background playback</li>
+      <li>Desktop notifications for song/track changes with local cover art caching</li>
+    </ul>
+  </description>
+  
+  <launchable type="desktop-id">org.kde.bearwave.desktop</launchable>
+  
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/spalencsar/bearwave/main/screenshots/screen01.png</image>
+      <caption>Main window displaying radio categories</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/spalencsar/bearwave/main/screenshots/screen02.png</image>
+      <caption>Station browser and search filters</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/spalencsar/bearwave/main/screenshots/screen03.png</image>
+      <caption>The About dialog showing application info</caption>
+    </screenshot>
+  </screenshots>
+  
+  <url type="homepage">https://github.com/spalencsar/bearwave</url>
+  <url type="bugtracker">https://github.com/spalencsar/bearwave/issues</url>
+  
+  <developer_name>Sebastian (spalencsar)</developer_name>
+  
+  <provides>
+    <binary>bearwave</binary>
+  </provides>
+  
+  <releases>
+    <release version="1.0.1" date="2026-05-23">
+      <description>
+        <ul>
+          <li>Fixed NotificationManager crash (segfault)</li>
+          <li>Migrated to modern QtMultimedia engine from legacy Phonon</li>
+          <li>Added Flatpak manifest and build support</li>
+          <li>Added debounced online search</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+</component>
