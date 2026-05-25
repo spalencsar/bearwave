@@ -56,8 +56,10 @@ void IcyReader::onReadyRead()
     if (m_metaInt == 0) {
         if (m_reply->hasRawHeader("icy-metaint")) {
             m_metaInt = m_reply->rawHeader("icy-metaint").toInt();
+            qDebug() << "ICYREADER: Found icy-metaint =" << m_metaInt;
         } else {
             // No ICY metadata supported by stream
+            qDebug() << "ICYREADER: No icy-metaint header found!";
             return;
         }
     }
@@ -132,6 +134,9 @@ void IcyReader::parseMetaData(const QByteArray &metaData)
             title = fullTitle;
         }
 
+        qDebug() << "ICYREADER: PARSED METADATA -> Artist:" << artist << "Title:" << title;
         emit metaDataReceived(artist, title);
+    } else {
+        qDebug() << "ICYREADER: Regex failed on string:" << metaString;
     }
 }

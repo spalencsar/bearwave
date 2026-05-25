@@ -6,6 +6,8 @@
 #include <QDBusReply>
 #include <QDBusMessage>
 #include <QDBusConnection>
+#include <QDBusPendingCallWatcher>
+#include <QDBusPendingReply>
 #include <QDir>
 #include <QFile>
 #include <QCryptographicHash>
@@ -230,17 +232,21 @@ void NotificationManager::showNotification(const QString &station, const QString
          << hints
          << -1;
 
-    QDBusReply<uint> dbusReply = notifyInterface.callWithArgumentList(
-        QDBus::Block,
+    QDBusPendingCall pcall = notifyInterface.asyncCallWithArgumentList(
         QStringLiteral("Notify"),
         args
     );
 
-    if (dbusReply.isValid()) {
-        m_lastNotificationId = dbusReply.value();
-    } else {
-        qWarning() << "Failed to send notification via DBus:" << dbusReply.error().message();
-    }
+    QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(pcall, this);
+    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this](QDBusPendingCallWatcher *watcher) {
+        watcher->deleteLater();
+        QDBusPendingReply<uint> reply = *watcher;
+        if (reply.isValid()) {
+            m_lastNotificationId = reply.value();
+        } else {
+            qWarning() << "Failed to send notification via DBus:" << reply.error().message();
+        }
+    });
 }
 
 void NotificationManager::closeNotification()

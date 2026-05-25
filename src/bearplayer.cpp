@@ -131,6 +131,11 @@ void BearPlayer::onMetaDataChanged()
 
     QString title = meta.stringValue(QMediaMetaData::Title);
 
+    // Ignore completely empty metadata from QMediaPlayer so we don't overwrite IcyReader
+    if (artist.isEmpty() && title.isEmpty()) {
+        return;
+    }
+
     if (m_currentTrackArtist == artist && m_currentTrackTitle == title) {
         return;
     }
