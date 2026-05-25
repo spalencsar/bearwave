@@ -115,7 +115,8 @@ void IcyReader::parseMetaData(const QByteArray &metaData)
         return;
 
     // Format usually is: StreamTitle='Artist - Song';StreamUrl='';
-    QRegularExpression re("StreamTitle='([^']*)';");
+    // Use non-greedy match (.*?) to allow apostrophes in the title
+    QRegularExpression re("StreamTitle='(.*?)';");
     QRegularExpressionMatch match = re.match(metaString);
     
     if (match.hasMatch()) {
