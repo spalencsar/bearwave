@@ -95,6 +95,7 @@ void RadioBrowser::makeRequest(const QString &endpoint)
     QNetworkRequest request;
     request.setUrl(url);
     request.setHeader(QNetworkRequest::UserAgentHeader, "BearWave/1.0");
+    request.setTransferTimeout(10000);
 
     QNetworkReply *reply = m_networkManager->get(request);
     reply->setProperty("cachePath", cachePath);

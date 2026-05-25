@@ -32,7 +32,7 @@ private slots:
 
 private:
     QNetworkAccessManager *m_networkManager = nullptr;
-    QString m_baseUrl = "https://de1.api.radio-browser.info/json";
+    QString m_baseUrl = "https://all.api.radio-browser.info/json";
 
     void makeRequest(const QString &endpoint);
     QList<RadioStation*> parseJsonResponse(const QByteArray &jsonData);
