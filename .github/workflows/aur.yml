@@ -1,0 +1,22 @@
+name: Publish to AUR
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  aur-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Publish bearwave-git to AUR
+        uses: KSXGitHub/github-actions-deploy-aur@v3
+        with:
+          pkgname: bearwave-git
+          pkgbuild: ./PKGBUILD
+          commit_username: ${{ secrets.AUR_USERNAME }}
+          commit_email: moin@nerdbear.de
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: "Update AUR package via GitHub Actions"
+          ssh_keyscan_types: rsa,ecdsa,ed25519
