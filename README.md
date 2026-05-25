@@ -28,13 +28,14 @@ Screenshots: KDE Plasma on Linux.
 
 Two sensible paths right now:
 
-### Option A: Arch Linux
+### Option A: Arch Linux (AUR)
 
-Use the included `PKGBUILD`:
+BearWave is officially available in the Arch User Repository as `bearwave-git`. You can easily install it using an AUR helper like `yay` or `paru`:
 
 ```bash
-makepkg -si
+yay -S bearwave-git
 ```
+*(Alternatively, you can build from the included `PKGBUILD` locally by running `makepkg -si`)*
 
 ### Option B: Local source build
 
