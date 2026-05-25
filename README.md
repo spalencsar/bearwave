@@ -20,7 +20,7 @@ BearWave is designed for fast station browsing, simple playback controls, favori
 Screenshots: KDE Plasma on Linux.
 
 ### Demo Video
-<video controls src="https://github.com/spalencsar/bearwave/raw/main/screens/bearwave_flathub.mp4" width="100%"></video>
+👉 [**Click here to watch the Flatpak Demo Video**](https://github.com/spalencsar/bearwave/raw/main/screens/bearwave_flathub.mp4)
 
 ---
 
