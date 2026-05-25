@@ -1,4 +1,4 @@
-# Maintainer: Sebastian Palencsar <spalencsar@nerdbear.de>
+# Maintainer: Sebastian Palencsar <moin@nerdbear.de>
 pkgname=bearwave-git
 pkgver=1.0.1.r4.ccbf5b4 # Wird von makepkg automatisch aktualisiert
 pkgrel=1
