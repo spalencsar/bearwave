@@ -52,6 +52,8 @@
   
   <developer_name>Sebastian (spalencsar)</developer_name>
   
+  <content_rating type="oars-1.1" />
+
   <provides>
     <binary>bearwave</binary>
   </provides>
