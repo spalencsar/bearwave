@@ -204,8 +204,8 @@
       <translation>LinkedIn öffnen</translation>
     </message>
     <message>
-      <source>MIT License</source>
-      <translation>MIT License</translation>
+      <source>GNU GPLv3 License</source>
+      <translation>GNU GPLv3-Lizenz</translation>
     </message>
     <message>
       <source>Copyright (c) 2026</source>

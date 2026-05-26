@@ -8,7 +8,7 @@ BearWave is designed for fast station browsing, simple playback controls, favori
 ![Linux](https://img.shields.io/badge/platform-Linux-blue)
 ![KDE Plasma](https://img.shields.io/badge/desktop-KDE%20Plasma-1f6feb)
 ![Qt 6](https://img.shields.io/badge/Qt-6-41cd52)
-![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)
+![License: GPL--3.0--or--later](https://img.shields.io/badge/license-GPL--3.0--or--later-lightgrey)
 
 ## Screenshots
 
@@ -91,7 +91,7 @@ BearWave intentionally does not aim to be:
 - MPRIS integration for Plasma media controls and media keys
 - system tray integration for background playback
 - desktop notifications for song/track changes with local cover art caching
-- embedded About dialog with links and MIT license text
+- embedded About dialog with links and GNU GPLv3 license text
 
 ## Project Status
 
@@ -330,4 +330,4 @@ For contributor and agent guardrails, see `AGENTS.md`.
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+This project is licensed under the GNU GPL-3.0-or-later. See [LICENSE](LICENSE) for details.

@@ -5,6 +5,7 @@ AGENTS.md
 build/
 build-ci/
 build-arch-ci/
+build-dir/
 cmake-build-*/
 
 ## CMake artifacts
@@ -28,6 +29,16 @@ Makefile
 
 ## Runtime files
 *.log
+test-*.json
+
+## Packaging artifacts
+pkg/
+src/bearwave/
+bearwave/
+*.pkg.tar.zst
+*.pkg.tar.zst.sig
+*.pkg.tar.xz
+*.pkg.tar.xz.sig
 
 ## Local caches / user state
 .cache/
