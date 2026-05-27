@@ -48,3 +48,6 @@ org.kde.bearwave.desktop
 
 ## OS noise
 .DS_Store
+
+## Local Flatpak backup
+flatpak_backup/
