@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Sebastian Palencsar
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #ifndef COVERARTFETCHER_H
 #define COVERARTFETCHER_H
 

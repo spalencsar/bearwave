@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Sebastian Palencsar
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "icyreader.h"
 #include <QNetworkRequest>
 #include <QDebug>

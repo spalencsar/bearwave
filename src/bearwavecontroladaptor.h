@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Sebastian Palencsar
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #ifndef BEARWAVECONTROLADAPTOR_H
 #define BEARWAVECONTROLADAPTOR_H
 

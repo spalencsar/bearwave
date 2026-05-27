@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Sebastian Palencsar
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #ifndef BEARPLAYER_H
 #define BEARPLAYER_H
 
