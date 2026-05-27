@@ -19,9 +19,6 @@ BearWave is designed for fast station browsing, simple playback controls, favori
 
 Screenshots: KDE Plasma on Linux.
 
-### Demo Video
-👉 [**Click here to watch the Flatpak Demo Video**](https://github.com/spalencsar/bearwave/raw/main/screens/bearwave_flathub.mp4)
-
 ---
 
 ## Quick Start
@@ -50,16 +47,6 @@ Then launch:
 ```bash
 ~/.local/bin/bearwave
 ```
-
-### Option C: Flatpak (Local Build)
-
-If you have `flatpak` and `flatpak-builder` installed, you can build and install BearWave via Flatpak:
-
-```bash
-flatpak-builder build-dir de.nerdbear.bearwave.json --force-clean --user --install
-flatpak run de.nerdbear.bearwave
-```
-
 
 ## What BearWave Is
 
@@ -111,7 +98,6 @@ Current priorities:
 Current distribution status:
 
 - source repository is the primary delivery format
-- experimental Flatpak manifest included for local sandbox building
 
 ## Platform And Support
 
