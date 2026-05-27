@@ -8,38 +8,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- SPDX license identifiers (GPL-3.0-or-later) to all source code files.
-- OARS content rating metadata to the AppStream configuration.
+
+- SPDX license identifiers (GPL-3.0-or-later) to all source files.
 
 ### Changed
+
 - Relicensed the project from MIT to GNU GPLv3 (GPL-3.0-or-later).
 
 ### Fixed
-- Fixed a metadata overwrite bug where the media player would clear valid ICY stream metadata.
-- Fixed a DBus crash (segmentation fault) under KDE Plasma Wayland by making notification requests fully asynchronous.
-- Fixed a regex parser bug that failed to extract stream titles containing apostrophes.
+
+- Fixed infinite loading of radio stations by adding transfer timeout and using `all.api.radio-browser.info`.
+- Fixed metadata overwrite bug where valid ICY stream metadata was being cleared.
+- Fixed DBus crash (segmentation fault) under KDE Plasma Wayland by making notification requests asynchronous.
+- Fixed regex parser bug with stream titles containing apostrophes.
 
 ---
 
 ## [1.0.1] - 2026-05-22
 
 ### Added
-- Added debounced online search for radio stations.
+
+- Debounced online search for radio stations.
 
 ### Changed
-- Migrated playback engine from the legacy Phonon backend to modern QtMultimedia.
+
+- Migrated playback engine from legacy Phonon to modern QtMultimedia.
 
 ### Fixed
-- Fixed a crash (segmentation fault) inside `NotificationManager`.
+
+- Fixed crash (segmentation fault) inside NotificationManager.
 
 ---
 
 ## [1.0.0-beta.1] - 2026-05-20
 
 ### Added
-- Initial public beta release of BearWave.
-- C++ state and playback engine with system tray integration.
-- Kirigami/QML user interface with compact and non-compact views.
-- MPRIS integration for desktop media keys and lock screen controls.
-- Persistent favorites and volume state settings.
-- Cover art fetcher integration.
+
+- Initial public beta release.
+- C++ backend with system tray integration.
+- Kirigami/QML based user interface.
+- MPRIS integration for media controls.
+- Persistent favorites and volume settings.
+- Cover art fetching and caching.
