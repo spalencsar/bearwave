@@ -59,6 +59,19 @@
   </provides>
   
   <releases>
+    <release version="1.0.2" date="2026-05-28">
+      <description>
+        <ul>
+          <li>Fixed crash in IcyReader when changing or stopping streams</li>
+          <li>Fixed metadata overwrite bug where valid ICY stream metadata was cleared</li>
+          <li>Fixed DBus crash under KDE Plasma Wayland</li>
+          <li>Fixed regex parser bug with stream titles containing apostrophes</li>
+          <li>Fixed infinite loading of radio stations by adding transfer timeout</li>
+          <li>Added single instance check via DBus</li>
+          <li>Added SPDX license identifiers and relicensed to GPL-3.0-or-later</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.1" date="2026-05-23">
       <description>
         <ul>

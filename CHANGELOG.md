@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-05-28
+
 ### Added
 
 - SPDX license identifiers (GPL-3.0-or-later) to all source files.
