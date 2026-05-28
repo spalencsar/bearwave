@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed metadata overwrite bug where valid ICY stream metadata was being cleared.
 - Fixed DBus crash (segmentation fault) under KDE Plasma Wayland by making notification requests asynchronous.
 - Fixed regex parser bug with stream titles containing apostrophes.
+- Fixed crash (segmentation fault) in IcyReader when changing or stopping streams.
 
 ---
 

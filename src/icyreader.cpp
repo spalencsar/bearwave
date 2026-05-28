@@ -40,9 +40,10 @@ void IcyReader::start(const QString &url)
 void IcyReader::stop()
 {
     if (m_reply) {
-        m_reply->abort();
-        m_reply->deleteLater();
+        QNetworkReply *reply = m_reply;
         m_reply = nullptr;
+        reply->abort();
+        reply->deleteLater();
     }
     m_state = ReadingAudio;
     m_metaInt = 0;
@@ -106,8 +107,9 @@ void IcyReader::onReadyRead()
 void IcyReader::onFinished()
 {
     if (m_reply) {
-        m_reply->deleteLater();
+        QNetworkReply *reply = m_reply;
         m_reply = nullptr;
+        reply->deleteLater();
     }
 }
 
