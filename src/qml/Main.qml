@@ -20,6 +20,15 @@ ApplicationWindow {
         root.hide()
     }
 
+    Connections {
+        target: backend
+        function onRaiseRequested() {
+            root.show()
+            root.raise()
+            root.requestActivate()
+        }
+    }
+
     Platform.SystemTrayIcon {
         id: systray
         visible: true

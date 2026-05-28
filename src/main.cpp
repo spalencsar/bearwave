@@ -3,6 +3,8 @@
 
 #include <QApplication>
 #include <QDBusConnection>
+#include <QDBusConnectionInterface>
+#include <QDBusMessage>
 #include <QIcon>
 #include <QLocale>
 #include <QQmlApplicationEngine>
@@ -23,6 +25,18 @@ int main(int argc, char *argv[])
     QApplication::setApplicationVersion(QStringLiteral("1.0.1"));
 
     QApplication app(argc, argv);
+
+    QDBusConnection sessionBus = QDBusConnection::sessionBus();
+    if (sessionBus.isConnected() && sessionBus.interface() && sessionBus.interface()->isServiceRegistered(QStringLiteral("org.mpris.MediaPlayer2.bearwave"))) {
+        QDBusMessage call = QDBusMessage::createMethodCall(
+            QStringLiteral("org.mpris.MediaPlayer2.bearwave"),
+            QStringLiteral("/org/mpris/MediaPlayer2"),
+            QStringLiteral("org.mpris.MediaPlayer2"),
+            QStringLiteral("Raise")
+        );
+        sessionBus.call(call);
+        return 0;
+    }
     app.setWindowIcon(QIcon::fromTheme(QStringLiteral("de.nerdbear.bearwave")));
     app.setQuitOnLastWindowClosed(false);
 
@@ -45,7 +59,6 @@ int main(int argc, char *argv[])
     Q_UNUSED(controlAdaptor)
     Q_UNUSED(notificationManager)
 
-    QDBusConnection sessionBus = QDBusConnection::sessionBus();
     sessionBus.registerObject(QStringLiteral("/org/mpris/MediaPlayer2"), &backend, QDBusConnection::ExportAdaptors);
     sessionBus.registerService(QStringLiteral("org.mpris.MediaPlayer2.bearwave"));
 

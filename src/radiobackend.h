@@ -83,6 +83,7 @@ signals:
     void resumeStateChanged();
     void filterQueryChanged();
     void currentStationChanged();
+    void raiseRequested();
 
 private slots:
     void onStationsLoaded(const QList<RadioStation*> &stations);

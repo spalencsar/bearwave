@@ -58,7 +58,7 @@ bool MprisRootAdaptor::canSetFullscreen() const
 
 bool MprisRootAdaptor::canRaise() const
 {
-    return false;
+    return true;
 }
 
 bool MprisRootAdaptor::hasTrackList() const
@@ -94,6 +94,7 @@ QStringList MprisRootAdaptor::supportedMimeTypes() const
 
 void MprisRootAdaptor::Raise()
 {
+    emit m_backend->raiseRequested();
 }
 
 void MprisRootAdaptor::Quit()

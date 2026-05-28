@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - SPDX license identifiers (GPL-3.0-or-later) to all source files.
+- Single instance application check via DBus to prevent multiple concurrent instances.
 
 ### Changed
 
