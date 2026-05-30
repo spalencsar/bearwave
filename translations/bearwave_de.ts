@@ -223,6 +223,50 @@
       <source>Play some stations to build history</source>
       <translation>Spiele Sender ab, um einen Verlauf aufzubauen</translation>
     </message>
+    <message>
+      <source>← Back to Categories</source>
+      <translation>← Zurück zu den Kategorien</translation>
+    </message>
+    <message>
+      <source>World &gt; Country: </source>
+      <translation>Welt &gt; Land: </translation>
+    </message>
+    <message>
+      <source>World &gt; Genre: </source>
+      <translation>Welt &gt; Genre: </translation>
+    </message>
+    <message>
+      <source>Explore World Stations</source>
+      <translation>Weltweite Sender entdecken</translation>
+    </message>
+    <message>
+      <source>Filter countries...</source>
+      <translation>Länder filtern...</translation>
+    </message>
+    <message>
+      <source>Choose a country or music style to find radio stations from all over the world.</source>
+      <translation>Wähle ein Land oder eine Musikrichtung, um Radiosender aus der ganzen Welt zu finden.</translation>
+    </message>
+    <message>
+      <source>Countries</source>
+      <translation>Länder</translation>
+    </message>
+    <message>
+      <source>Filtered Countries</source>
+      <translation>Gefilterte Länder</translation>
+    </message>
+    <message>
+      <source>Popular Music Styles</source>
+      <translation>Beliebte Musikrichtungen</translation>
+    </message>
+    <message>
+      <source>Top Global</source>
+      <translation>Weltweite Top-Sender</translation>
+    </message>
+    <message>
+      <source>stations</source>
+      <translation>Sender</translation>
+    </message>
   </context>
   <context>
     <name>RadioBackend</name>

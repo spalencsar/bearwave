@@ -8,6 +8,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QList>
+#include <QVariantList>
 
 #include "radiostation.h"
 
@@ -25,9 +26,11 @@ public:
     void getWorldStations(int count = 200);
     void getGermanStations();
     void getDutchStations();
+    void getCountries();
 
 signals:
     void stationsLoaded(const QList<RadioStation*> &stations);
+    void countriesLoaded(const QVariantList &countries);
     void error(const QString &message);
 
 private slots:
@@ -39,6 +42,7 @@ private:
 
     void makeRequest(const QString &endpoint);
     QList<RadioStation*> parseJsonResponse(const QByteArray &jsonData);
+    QVariantList parseCountriesJson(const QByteArray &jsonData);
 };
 
 #endif

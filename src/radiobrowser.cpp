@@ -77,6 +77,11 @@ void RadioBrowser::getDutchStations()
     makeRequest(endpoint);
 }
 
+void RadioBrowser::getCountries()
+{
+    makeRequest("/countries");
+}
+
 void RadioBrowser::makeRequest(const QString &endpoint)
 {
     const QString cacheDir = apiCacheDir();
@@ -87,9 +92,16 @@ void RadioBrowser::makeRequest(const QString &endpoint)
     QFile cacheFile(cachePath);
     if (cacheFile.exists() && cacheFile.open(QIODevice::ReadOnly)) {
         QByteArray cachedData = cacheFile.readAll();
-        QList<RadioStation*> stations = parseJsonResponse(cachedData);
-        if (!stations.isEmpty()) {
-            emit stationsLoaded(stations);
+        if (endpoint == "/countries") {
+            QVariantList list = parseCountriesJson(cachedData);
+            if (!list.isEmpty()) {
+                emit countriesLoaded(list);
+            }
+        } else {
+            QList<RadioStation*> stations = parseJsonResponse(cachedData);
+            if (!stations.isEmpty()) {
+                emit stationsLoaded(stations);
+            }
         }
         cacheFile.close();
     }
@@ -122,19 +134,61 @@ void RadioBrowser::onReplyFinished()
     }
 
     QByteArray data = reply->readAll();
-    QList<RadioStation*> stations = parseJsonResponse(data);
-
     QString cachePath = reply->property("cachePath").toString();
-    if (!cachePath.isEmpty() && !stations.isEmpty()) {
-        QFile file(cachePath);
-        if (file.open(QIODevice::WriteOnly)) {
-            file.write(data);
-            file.close();
+
+    if (reply->url().path().endsWith("/countries")) {
+        QVariantList list = parseCountriesJson(data);
+        if (!cachePath.isEmpty() && !list.isEmpty()) {
+            QFile file(cachePath);
+            if (file.open(QIODevice::WriteOnly)) {
+                file.write(data);
+                file.close();
+            }
+        }
+        emit countriesLoaded(list);
+    } else {
+        QList<RadioStation*> stations = parseJsonResponse(data);
+        if (!cachePath.isEmpty() && !stations.isEmpty()) {
+            QFile file(cachePath);
+            if (file.open(QIODevice::WriteOnly)) {
+                file.write(data);
+                file.close();
+            }
+        }
+        emit stationsLoaded(stations);
+    }
+    reply->deleteLater();
+}
+
+QVariantList RadioBrowser::parseCountriesJson(const QByteArray &jsonData)
+{
+    QVariantList countries;
+    QJsonDocument doc = QJsonDocument::fromJson(jsonData);
+    if (!doc.isArray()) {
+        return countries;
+    }
+
+    QJsonArray array = doc.array();
+    for (const QJsonValue &value : array) {
+        if (value.isObject()) {
+            QJsonObject obj = value.toObject();
+            QString name = obj.value("name").toString();
+            QString code = obj.value("iso_3166_1").toString();
+            int count = obj.value("stationcount").toInt();
+
+            if (name.isEmpty() || code.isEmpty() || count <= 0) {
+                continue;
+            }
+
+            QVariantMap map;
+            map["name"] = name;
+            map["code"] = code;
+            map["count"] = count;
+            countries.append(map);
         }
     }
 
-    emit stationsLoaded(stations);
-    reply->deleteLater();
+    return countries;
 }
 
 QList<RadioStation*> RadioBrowser::parseJsonResponse(const QByteArray &jsonData)

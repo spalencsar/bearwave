@@ -16,6 +16,7 @@ BearWave is designed for fast station browsing, simple playback controls, favori
 | --- | --- |
 | ![Main Window](screenshots/screen01.png) | ![Station Browser](screenshots/screen02.png) |
 | ![About Dialog](screenshots/screen03.png) | ![Additional View](screenshots/screen04.png) |
+| ![World View](screenshots/screen05.png) | |
 
 Screenshots: KDE Plasma on Linux.
 
@@ -71,7 +72,8 @@ BearWave intentionally does not aim to be:
 ## Features
 
 - internet radio via the Radio Browser API with local JSON caching
-- station pages for Top, Germany, Netherlands, and quick world/genre filters
+- station pages for Top, Germany, Netherlands, and a dynamic World Categories dashboard
+- interactive World View to search/browse stations by country flags and popular genre tags
 - local search and filtering by name, genre, and country
 - sorting by name, bitrate, and votes
 - favorites with persistent local storage

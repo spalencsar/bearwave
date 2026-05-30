@@ -59,6 +59,16 @@
   </provides>
   
   <releases>
+    <release version="1.0.3" date="2026-05-30">
+      <description>
+        <ul>
+          <li>Added dynamic World Categories dashboard showing country flags and popular genre tags</li>
+          <li>Added country name localization support for German systems</li>
+          <li>Added local API caching for countries retrieved from Radio Browser</li>
+          <li>Optimized Categories view layout to prevent text clipping</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.2" date="2026-05-28">
       <description>
         <ul>

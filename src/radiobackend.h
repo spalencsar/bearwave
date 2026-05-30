@@ -31,6 +31,7 @@ class RadioBackend : public QObject
     Q_PROPERTY(QString currentStationUuid READ currentStationUuid NOTIFY currentStationChanged)
     Q_PROPERTY(QString currentStationUrl READ currentStationUrl NOTIFY currentStationChanged)
     Q_PROPERTY(QObject* currentStation READ currentStation NOTIFY currentStationChanged)
+    Q_PROPERTY(QVariantList countries READ countries NOTIFY countriesChanged)
 
 public:
     explicit RadioBackend(QObject *parent = nullptr);
@@ -54,6 +55,7 @@ public:
     Q_INVOKABLE void loadDutchStations();
     Q_INVOKABLE void loadTopStations();
     Q_INVOKABLE void loadWorldStations();
+    Q_INVOKABLE void loadCountries();
     Q_INVOKABLE void loadByTag(const QString &tag);
     Q_INVOKABLE void loadByCountryCode(const QString &countryCode);
     Q_INVOKABLE void searchStations(const QString &query);
@@ -74,6 +76,8 @@ public:
     Q_INVOKABLE bool playFavoriteByUuid(const QString &uuid, const QString &urlResolved = QString());
     Q_INVOKABLE void resumeLastStation();
 
+    QVariantList countries() const { return m_countries; }
+
 signals:
     void stationsChanged();
     void favoritesChanged();
@@ -84,9 +88,11 @@ signals:
     void filterQueryChanged();
     void currentStationChanged();
     void raiseRequested();
+    void countriesChanged();
 
 private slots:
     void onStationsLoaded(const QList<RadioStation*> &stations);
+    void onCountriesLoaded(const QVariantList &countries);
 
 private:
     RadioBrowser *m_radioBrowser = nullptr;
@@ -104,6 +110,7 @@ private:
     QVariantList m_recentStations;
     QString m_currentStationUuid;
     QString m_currentStationUrl;
+    QVariantList m_countries;
 
     void setupConnections();
     void loadFavorites();
@@ -119,6 +126,7 @@ private:
     void playCurrentSelection();
     static QVariantMap toVariantMap(const RadioStation *station);
     static bool matchesStation(const RadioStation *station, const QString &uuid, const QString &urlResolved);
+    static QString localizeCountry(const QString &code, const QString &englishName);
 };
 
 #endif

@@ -81,6 +81,9 @@ ApplicationWindow {
     property bool compactMode: width < 780
     property real contentOpacity: 1.0
     property string activeQuickFilter: ""
+    property string selectedWorldCategory: ""
+    property string selectedWorldType: ""
+    property string countrySearchText: ""
 
     readonly property color bgA: "#0f141b"
     readonly property color bgB: "#131b25"
@@ -93,9 +96,50 @@ ApplicationWindow {
     readonly property color textMuted: "#9eb1c9"
     readonly property color warn: "#ff8b8b"
 
+    readonly property var worldTags: [
+        { name: qsTr("Pop"), tag: "pop", icon: "🎵" },
+        { name: qsTr("Rock"), tag: "rock", icon: "🎸" },
+        { name: qsTr("Electronic"), tag: "electronic", icon: "🎹" },
+        { name: qsTr("Classical"), tag: "classical", icon: "🎻" },
+        { name: qsTr("Jazz"), tag: "jazz", icon: "🎷" },
+        { name: qsTr("Metal"), tag: "metal", icon: "🤘" },
+        { name: qsTr("Hip Hop"), tag: "hiphop", icon: "🎤" },
+        { name: qsTr("Chillout"), tag: "chillout", icon: "🌴" },
+        { name: qsTr("News / Talk"), tag: "news", icon: "📻" },
+        { name: qsTr("Soundtracks"), tag: "soundtrack", icon: "🎬" },
+        { name: qsTr("Ambient"), tag: "ambient", icon: "🌌" },
+        { name: qsTr("Blues / Soul"), tag: "blues", icon: "🎺" }
+    ]
+
     function toast(message) {
         toastLabel.text = message
         toastPopup.open()
+    }
+
+    function getFilteredCountries() {
+        if (!backend || !backend.countries) return [];
+        var query = countrySearchText.toLowerCase().trim();
+        var list = [];
+        if (query === "") {
+            list.push({ name: qsTr("Top Global"), code: "GLOBAL" });
+        }
+        for (var i = 0; i < backend.countries.length; i++) {
+            var c = backend.countries[i];
+            if (query === "" || c.name.toLowerCase().indexOf(query) !== -1 || c.code.toLowerCase().indexOf(query) !== -1) {
+                list.push(c);
+            }
+        }
+        return list;
+    }
+
+    function getFlagEmoji(countryCode) {
+        if (!countryCode || countryCode.length !== 2) return "🌎";
+        var codeUpper = countryCode.toUpperCase();
+        var codePoints = [];
+        for (var i = 0; i < codeUpper.length; i++) {
+            codePoints.push(127397 + codeUpper.charCodeAt(i));
+        }
+        return String.fromCodePoint.apply(null, codePoints);
     }
 
     function activeModel() {
@@ -106,6 +150,8 @@ ApplicationWindow {
             return backend.favoriteStations
         } else if (currentPage === "history") {
             return backend.recentStations
+        } else if (currentPage === "world" && selectedWorldCategory === "") {
+            return []
         } else {
             return backend.stations
         }
@@ -114,6 +160,11 @@ ApplicationWindow {
     onCurrentPageChanged: {
         contentOpacity = 0.85
         contentFadeRestart.restart()
+        if (currentPage !== "world") {
+            selectedWorldCategory = ""
+            selectedWorldType = ""
+            countrySearchText = ""
+        }
     }
 
     Shortcut {
@@ -596,7 +647,11 @@ ApplicationWindow {
                             if (!backend) return
                             currentPage = "world"
                             activeQuickFilter = "world"
-                            backend.loadWorldStations()
+                            selectedWorldCategory = ""
+                            selectedWorldType = ""
+                            if (backend.countries.length === 0) {
+                                backend.loadCountries()
+                            }
                         }
                     }
 
@@ -714,7 +769,11 @@ ApplicationWindow {
                                 if (!backend) return
                                 currentPage = "world"
                                 activeQuickFilter = "world"
-                                backend.loadWorldStations()
+                                selectedWorldCategory = ""
+                                selectedWorldType = ""
+                                if (backend.countries.length === 0) {
+                                    backend.loadCountries()
+                                }
                             }
                         }
                     }
@@ -744,217 +803,84 @@ ApplicationWindow {
                 NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
             }
 
-            ScrollView {
-                id: stationScrollView
+            ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: 10
-                clip: true
-                ScrollBar.vertical.policy: ScrollBar.AlwaysOn
+                spacing: 10
 
-                ListView {
-                    id: stationList
-                    width: stationScrollView.availableWidth
-                    spacing: 8
-                    model: activeModel()
-                    visible: count > 0
+                RowLayout {
+                    id: worldHeader
+                    Layout.fillWidth: true
+                    visible: currentPage === "world" && selectedWorldCategory !== ""
+                    spacing: 12
 
-                    delegate: Rectangle {
-                        id: stationCard
-                        required property int index
-                        required property var modelData
+                    Button {
+                        text: qsTr("← Back to Categories")
+                        onClicked: {
+                            selectedWorldCategory = ""
+                            selectedWorldType = ""
+                        }
+                    }
+
+                    Label {
+                        text: selectedWorldType === "country"
+                              ? (qsTr("World > Country: ") + selectedWorldCategory)
+                              : (qsTr("World > Genre: ") + selectedWorldCategory)
+                        color: textMain
+                        font.bold: true
+                        font.pixelSize: 13
+                        Layout.fillWidth: true
+                        elide: Text.ElideRight
+                    }
+                }
+
+                ScrollView {
+                    id: stationScrollView
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    visible: !(currentPage === "world" && selectedWorldCategory === "")
+                    clip: true
+                    ScrollBar.vertical.policy: ScrollBar.AlwaysOn
+
+                    ListView {
+                        id: stationList
                         width: stationScrollView.availableWidth
-                        height: compactMode ? 72 : 78
-                        radius: 10
+                        spacing: 8
+                        model: activeModel()
+                        visible: count > 0
 
-                        readonly property bool isCurrent: {
-                            if (!backend || !modelData) return false;
-                            var currentUuid = backend.currentStationUuid;
-                            var currentUrl = backend.currentStationUrl;
-                            var cardUuid = modelData.uuid || "";
-                            var cardUrl = modelData.urlResolved || modelData.url || "";
-                            if (currentUuid !== "" && cardUuid !== "") {
-                                return currentUuid === cardUuid;
+                        delegate: Rectangle {
+                            id: stationCard
+                            required property int index
+                            required property var modelData
+                            width: stationScrollView.availableWidth
+                            height: compactMode ? 72 : 78
+                            radius: 10
+
+                            readonly property bool isCurrent: {
+                                if (!backend || !modelData) return false;
+                                var currentUuid = backend.currentStationUuid;
+                                var currentUrl = backend.currentStationUrl;
+                                var cardUuid = modelData.uuid || "";
+                                var cardUrl = modelData.urlResolved || modelData.url || "";
+                                if (currentUuid !== "" && cardUuid !== "") {
+                                    return currentUuid === cardUuid;
+                                }
+                                return currentUrl !== "" && currentUrl === cardUrl;
                             }
-                            return currentUrl !== "" && currentUrl === cardUrl;
-                        }
-                        readonly property bool isPlaying: isCurrent && backend && backend.player && backend.player.playing
+                            readonly property bool isPlaying: isCurrent && backend && backend.player && backend.player.playing
 
-                        color: stationCard.isCurrent
-                            ? (cardMouse.containsMouse ? "#1d3350" : "#16283e")
-                            : (cardMouse.containsMouse ? cardHover : card)
-                        border.color: stationCard.isCurrent ? accent : cardBorder
-                        border.width: stationCard.isCurrent ? 2 : 1
+                            color: stationCard.isCurrent
+                                ? (cardMouse.containsMouse ? "#1d3350" : "#16283e")
+                                : (cardMouse.containsMouse ? cardHover : card)
+                            border.color: stationCard.isCurrent ? accent : cardBorder
+                            border.width: stationCard.isCurrent ? 2 : 1
 
-                        MouseArea {
-                            id: cardMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            acceptedButtons: Qt.LeftButton
-                            onClicked: {
-                                if (!backend) return
-                                if (stationCard.isCurrent) {
-                                    backend.player.togglePlayPause()
-                                } else {
-                                    if (currentPage === "favorites") {
-                                        backend.playFavoriteStation(index)
-                                    } else if (currentPage === "history") {
-                                        backend.playRecentByUuid(modelData.uuid, modelData.urlResolved)
-                                    } else {
-                                        backend.playStation(index)
-                                    }
-                                }
-                            }
-                        }
-
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.margins: 10
-                            spacing: 10
-
-                            Rectangle {
-                                Layout.preferredWidth: 44
-                                Layout.preferredHeight: 44
-                                radius: 8
-                                color: "#123154"
-                                border.color: accent
-
-                                Image {
-                                    id: stationFavicon
-                                    anchors.fill: parent
-                                    anchors.margins: 3
-                                    source: (stationCard.modelData.favicon && stationCard.modelData.favicon.startsWith("https://"))
-                                            ? stationCard.modelData.favicon
-                                            : ""
-                                    fillMode: Image.PreserveAspectFit
-                                    asynchronous: true
-                                    cache: true
-                                    visible: source !== "" && status === Image.Ready
-                                }
-
-                                Image {
-                                    anchors.fill: parent
-                                    anchors.margins: 6
-                                    source: "qrc:/assets/app/bearwave.png"
-                                    fillMode: Image.PreserveAspectFit
-                                    smooth: true
-                                    visible: !stationFavicon.visible
-                                }
-                            }
-
-                            ColumnLayout {
-                                Layout.fillWidth: true
-                                spacing: 2
-
-                                RowLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 6
-
-                                    Label {
-                                        Layout.fillWidth: true
-                                        text: stationCard.modelData.name
-                                        color: stationCard.isCurrent ? accent : textMain
-                                        font.bold: true
-                                        font.pixelSize: compactMode ? 13 : 14
-                                        elide: Text.ElideRight
-                                    }
-
-                                    Row {
-                                        id: eqAnimation
-                                        spacing: 2
-                                        Layout.alignment: Qt.AlignVCenter
-                                        visible: stationCard.isPlaying
-
-                                        Rectangle {
-                                            id: bar1
-                                            width: 2
-                                            height: 12
-                                            color: accent
-                                            radius: 1
-                                            Behavior on height {
-                                                NumberAnimation { duration: 120 }
-                                            }
-                                        }
-                                        Rectangle {
-                                            id: bar2
-                                            width: 2
-                                            height: 12
-                                            color: accent
-                                            radius: 1
-                                            Behavior on height {
-                                                NumberAnimation { duration: 120 }
-                                            }
-                                        }
-                                        Rectangle {
-                                            id: bar3
-                                            width: 2
-                                            height: 12
-                                            color: accent
-                                            radius: 1
-                                            Behavior on height {
-                                                NumberAnimation { duration: 120 }
-                                            }
-                                        }
-
-                                        Timer {
-                                            interval: 150
-                                            running: stationCard.isPlaying
-                                            repeat: true
-                                            onTriggered: {
-                                                bar1.height = Math.floor(Math.random() * 11) + 3
-                                                bar2.height = Math.floor(Math.random() * 11) + 3
-                                                bar3.height = Math.floor(Math.random() * 11) + 3
-                                            }
-                                        }
-
-                                        onVisibleChanged: {
-                                            if (!visible) {
-                                                bar1.height = 12
-                                                bar2.height = 12
-                                                bar3.height = 12
-                                            }
-                                        }
-                                    }
-                                }
-
-                                Label {
-                                    Layout.fillWidth: true
-                                    text: stationCard.modelData.country + "  •  "
-                                          + (stationCard.modelData.codec && stationCard.modelData.codec !== "unknown" && stationCard.modelData.codec !== "" ? stationCard.modelData.codec.toUpperCase() + "  •  " : "")
-                                          + (stationCard.modelData.bitrate > 0 ? stationCard.modelData.bitrate + " kbps" : qsTr("Stream"))
-                                    color: textMuted
-                                    font.pixelSize: 11
-                                    elide: Text.ElideRight
-                                }
-                            }
-
-                            Button {
-                                visible: !stationCard.modelData.uuid
-                                Layout.preferredWidth: compactMode ? 34 : 40
-                                Layout.preferredHeight: 40
-                                text: "✏"
-                                ToolTip.visible: hovered
-                                ToolTip.text: qsTr("Edit Station")
-                                onClicked: {
-                                    editDialog.stationObject = stationCard.modelData
-                                    editDialog.setupAndOpen()
-                                }
-                            }
-
-                            Button {
-                                Layout.preferredWidth: compactMode ? 34 : 40
-                                Layout.preferredHeight: 40
-                                text: stationCard.modelData.isFavorite ? "★" : "☆"
-                                onClicked: {
-                                    if (!backend) return
-                                    backend.toggleFavoriteById(stationCard.modelData.uuid, stationCard.modelData.urlResolved)
-                                    toast(stationCard.modelData.isFavorite ? qsTr("Removed from favorites") : qsTr("Added to favorites"))
-                                }
-                            }
-
-                            Button {
-                                Layout.preferredWidth: compactMode ? 34 : 40
-                                Layout.preferredHeight: 40
-                                text: (stationCard.isCurrent && backend && backend.player && backend.player.playing) ? "⏸" : "▶"
+                            MouseArea {
+                                id: cardMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                acceptedButtons: Qt.LeftButton
                                 onClicked: {
                                     if (!backend) return
                                     if (stationCard.isCurrent) {
@@ -970,15 +896,395 @@ ApplicationWindow {
                                     }
                                 }
                             }
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.margins: 10
+                                spacing: 10
+
+                                Rectangle {
+                                    Layout.preferredWidth: 44
+                                    Layout.preferredHeight: 44
+                                    radius: 8
+                                    color: "#123154"
+                                    border.color: accent
+
+                                    Image {
+                                        id: stationFavicon
+                                        anchors.fill: parent
+                                        anchors.margins: 3
+                                        source: (stationCard.modelData.favicon && stationCard.modelData.favicon.startsWith("https://"))
+                                                ? stationCard.modelData.favicon
+                                                : ""
+                                        fillMode: Image.PreserveAspectFit
+                                        asynchronous: true
+                                        cache: true
+                                        visible: source !== "" && status === Image.Ready
+                                    }
+
+                                    Image {
+                                        anchors.fill: parent
+                                        anchors.margins: 6
+                                        source: "qrc:/assets/app/bearwave.png"
+                                        fillMode: Image.PreserveAspectFit
+                                        smooth: true
+                                        visible: !stationFavicon.visible
+                                    }
+                                }
+
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 2
+
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 6
+
+                                        Label {
+                                            Layout.fillWidth: true
+                                            text: stationCard.modelData.name
+                                            color: stationCard.isCurrent ? accent : textMain
+                                            font.bold: true
+                                            font.pixelSize: compactMode ? 13 : 14
+                                            elide: Text.ElideRight
+                                        }
+
+                                        Row {
+                                            id: eqAnimation
+                                            spacing: 2
+                                            Layout.alignment: Qt.AlignVCenter
+                                            visible: stationCard.isPlaying
+
+                                            Rectangle {
+                                                id: bar1
+                                                width: 2
+                                                height: 12
+                                                color: accent
+                                                radius: 1
+                                                Behavior on height {
+                                                    NumberAnimation { duration: 120 }
+                                                }
+                                            }
+                                            Rectangle {
+                                                id: bar2
+                                                width: 2
+                                                height: 12
+                                                color: accent
+                                                radius: 1
+                                                Behavior on height {
+                                                    NumberAnimation { duration: 120 }
+                                                }
+                                            }
+                                            Rectangle {
+                                                id: bar3
+                                                width: 2
+                                                height: 12
+                                                color: accent
+                                                radius: 1
+                                                Behavior on height {
+                                                    NumberAnimation { duration: 120 }
+                                                }
+                                            }
+
+                                            Timer {
+                                                interval: 150
+                                                running: stationCard.isPlaying
+                                                repeat: true
+                                                onTriggered: {
+                                                    bar1.height = Math.floor(Math.random() * 11) + 3
+                                                    bar2.height = Math.floor(Math.random() * 11) + 3
+                                                    bar3.height = Math.floor(Math.random() * 11) + 3
+                                                }
+                                            }
+
+                                            onVisibleChanged: {
+                                                if (!visible) {
+                                                    bar1.height = 12
+                                                    bar2.height = 12
+                                                    bar3.height = 12
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    Label {
+                                        Layout.fillWidth: true
+                                        text: stationCard.modelData.country + "  •  "
+                                              + (stationCard.modelData.codec && stationCard.modelData.codec !== "unknown" && stationCard.modelData.codec !== "" ? stationCard.modelData.codec.toUpperCase() + "  •  " : "")
+                                              + (stationCard.modelData.bitrate > 0 ? stationCard.modelData.bitrate + " kbps" : qsTr("Stream"))
+                                        color: textMuted
+                                        font.pixelSize: 11
+                                        elide: Text.ElideRight
+                                    }
+                                }
+
+                                Button {
+                                    visible: !stationCard.modelData.uuid
+                                    Layout.preferredWidth: compactMode ? 34 : 40
+                                    Layout.preferredHeight: 40
+                                    text: "✏"
+                                    ToolTip.visible: hovered
+                                    ToolTip.text: qsTr("Edit Station")
+                                    onClicked: {
+                                        editDialog.stationObject = stationCard.modelData
+                                        editDialog.setupAndOpen()
+                                    }
+                                }
+
+                                Button {
+                                    Layout.preferredWidth: compactMode ? 34 : 40
+                                    Layout.preferredHeight: 40
+                                    text: stationCard.modelData.isFavorite ? "★" : "☆"
+                                    onClicked: {
+                                        if (!backend) return
+                                        backend.toggleFavoriteById(stationCard.modelData.uuid, stationCard.modelData.urlResolved)
+                                        toast(stationCard.modelData.isFavorite ? qsTr("Removed from favorites") : qsTr("Added to favorites"))
+                                    }
+                                }
+
+                                Button {
+                                    Layout.preferredWidth: compactMode ? 34 : 40
+                                    Layout.preferredHeight: 40
+                                    text: (stationCard.isCurrent && backend && backend.player && backend.player.playing) ? "⏸" : "▶"
+                                    onClicked: {
+                                        if (!backend) return
+                                        if (stationCard.isCurrent) {
+                                            backend.player.togglePlayPause()
+                                        } else {
+                                            if (currentPage === "favorites") {
+                                                backend.playFavoriteStation(index)
+                                            } else if (currentPage === "history") {
+                                                backend.playRecentByUuid(modelData.uuid, modelData.urlResolved)
+                                            } else {
+                                                backend.playStation(index)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
-            }
+                }
+
+                ScrollView {
+                    id: categoriesScrollView
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    visible: currentPage === "world" && selectedWorldCategory === ""
+                    clip: true
+                    ScrollBar.vertical.policy: ScrollBar.AsNeeded
+
+                    Column {
+                        width: categoriesScrollView.availableWidth - 12
+                        spacing: 16
+
+                        RowLayout {
+                            width: parent.width
+                            spacing: 10
+
+                            Label {
+                                text: qsTr("Explore World Stations")
+                                font.bold: true
+                                font.pixelSize: 16
+                                color: textMain
+                                Layout.fillWidth: true
+                            }
+
+                            TextField {
+                                id: countryFilterInput
+                                placeholderText: qsTr("Filter countries...")
+                                font.pixelSize: 11
+                                Layout.preferredWidth: compactMode ? 140 : 200
+                                text: countrySearchText
+                                onTextChanged: countrySearchText = text
+                            }
+                        }
+
+                        Label {
+                            text: qsTr("Choose a country or music style to find radio stations from all over the world.")
+                            font.pixelSize: 11
+                            color: textMuted
+                            wrapMode: Text.WordWrap
+                            width: parent.width
+                            visible: countrySearchText === ""
+                        }
+
+                        Rectangle {
+                            width: parent.width
+                            height: 1
+                            color: cardBorder
+                            opacity: 0.4
+                            visible: countrySearchText === ""
+                        }
+
+                        Label {
+                            text: countrySearchText === "" ? qsTr("Countries") : qsTr("Filtered Countries")
+                            font.bold: true
+                            font.pixelSize: 13
+                            color: accent
+                        }
+
+                        Flow {
+                            id: countryFlow
+                            width: parent.width
+                            spacing: 8
+
+                            Repeater {
+                                model: getFilteredCountries()
+                                delegate: Rectangle {
+                                    id: countryCard
+                                    width: compactMode ? (countryFlow.width - 8) / 2 : (countryFlow.width - 16) / 3
+                                    height: 62
+                                    radius: 8
+                                    color: countryMouse.containsMouse ? cardHover : card
+                                    border.color: countryMouse.containsMouse ? accent : cardBorder
+                                    border.width: 1
+                                    scale: countryMouse.containsMouse ? 1.02 : 1.0
+
+                                    Behavior on color { ColorAnimation { duration: 100 } }
+                                    Behavior on border.color { ColorAnimation { duration: 100 } }
+                                    Behavior on scale { NumberAnimation { duration: 100; easing.type: Easing.OutQuad } }
+
+                                    MouseArea {
+                                        id: countryMouse
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        onClicked: {
+                                            selectedWorldCategory = modelData.name
+                                            selectedWorldType = "country"
+                                            if (modelData.code === "GLOBAL") {
+                                                backend.loadWorldStations()
+                                            } else {
+                                                backend.loadByCountryCode(modelData.code)
+                                            }
+                                        }
+                                    }
+
+                                    Row {
+                                        anchors.fill: parent
+                                        anchors.leftMargin: 12
+                                        anchors.rightMargin: 12
+                                        spacing: 12
+
+                                        Label {
+                                            text: modelData.code === "GLOBAL" ? "🌎" : getFlagEmoji(modelData.code)
+                                            font.pixelSize: 26
+                                            anchors.verticalCenter: parent.verticalCenter
+                                        }
+
+                                        Column {
+                                            width: parent.width - 38 // 26 (emoji) + 12 (spacing)
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            spacing: 2
+
+                                            Label {
+                                                width: parent.width
+                                                text: modelData.name
+                                                color: textMain
+                                                font.bold: true
+                                                font.pixelSize: 13
+                                                elide: Text.ElideRight
+                                            }
+
+                                            Label {
+                                                width: parent.width
+                                                text: modelData.code === "GLOBAL" ? qsTr("Top 200") :
+                                                      (modelData.count ? modelData.count + " " + qsTr("stations") : modelData.code)
+                                                color: textMuted
+                                                font.pixelSize: 10
+                                                elide: Text.ElideRight
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Column {
+                            width: parent.width
+                            spacing: 16
+                            visible: countrySearchText === ""
+
+                            Rectangle {
+                                width: parent.width
+                                height: 1
+                                color: cardBorder
+                                opacity: 0.4
+                            }
+
+                            Label {
+                                text: qsTr("Popular Music Styles")
+                                font.bold: true
+                                font.pixelSize: 13
+                                color: accent
+                            }
+
+                            Flow {
+                                id: tagFlow
+                                width: parent.width
+                                spacing: 8
+
+                                Repeater {
+                                    model: worldTags
+                                    delegate: Rectangle {
+                                        id: tagCard
+                                        width: compactMode ? (tagFlow.width - 8) / 2 : (tagFlow.width - 16) / 3
+                                        height: 54
+                                        radius: 8
+                                        color: tagMouse.containsMouse ? cardHover : card
+                                        border.color: tagMouse.containsMouse ? accent : cardBorder
+                                        border.width: 1
+                                        scale: tagMouse.containsMouse ? 1.02 : 1.0
+
+                                        Behavior on color { ColorAnimation { duration: 100 } }
+                                        Behavior on border.color { ColorAnimation { duration: 100 } }
+                                        Behavior on scale { NumberAnimation { duration: 100; easing.type: Easing.OutQuad } }
+
+                                        MouseArea {
+                                            id: tagMouse
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            onClicked: {
+                                                selectedWorldCategory = modelData.name
+                                                selectedWorldType = "tag"
+                                                backend.loadByTag(modelData.tag)
+                                            }
+                                        }
+
+                                        Row {
+                                            anchors.fill: parent
+                                            anchors.leftMargin: 12
+                                            anchors.rightMargin: 12
+                                            spacing: 12
+
+                                            Label {
+                                                text: modelData.icon
+                                                font.pixelSize: 22
+                                                anchors.verticalCenter: parent.verticalCenter
+                                            }
+
+                                            Label {
+                                                width: parent.width - 34 // 22 (icon) + 12 (spacing)
+                                                text: modelData.name
+                                                color: textMain
+                                                font.bold: true
+                                                font.pixelSize: 13
+                                                elide: Text.ElideRight
+                                                anchors.verticalCenter: parent.verticalCenter
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             Column {
                 anchors.centerIn: parent
                 spacing: 8
-                visible: stationList.count === 0
+                visible: stationList.count === 0 && !(currentPage === "world" && selectedWorldCategory === "")
 
                 Label {
                     text: currentPage === "history" ? qsTr("No playback history") : qsTr("No stations loaded yet")
