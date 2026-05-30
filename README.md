@@ -58,7 +58,7 @@ If you are running an immutable Linux distribution (like Fedora Silverblue, Stea
 
 ```bash
 # Add the BearWave repository
-flatpak remote-add --user --no-gpg-verify bearwave-repo https://flatpak.bearwave.app/bearwave.flatpakrepo
+flatpak remote-add --user bearwave-repo https://flatpak.bearwave.app/bearwave.flatpakrepo
 
 # Install the application
 flatpak install bearwave-repo de.nerdbear.bearwave
