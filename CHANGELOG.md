@@ -7,13 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- Flatpak build manifest and deployment guides for hosting an independent repository.
-
 ## [1.0.3] - 2026-05-30
 
 ### Added
 
+- Flatpak build manifest and deployment guides for hosting an independent, GPG-signed repository at `flatpak.bearwave.app`.
 - Dynamic World Categories dashboard showing country flags and popular genre tags.
 - Dynamic country name localization mapping for German translation support.
 - Local JSON caching for countries retrieved from the Radio Browser API.
