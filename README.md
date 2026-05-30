@@ -12,15 +12,16 @@ BearWave is designed for fast station browsing, simple playback controls, favori
 
 ## Screenshots
 
-| Main window | Station browser |
-| --- | --- |
-| ![Main Window](screenshots/screen01.png) | ![Station Browser](screenshots/screen02.png) |
+| Main window                               | Station browser                              |
+| ----------------------------------------- | -------------------------------------------- |
+| ![Main Window](screenshots/screen01.png)  | ![Station Browser](screenshots/screen02.png) |
 | ![About Dialog](screenshots/screen03.png) | ![Additional View](screenshots/screen04.png) |
-| ![World View](screenshots/screen05.png) | |
+| ![World View](screenshots/screen05.png)   |                                              |
 
 Screenshots: KDE Plasma on Linux.
 
 ### Demo Video
+
 👉 [**Click here to watch the Demo Video**](https://github.com/spalencsar/bearwave/raw/main/screens/bearwave_demo.mp4)
 
 ---
@@ -36,7 +37,8 @@ BearWave is officially available in the Arch User Repository as `bearwave-git`. 
 ```bash
 yay -S bearwave-git
 ```
-*(Alternatively, you can build from the included `PKGBUILD` locally by running `makepkg -si`)*
+
+_(Alternatively, you can build from the included `PKGBUILD` locally by running `makepkg -si`)_
 
 ### Option B: Local source build
 
