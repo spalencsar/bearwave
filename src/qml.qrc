@@ -7,6 +7,11 @@
         <file>qml/components/HeaderNavigation.qml</file>
         <file>qml/components/SearchToolbar.qml</file>
         <file>qml/components/QuickFilters.qml</file>
+        <file>qml/components/StationCard.qml</file>
+        <file>qml/components/WorldCategoryHeader.qml</file>
+        <file>qml/components/WorldCategories.qml</file>
+        <file>qml/components/PlayerBar.qml</file>
+        <file>qml/components/AboutDialog.qml</file>
         <file>qml/utils/FlagUtils.js</file>
     </qresource>
     <qresource prefix="/">

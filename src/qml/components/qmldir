@@ -1,3 +1,8 @@
 HeaderNavigation 1.0 HeaderNavigation.qml
 SearchToolbar 1.0 SearchToolbar.qml
 QuickFilters 1.0 QuickFilters.qml
+StationCard 1.0 StationCard.qml
+WorldCategoryHeader 1.0 WorldCategoryHeader.qml
+WorldCategories 1.0 WorldCategories.qml
+PlayerBar 1.0 PlayerBar.qml
+AboutDialog 1.0 AboutDialog.qml
