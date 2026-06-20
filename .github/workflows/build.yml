@@ -27,14 +27,10 @@ jobs:
               pacman -S --noconfirm --needed \
                 base-devel \
                 cmake \
-                extra-cmake-modules \
                 git \
                 qt6-base \
                 qt6-declarative \
                 qt6-tools \
-                kirigami \
-                kcoreaddons \
-                ki18n \
                 qt6-multimedia \
                 qt6-multimedia-ffmpeg
               cmake -S . -B build -DCMAKE_BUILD_TYPE=Release

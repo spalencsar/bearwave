@@ -74,6 +74,8 @@ class MprisPlayerAdaptor : public QDBusAbstractAdaptor
 public:
     explicit MprisPlayerAdaptor(RadioBackend *backend);
 
+    void publishState();
+
     QString playbackStatus() const;
     double rate() const;
     void setRate(double value);

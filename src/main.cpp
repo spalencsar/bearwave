@@ -5,16 +5,19 @@
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
 #include <QDBusMessage>
+#include <QDebug>
 #include <QIcon>
 #include <QLocale>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQuickWindow>
 #include <QTranslator>
 
 #include "radiobackend.h"
 #include "mprisadaptor.h"
 #include "bearwavecontroladaptor.h"
 #include "notificationmanager.h"
+#include "systemtraymanager.h"
 
 
 int main(int argc, char *argv[])
@@ -50,17 +53,22 @@ int main(int argc, char *argv[])
     RadioBackend backend;
     engine.rootContext()->setContextProperty("radioBackend", &backend);
 
-    MprisRootAdaptor mprisRoot(&backend, &app);
-    MprisPlayerAdaptor mprisPlayer(&backend);
-    BearWaveControlAdaptor controlAdaptor(&backend);
-    NotificationManager notificationManager(&backend);
+    auto *mprisRoot = new MprisRootAdaptor(&backend, &app);
+    auto *mprisPlayer = new MprisPlayerAdaptor(&backend);
+    auto *controlAdaptor = new BearWaveControlAdaptor(&backend);
+    auto *notificationManager = new NotificationManager(&backend, &backend);
     Q_UNUSED(mprisRoot)
-    Q_UNUSED(mprisPlayer)
     Q_UNUSED(controlAdaptor)
     Q_UNUSED(notificationManager)
 
-    sessionBus.registerObject(QStringLiteral("/org/mpris/MediaPlayer2"), &backend, QDBusConnection::ExportAdaptors);
-    sessionBus.registerService(QStringLiteral("org.mpris.MediaPlayer2.bearwave"));
+    if (!sessionBus.registerObject(QStringLiteral("/org/mpris/MediaPlayer2"), &backend, QDBusConnection::ExportAdaptors)) {
+        qWarning() << "Failed to register MPRIS D-Bus object";
+    }
+    if (!sessionBus.registerService(QStringLiteral("org.mpris.MediaPlayer2.bearwave"))) {
+        qWarning() << "Failed to register MPRIS D-Bus service org.mpris.MediaPlayer2.bearwave";
+    } else {
+        mprisPlayer->publishState();
+    }
 
     const QUrl url(QStringLiteral("qrc:/Main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
@@ -76,6 +84,15 @@ int main(int argc, char *argv[])
     if (engine.rootObjects().isEmpty()) {
         return EXIT_FAILURE;
     }
+
+    QQuickWindow *mainWindow = qobject_cast<QQuickWindow *>(engine.rootObjects().constFirst());
+    if (!mainWindow) {
+        qCritical("Failed to obtain main window");
+        return EXIT_FAILURE;
+    }
+
+    SystemTrayManager trayManager(&backend, mainWindow, &app);
+    Q_UNUSED(trayManager)
 
     return app.exec();
 }

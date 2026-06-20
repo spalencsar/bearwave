@@ -5,7 +5,6 @@
 #define RADIOBACKEND_H
 
 #include <QObject>
-#include <QQmlEngine>
 #include <QList>
 #include <QVariantMap>
 #include <QVariantList>
@@ -102,6 +101,8 @@ private:
     QList<RadioStation*> m_favorites;
     int m_currentIndex = -1;
     bool m_currentFromFavorites = false;
+    bool m_currentFromHistory = false;
+    bool m_standalonePlayback = false;
     bool m_loading = false;
     QString m_lastError;
     QString m_lastStationName;
@@ -111,8 +112,10 @@ private:
     QString m_currentStationUuid;
     QString m_currentStationUrl;
     QVariantList m_countries;
+    bool m_currentLoadSatisfied = false;
 
     void setupConnections();
+    void beginLoad();
     void loadFavorites();
     void saveFavorites() const;
     void loadState();
@@ -124,8 +127,12 @@ private:
     void rebuildFilteredStations(bool emitFilterSignal = true);
     void recordRecentStation(const QVariantMap &stationData);
     void playCurrentSelection();
+    void playHistoryAtIndex(int index, bool updateRecent);
+    void syncStationListIndex();
     static QVariantMap toVariantMap(const RadioStation *station);
     static bool matchesStation(const RadioStation *station, const QString &uuid, const QString &urlResolved);
+    static bool matchesStationMap(const QVariantMap &station, const QString &uuid, const QString &urlResolved);
+    static int recentStationIndex(const QVariantList &recent, const QString &uuid, const QString &urlResolved);
     static QString localizeCountry(const QString &code, const QString &englishName);
 };
 

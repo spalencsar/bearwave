@@ -59,8 +59,12 @@ void RadioBackend::setupConnections()
     connect(m_radioBrowser, &RadioBrowser::error,
             this, [this](const QString &error) {
         qWarning() << "RadioBrowser error:" << error;
-        setLastError(error);
         setLoading(false);
+        if (!m_currentLoadSatisfied) {
+            setLastError(error);
+        } else {
+            setLastError(QString());
+        }
     });
 
     connect(m_player, &BearPlayer::currentStationChanged, this, [this](const QString &name) {
@@ -102,38 +106,46 @@ void RadioBackend::onStationsLoaded(const QList<RadioStation*> &stations)
     });
 
     rebuildFilteredStations(false);
+    syncStationListIndex();
+    m_currentLoadSatisfied = true;
     setLastError(QString());
     setLoading(false);
     qDebug() << "Loaded" << stations.size() << "stations";
 }
 
+void RadioBackend::beginLoad()
+{
+    m_currentLoadSatisfied = false;
+    setLoading(true);
+}
+
 void RadioBackend::loadGermanStations()
 {
-    setLoading(true);
+    beginLoad();
     m_radioBrowser->getGermanStations();
 }
 
 void RadioBackend::loadDutchStations()
 {
-    setLoading(true);
+    beginLoad();
     m_radioBrowser->getDutchStations();
 }
 
 void RadioBackend::loadTopStations()
 {
-    setLoading(true);
+    beginLoad();
     m_radioBrowser->getTopStations(100);
 }
 
 void RadioBackend::loadWorldStations()
 {
-    setLoading(true);
+    beginLoad();
     m_radioBrowser->getWorldStations(200);
 }
 
 void RadioBackend::loadCountries()
 {
-    setLoading(true);
+    beginLoad();
     m_radioBrowser->getCountries();
 }
 
@@ -152,6 +164,8 @@ void RadioBackend::onCountriesLoaded(const QVariantList &countries)
         return QString::localeAwareCompare(a.toMap()["name"].toString(), b.toMap()["name"].toString()) < 0;
     });
     emit countriesChanged();
+    m_currentLoadSatisfied = true;
+    setLastError(QString());
     setLoading(false);
 }
 
@@ -160,7 +174,7 @@ void RadioBackend::loadByTag(const QString &tag)
     if (tag.trimmed().isEmpty()) {
         return;
     }
-    setLoading(true);
+    beginLoad();
     m_radioBrowser->getByTag(tag.trimmed());
 }
 
@@ -169,7 +183,7 @@ void RadioBackend::loadByCountryCode(const QString &countryCode)
     if (countryCode.trimmed().isEmpty()) {
         return;
     }
-    setLoading(true);
+    beginLoad();
     m_radioBrowser->getByCountry(countryCode.trimmed().toUpper());
 }
 
@@ -179,7 +193,7 @@ void RadioBackend::searchStations(const QString &query)
         return;
     }
     qDebug() << "RadioBackend: searchStations called with query:" << query;
-    setLoading(true);
+    beginLoad();
     m_radioBrowser->search(query);
 }
 
@@ -190,6 +204,8 @@ void RadioBackend::playStation(int index)
     }
 
     m_currentFromFavorites = false;
+    m_currentFromHistory = false;
+    m_standalonePlayback = false;
     m_currentIndex = index;
 
     playCurrentSelection();
@@ -202,6 +218,8 @@ void RadioBackend::playFavoriteStation(int index)
     }
 
     m_currentFromFavorites = true;
+    m_currentFromHistory = false;
+    m_standalonePlayback = false;
     m_currentIndex = index;
 
     playCurrentSelection();
@@ -209,13 +227,30 @@ void RadioBackend::playFavoriteStation(int index)
 
 void RadioBackend::playNextStation()
 {
+    if (m_standalonePlayback) {
+        return;
+    }
+
+    if (m_currentFromHistory) {
+        if (m_recentStations.isEmpty()) {
+            return;
+        }
+        const int nextIndex = m_currentIndex < 0 ? 0 : m_currentIndex + 1;
+        if (nextIndex >= m_recentStations.size()) {
+            return;
+        }
+        playHistoryAtIndex(nextIndex, false);
+        return;
+    }
+
     const QList<RadioStation*> list = currentList();
     if (list.isEmpty()) {
         return;
     }
     if (m_currentIndex < 0) {
-        m_currentIndex = 0;
-    } else if (m_currentIndex < list.size() - 1) {
+        return;
+    }
+    if (m_currentIndex < list.size() - 1) {
         ++m_currentIndex;
     }
     playCurrentSelection();
@@ -223,32 +258,65 @@ void RadioBackend::playNextStation()
 
 void RadioBackend::playPreviousStation()
 {
+    if (m_standalonePlayback) {
+        return;
+    }
+
+    if (m_currentFromHistory) {
+        if (m_currentIndex <= 0) {
+            return;
+        }
+        playHistoryAtIndex(m_currentIndex - 1, false);
+        return;
+    }
+
     const QList<RadioStation*> list = currentList();
     if (list.isEmpty()) {
         return;
     }
-    if (m_currentIndex < 0) {
-        m_currentIndex = 0;
-    } else if (m_currentIndex > 0) {
-        --m_currentIndex;
+    if (m_currentIndex <= 0) {
+        return;
     }
+    --m_currentIndex;
     playCurrentSelection();
 }
 
 bool RadioBackend::hasNextStation() const
 {
+    if (m_standalonePlayback) {
+        return false;
+    }
+
+    if (m_currentFromHistory) {
+        if (m_recentStations.isEmpty()) {
+            return false;
+        }
+        if (m_currentIndex < 0) {
+            return true;
+        }
+        return m_currentIndex < m_recentStations.size() - 1;
+    }
+
     const QList<RadioStation*> list = currentList();
     if (list.isEmpty()) {
         return false;
     }
     if (m_currentIndex < 0) {
-        return true;
+        return false;
     }
     return m_currentIndex < list.size() - 1;
 }
 
 bool RadioBackend::hasPreviousStation() const
 {
+    if (m_standalonePlayback) {
+        return false;
+    }
+
+    if (m_currentFromHistory) {
+        return m_currentIndex > 0;
+    }
+
     const QList<RadioStation*> list = currentList();
     if (list.isEmpty()) {
         return false;
@@ -412,39 +480,17 @@ QVariantList RadioBackend::getFavoriteStations() const
 
 bool RadioBackend::playRecentByUuid(const QString &uuid, const QString &urlResolved)
 {
-    for (RadioStation *station : m_stations) {
-        if (matchesStation(station, uuid, urlResolved)) {
-            const QString url = station->urlResolved().isEmpty() ? station->url() : station->urlResolved();
-            m_lastStationName = station->name();
-            m_lastStationUrl = url;
-            emit resumeStateChanged();
-            recordRecentStation(toVariantMap(station));
-            saveState();
-            m_currentStationUuid = station->uuid();
-            m_currentStationUrl = url;
-            emit currentStationChanged();
-            m_player->playUrl(url, station->name());
-            return true;
-        }
+    const int recentIndex = recentStationIndex(m_recentStations, uuid, urlResolved);
+    if (recentIndex >= 0) {
+        playHistoryAtIndex(recentIndex, true);
+        return true;
     }
 
-    for (const QVariant &entry : m_recentStations) {
-        const QVariantMap station = entry.toMap();
-        if ((!uuid.isEmpty() && station.value(QStringLiteral("uuid")).toString() == uuid) ||
-            (uuid.isEmpty() && !urlResolved.isEmpty() && station.value(QStringLiteral("urlResolved")).toString() == urlResolved)) {
-            const QString url = station.value(QStringLiteral("urlResolved")).toString();
-            if (url.isEmpty()) {
-                return false;
-            }
-            m_lastStationName = station.value(QStringLiteral("name")).toString();
-            m_lastStationUrl = url;
-            emit resumeStateChanged();
-            recordRecentStation(station);
-            saveState();
-            m_currentStationUuid = station.value(QStringLiteral("uuid")).toString();
-            m_currentStationUrl = url;
-            emit currentStationChanged();
-            m_player->playUrl(url, m_lastStationName);
+    for (RadioStation *station : m_stations) {
+        if (matchesStation(station, uuid, urlResolved)) {
+            const QVariantMap stationData = toVariantMap(station);
+            recordRecentStation(stationData);
+            playHistoryAtIndex(0, false);
             return true;
         }
     }
@@ -468,6 +514,12 @@ void RadioBackend::resumeLastStation()
     if (m_lastStationUrl.isEmpty()) {
         return;
     }
+
+    m_currentFromFavorites = false;
+    m_currentFromHistory = false;
+    m_standalonePlayback = true;
+    m_currentIndex = -1;
+
     QVariantMap station;
     station.insert(QStringLiteral("name"), m_lastStationName.isEmpty() ? tr("Last played") : m_lastStationName);
     station.insert(QStringLiteral("urlResolved"), m_lastStationUrl);
@@ -668,6 +720,7 @@ void RadioBackend::rebuildFilteredStations(bool emitFilterSignal)
     }
     emit stationsChanged();
     emit listsChanged();
+    syncStationListIndex();
 }
 
 void RadioBackend::recordRecentStation(const QVariantMap &stationData)
@@ -701,12 +754,63 @@ void RadioBackend::recordRecentStation(const QVariantMap &stationData)
     emit listsChanged();
 }
 
+void RadioBackend::playHistoryAtIndex(int index, bool updateRecent)
+{
+    if (index < 0 || index >= m_recentStations.size()) {
+        return;
+    }
+
+    const QVariantMap station = m_recentStations.at(index).toMap();
+    const QString url = station.value(QStringLiteral("urlResolved")).toString();
+    if (url.isEmpty()) {
+        return;
+    }
+
+    m_currentFromFavorites = false;
+    m_currentFromHistory = true;
+    m_standalonePlayback = false;
+    m_currentIndex = index;
+
+    m_lastStationName = station.value(QStringLiteral("name")).toString();
+    m_lastStationUrl = url;
+    emit resumeStateChanged();
+
+    if (updateRecent) {
+        recordRecentStation(station);
+        m_currentIndex = 0;
+    }
+
+    saveState();
+    m_currentStationUuid = station.value(QStringLiteral("uuid")).toString();
+    m_currentStationUrl = url;
+    emit currentStationChanged();
+    m_player->playUrl(url, m_lastStationName.isEmpty() ? tr("Last played") : m_lastStationName);
+}
+
+void RadioBackend::syncStationListIndex()
+{
+    if (m_currentFromHistory || m_currentFromFavorites) {
+        return;
+    }
+
+    m_currentIndex = -1;
+    for (int i = 0; i < m_filteredStations.size(); ++i) {
+        if (matchesStation(m_filteredStations[i], m_currentStationUuid, m_currentStationUrl)) {
+            m_currentIndex = i;
+            break;
+        }
+    }
+}
+
 void RadioBackend::playCurrentSelection()
 {
     const QList<RadioStation*> list = currentList();
     if (list.isEmpty() || m_currentIndex < 0 || m_currentIndex >= list.size()) {
         return;
     }
+
+    m_currentFromHistory = false;
+    m_standalonePlayback = false;
 
     RadioStation *station = list[m_currentIndex];
     QString url = station->urlResolved().isEmpty()
@@ -820,6 +924,29 @@ bool RadioBackend::matchesStation(const RadioStation *station, const QString &uu
         return true;
     }
     return false;
+}
+
+bool RadioBackend::matchesStationMap(const QVariantMap &station, const QString &uuid, const QString &urlResolved)
+{
+    const QString stationUuid = station.value(QStringLiteral("uuid")).toString();
+    const QString stationUrl = station.value(QStringLiteral("urlResolved")).toString();
+    if (!uuid.isEmpty() && stationUuid == uuid) {
+        return true;
+    }
+    if (uuid.isEmpty() && !urlResolved.isEmpty() && stationUrl == urlResolved) {
+        return true;
+    }
+    return false;
+}
+
+int RadioBackend::recentStationIndex(const QVariantList &recent, const QString &uuid, const QString &urlResolved)
+{
+    for (int i = 0; i < recent.size(); ++i) {
+        if (matchesStationMap(recent.at(i).toMap(), uuid, urlResolved)) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 QString RadioBackend::localizeCountry(const QString &code, const QString &englishName)

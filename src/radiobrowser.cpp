@@ -82,29 +82,57 @@ void RadioBrowser::getCountries()
     makeRequest("/countries");
 }
 
+bool RadioBrowser::isCountriesEndpoint(const QString &endpoint) const
+{
+    return endpoint == QStringLiteral("/countries");
+}
+
+void RadioBrowser::emitCachedResponse(const QString &endpoint, const QString &cachePath, int requestGeneration)
+{
+    if (requestGeneration != m_requestGeneration) {
+        return;
+    }
+
+    QFile cacheFile(cachePath);
+    if (!cacheFile.exists() || !cacheFile.open(QIODevice::ReadOnly)) {
+        return;
+    }
+
+    const QByteArray cachedData = cacheFile.readAll();
+    cacheFile.close();
+
+    if (isCountriesEndpoint(endpoint)) {
+        const QVariantList list = parseCountriesJson(cachedData);
+        if (!list.isEmpty()) {
+            emit countriesLoaded(list);
+        }
+        return;
+    }
+
+    const QList<RadioStation*> stations = parseJsonResponse(cachedData);
+    if (!stations.isEmpty()) {
+        emit stationsLoaded(stations);
+    }
+}
+
 void RadioBrowser::makeRequest(const QString &endpoint)
 {
+    ++m_requestGeneration;
+    const int requestGeneration = m_requestGeneration;
+
+    if (m_activeReply) {
+        QNetworkReply *reply = m_activeReply;
+        m_activeReply = nullptr;
+        reply->abort();
+        reply->deleteLater();
+    }
+
     const QString cacheDir = apiCacheDir();
     QDir().mkpath(cacheDir);
     const QString hash = QString(QCryptographicHash::hash(endpoint.toUtf8(), QCryptographicHash::Md5).toHex());
     const QString cachePath = cacheDir + "/" + hash + ".json";
 
-    QFile cacheFile(cachePath);
-    if (cacheFile.exists() && cacheFile.open(QIODevice::ReadOnly)) {
-        QByteArray cachedData = cacheFile.readAll();
-        if (endpoint == "/countries") {
-            QVariantList list = parseCountriesJson(cachedData);
-            if (!list.isEmpty()) {
-                emit countriesLoaded(list);
-            }
-        } else {
-            QList<RadioStation*> stations = parseJsonResponse(cachedData);
-            if (!stations.isEmpty()) {
-                emit stationsLoaded(stations);
-            }
-        }
-        cacheFile.close();
-    }
+    emitCachedResponse(endpoint, cachePath, requestGeneration);
 
     QUrl url(m_baseUrl + endpoint);
     QNetworkRequest request;
@@ -114,7 +142,10 @@ void RadioBrowser::makeRequest(const QString &endpoint)
 
     QNetworkReply *reply = m_networkManager->get(request);
     reply->setProperty("cachePath", cachePath);
+    reply->setProperty("requestGeneration", requestGeneration);
+    reply->setProperty("endpoint", endpoint);
 
+    m_activeReply = reply;
     connect(reply, &QNetworkReply::finished, this, &RadioBrowser::onReplyFinished);
 }
 
@@ -127,17 +158,33 @@ void RadioBrowser::onReplyFinished()
         return;
     }
 
+    if (reply == m_activeReply) {
+        m_activeReply = nullptr;
+    }
+
+    const int requestGeneration = reply->property("requestGeneration").toInt();
+    if (requestGeneration != m_requestGeneration) {
+        reply->deleteLater();
+        return;
+    }
+
+    if (reply->error() == QNetworkReply::OperationCanceledError) {
+        reply->deleteLater();
+        return;
+    }
+
     if (reply->error() != QNetworkReply::NoError) {
         emit error(reply->errorString());
         reply->deleteLater();
         return;
     }
 
-    QByteArray data = reply->readAll();
-    QString cachePath = reply->property("cachePath").toString();
+    const QByteArray data = reply->readAll();
+    const QString cachePath = reply->property("cachePath").toString();
+    const QString endpoint = reply->property("endpoint").toString();
 
-    if (reply->url().path().endsWith("/countries")) {
-        QVariantList list = parseCountriesJson(data);
+    if (isCountriesEndpoint(endpoint)) {
+        const QVariantList list = parseCountriesJson(data);
         if (!cachePath.isEmpty() && !list.isEmpty()) {
             QFile file(cachePath);
             if (file.open(QIODevice::WriteOnly)) {
@@ -147,7 +194,7 @@ void RadioBrowser::onReplyFinished()
         }
         emit countriesLoaded(list);
     } else {
-        QList<RadioStation*> stations = parseJsonResponse(data);
+        const QList<RadioStation*> stations = parseJsonResponse(data);
         if (!cachePath.isEmpty() && !stations.isEmpty()) {
             QFile file(cachePath);
             if (file.open(QIODevice::WriteOnly)) {

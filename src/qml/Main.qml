@@ -4,7 +4,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import Qt.labs.platform 1.1 as Platform
 
 ApplicationWindow {
     id: root
@@ -18,62 +17,6 @@ ApplicationWindow {
     onClosing: function(close) {
         close.accepted = false
         root.hide()
-    }
-
-    Connections {
-        target: backend
-        function onRaiseRequested() {
-            root.show()
-            root.raise()
-            root.requestActivate()
-        }
-    }
-
-    Platform.SystemTrayIcon {
-        id: systray
-        visible: true
-        icon.name: "multimedia-player"
-        tooltip: qsTr("BearWave")
-
-        menu: Platform.Menu {
-            Platform.MenuItem {
-                text: backend && backend.player && backend.player.playing ? qsTr("Pause") : qsTr("Play")
-                onTriggered: {
-                    if (backend && backend.player) {
-                        backend.player.togglePlayPause()
-                    }
-                }
-            }
-            Platform.MenuItem {
-                text: root.visible ? qsTr("Hide") : qsTr("Show")
-                onTriggered: {
-                    if (root.visible) {
-                        root.hide()
-                    } else {
-                        root.show()
-                        root.raise()
-                        root.requestActivate()
-                    }
-                }
-            }
-            Platform.MenuSeparator {}
-            Platform.MenuItem {
-                text: qsTr("Quit")
-                onTriggered: Qt.quit()
-            }
-        }
-
-        onActivated: function(reason) {
-            if (reason === Platform.SystemTrayIcon.Trigger) {
-                if (root.visible) {
-                    root.hide()
-                } else {
-                    root.show()
-                    root.raise()
-                    root.requestActivate()
-                }
-            }
-        }
     }
 
     property var currentPage: "top"
@@ -114,6 +57,15 @@ ApplicationWindow {
     function toast(message) {
         toastLabel.text = message
         toastPopup.open()
+    }
+
+    function resetSearchFilter() {
+        searchTimer.stop()
+        if (searchField.text !== "") {
+            searchField.text = ""
+        } else if (backend && backend.filterQuery !== "") {
+            backend.filterQuery = ""
+        }
     }
 
     function getFilteredCountries() {
@@ -160,6 +112,9 @@ ApplicationWindow {
     onCurrentPageChanged: {
         contentOpacity = 0.85
         contentFadeRestart.restart()
+        if (currentPage !== "search") {
+            resetSearchFilter()
+        }
         if (currentPage !== "world") {
             selectedWorldCategory = ""
             selectedWorldType = ""
@@ -485,6 +440,7 @@ ApplicationWindow {
                             if (backend) {
                                 backend.filterQuery = text
                             }
+                            searchTimer.restart()
                         }
                         onAccepted: {
                             if (text.length < 2 || !backend) return

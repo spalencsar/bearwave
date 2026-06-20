@@ -280,6 +280,33 @@
     </message>
   </context>
   <context>
+    <name>SystemTrayManager</name>
+    <message>
+      <source>BearWave</source>
+      <translation>BearWave</translation>
+    </message>
+    <message>
+      <source>Pause</source>
+      <translation>Pause</translation>
+    </message>
+    <message>
+      <source>Play</source>
+      <translation>Wiedergabe</translation>
+    </message>
+    <message>
+      <source>Hide</source>
+      <translation>Verstecken</translation>
+    </message>
+    <message>
+      <source>Show</source>
+      <translation>Zeigen</translation>
+    </message>
+    <message>
+      <source>Quit</source>
+      <translation>Beenden</translation>
+    </message>
+  </context>
+  <context>
     <name>RadioBrowser</name>
     <message>
       <source>Network error</source>

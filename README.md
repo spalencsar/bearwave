@@ -1,6 +1,6 @@
 # BearWave
 
-KDE-focused desktop internet radio app for Linux, built with Qt 6, QML, KDE Frameworks, and QtMultimedia.
+KDE-focused desktop internet radio app for Linux, built with Qt 6, QML, and QtMultimedia.
 
 BearWave is designed for fast station browsing, simple playback controls, favorites, resume support, tray behavior, and clean Plasma integration without turning into a heavy media suite.
 
@@ -134,7 +134,6 @@ BearWave is currently aligned with and tested primarily against:
 - Arch Linux
 - KDE Plasma 6
 - Qt 6
-- KDE Frameworks 6
 - Qt6 Multimedia
 
 If support for other distributions becomes reliable, they should be added here explicitly instead of implied.
@@ -169,15 +168,15 @@ If you want the least surprising path today, use either:
 ### Arch Linux
 
 ```bash
-sudo pacman -S cmake extra-cmake-modules qt6-base qt6-declarative qt6-tools \
-  kirigami qt6-multimedia qt6-multimedia-ffmpeg
+sudo pacman -S cmake qt6-base qt6-declarative qt6-tools \
+  qt6-multimedia qt6-multimedia-ffmpeg
 ```
 
 ### KDE Neon / Ubuntu-based
 
 ```bash
 sudo apt install cmake ninja-build qt6-base-dev qt6-declarative-dev qt6-tools-dev \
-  libkf6kirigami-dev libkf6i18n-dev libkf6coreaddons-dev qt6-multimedia-dev
+  qt6-multimedia-dev
 ```
 
 Note: exact package names can vary between distro releases, and non-Arch dependency sets should currently be treated as best-effort guidance rather than a guaranteed tested path.

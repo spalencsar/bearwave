@@ -38,9 +38,13 @@ private slots:
 
 private:
     QNetworkAccessManager *m_networkManager = nullptr;
+    QNetworkReply *m_activeReply = nullptr;
     QString m_baseUrl = "https://all.api.radio-browser.info/json";
+    int m_requestGeneration = 0;
 
     void makeRequest(const QString &endpoint);
+    void emitCachedResponse(const QString &endpoint, const QString &cachePath, int requestGeneration);
+    bool isCountriesEndpoint(const QString &endpoint) const;
     QList<RadioStation*> parseJsonResponse(const QByteArray &jsonData);
     QVariantList parseCountriesJson(const QByteArray &jsonData);
 };

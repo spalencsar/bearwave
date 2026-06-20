@@ -11,6 +11,7 @@
 #include <QDBusMessage>
 #include <QDBusObjectPath>
 #include <QStandardPaths>
+#include <QUrl>
 
 namespace {
 void emitPlayerPropertiesChanged(const QStringList &changedProps, const QVariantMap &changedValues)
@@ -109,7 +110,7 @@ MprisPlayerAdaptor::MprisPlayerAdaptor(RadioBackend *backend)
     , m_backend(backend)
 {
     BearPlayer *p = player();
-    if (!p) {
+    if (!p || !m_backend) {
         return;
     }
 
@@ -139,6 +140,24 @@ MprisPlayerAdaptor::MprisPlayerAdaptor(RadioBackend *backend)
         changed.insert(QStringLiteral("Metadata"), metadata());
         emitPlayerPropertiesChanged({QStringLiteral("Metadata")}, changed);
     });
+
+    connect(m_backend, &RadioBackend::currentStationChanged, this, [this]() {
+        QVariantMap changed;
+        changed.insert(QStringLiteral("CanGoNext"), canGoNext());
+        changed.insert(QStringLiteral("CanGoPrevious"), canGoPrevious());
+        emitPlayerPropertiesChanged({QStringLiteral("CanGoNext"), QStringLiteral("CanGoPrevious")}, changed);
+    });
+}
+
+void MprisPlayerAdaptor::publishState()
+{
+    QVariantMap changed;
+    changed.insert(QStringLiteral("PlaybackStatus"), playbackStatus());
+    changed.insert(QStringLiteral("Volume"), volume());
+    changed.insert(QStringLiteral("Metadata"), metadata());
+    changed.insert(QStringLiteral("CanGoNext"), canGoNext());
+    changed.insert(QStringLiteral("CanGoPrevious"), canGoPrevious());
+    emitPlayerPropertiesChanged({}, changed);
 }
 
 BearPlayer *MprisPlayerAdaptor::player() const
@@ -208,6 +227,7 @@ QVariantMap MprisPlayerAdaptor::metadata() const
     const QString title = p->currentTrackTitle();
     const QString artist = p->currentTrackArtist();
     const QString coverUrl = p->currentCoverArtUrl();
+    const QString streamUrl = m_backend ? m_backend->currentStationUrl() : QString();
 
     map.insert(QStringLiteral("mpris:trackid"), QVariant::fromValue(QDBusObjectPath(QStringLiteral("/org/kde/bearwave/track/0"))));
     if (!station.isEmpty()) {
@@ -220,6 +240,9 @@ QVariantMap MprisPlayerAdaptor::metadata() const
     }
     if (!artist.isEmpty()) {
         map.insert(QStringLiteral("xesam:artist"), QStringList{artist});
+    }
+    if (!streamUrl.isEmpty()) {
+        map.insert(QStringLiteral("xesam:url"), QUrl(streamUrl).toString());
     }
     QString artUrl = coverUrl;
     if (artUrl.isEmpty() && m_backend) {

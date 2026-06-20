@@ -12,6 +12,7 @@ set(SOURCES
     bearwavecontroladaptor.cpp
     notificationmanager.cpp
     icyreader.cpp
+    systemtraymanager.cpp
 )
 
 # Create executable
@@ -45,9 +46,6 @@ target_link_libraries(bearwave PRIVATE
     Qt6::QuickControls2
     Qt6::Widgets
     Qt6::Multimedia
-    KF6::Kirigami
-    KF6::I18n
-    KF6::CoreAddons
 )
 
 # Install

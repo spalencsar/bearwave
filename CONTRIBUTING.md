@@ -1,6 +1,6 @@
 # Contributing to BearWave
 
-BearWave is a KDE-focused desktop internet radio app built with C++/Qt 6, QML, KDE Frameworks, and Phonon.
+BearWave is a KDE-focused desktop internet radio app built with C++/Qt 6, QML, and QtMultimedia.
 
 The project favors:
 

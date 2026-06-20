@@ -12,15 +12,14 @@ set(CMAKE_AUTOUIC ON)
 # Qt6
 find_package(Qt6 REQUIRED COMPONENTS Core DBus Quick QuickControls2 Widgets LinguistTools Multimedia)
 
-# KDE Frameworks
-find_package(KF6Kirigami REQUIRED)
-find_package(KF6I18n REQUIRED)
-find_package(KF6CoreAddons REQUIRED)
-
-
-
 # Add src directory
 add_subdirectory(src)
+
+option(BEARWAVE_BUILD_TESTS "Build BearWave unit tests" ON)
+if(BEARWAVE_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
 
 # Configure and install desktop file with correct binary path
 configure_file(
