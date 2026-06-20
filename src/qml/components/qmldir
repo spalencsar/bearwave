@@ -9,3 +9,5 @@ AboutDialog 1.0 AboutDialog.qml
 AddStationDialog 1.0 AddStationDialog.qml
 EditStationDialog 1.0 EditStationDialog.qml
 LoadingOverlay 1.0 LoadingOverlay.qml
+ToastPopup 1.0 ToastPopup.qml
+StationListPanel 1.0 StationListPanel.qml

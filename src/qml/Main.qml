@@ -31,10 +31,10 @@ ApplicationWindow {
     property string selectedWorldType: ""
     property string countrySearchText: ""
     property alias searchField: searchToolbar.searchField
+    property alias stationList: stationPanel.stationList
 
     function toast(message) {
-        toastLabel.text = message
-        toastPopup.open()
+        toastPopup.show(message)
     }
 
     function resetSearchFilter() {
@@ -192,27 +192,11 @@ ApplicationWindow {
                     app: root
                 }
 
-                ScrollView {
-                    id: stationScrollView
+                StationListPanel {
+                    id: stationPanel
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    visible: !(currentPage === "world" && selectedWorldCategory === "")
-                    clip: true
-                    ScrollBar.vertical.policy: ScrollBar.AlwaysOn
-
-                    ListView {
-                        id: stationList
-                        width: stationScrollView.availableWidth
-                        spacing: 8
-                        model: activeModel()
-                        visible: count > 0
-
-                        delegate: StationCard {
-                            app: root
-                            compactMode: root.compactMode
-                            listWidth: stationScrollView.availableWidth
-                        }
-                    }
+                    app: root
                 }
 
                 WorldCategories {
@@ -221,23 +205,6 @@ ApplicationWindow {
                     visible: currentPage === "world" && selectedWorldCategory === ""
                     app: root
                     compactMode: root.compactMode
-                }
-            }
-
-            Column {
-                anchors.centerIn: parent
-                spacing: 8
-                visible: stationList.count === 0 && !(currentPage === "world" && selectedWorldCategory === "")
-
-                Label {
-                    text: currentPage === "history" ? qsTr("No playback history") : qsTr("No stations loaded yet")
-                    color: BearTheme.textMain
-                    font.bold: true
-                }
-
-                Label {
-                    text: currentPage === "history" ? qsTr("Play some stations to build history") : qsTr("Load DE/NL stations or use search")
-                    color: BearTheme.textMuted
                 }
             }
         }
@@ -275,30 +242,9 @@ ApplicationWindow {
         compactMode: root.compactMode
     }
 
-    Popup {
+    ToastPopup {
         id: toastPopup
-        x: (root.width - width) / 2
-        y: root.height - height - 20
-        padding: 10
-        closePolicy: Popup.NoAutoClose
-        background: Rectangle {
-            radius: 10
-            color: "#24364e"
-            border.color: BearTheme.accent
-        }
-
-        contentItem: Label {
-            id: toastLabel
-            color: BearTheme.textMain
-            font.pixelSize: 12
-        }
-
-        Timer {
-            interval: 1400
-            running: toastPopup.visible
-            repeat: false
-            onTriggered: toastPopup.close()
-        }
+        window: root
     }
 
     Timer {
