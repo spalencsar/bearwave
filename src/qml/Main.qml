@@ -248,38 +248,8 @@ ApplicationWindow {
         }
     }
 
-    Rectangle {
-        visible: backend && backend.loading
-        anchors.fill: parent
-        color: "#7f0b121a"
-        z: 20
-
-        Rectangle {
-            anchors.centerIn: parent
-            width: 210
-            height: 110
-            radius: 12
-            color: BearTheme.panel
-            border.color: BearTheme.cardBorder
-
-            Column {
-                anchors.centerIn: parent
-                spacing: 10
-
-                BusyIndicator {
-                    running: true
-                    width: 36
-                    height: 36
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
-
-                Label {
-                    text: qsTr("Loading stations...")
-                    color: BearTheme.textMain
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
-            }
-        }
+    LoadingOverlay {
+        app: root
     }
 
     Component.onCompleted: {
@@ -288,75 +258,16 @@ ApplicationWindow {
         }
     }
 
-    Dialog {
+    AddStationDialog {
         id: addDialog
-        title: qsTr("Add station manually")
-        modal: true
-        anchors.centerIn: parent
-        width: compactMode ? 320 : 420
-        standardButtons: Dialog.Ok | Dialog.Cancel
-
-        contentItem: ColumnLayout {
-            spacing: 8
-            TextField { id: manualName; Layout.fillWidth: true; placeholderText: qsTr("Name") }
-            TextField { id: manualUrl; Layout.fillWidth: true; placeholderText: qsTr("Stream URL (http/https)") }
-            TextField { id: manualCountry; Layout.fillWidth: true; placeholderText: qsTr("Country (optional)") }
-        }
-
-        onAccepted: {
-            if (backend) {
-                backend.addManualStation(manualName.text, manualUrl.text, manualCountry.text)
-                toast(qsTr("Station added"))
-            }
-            manualName.text = ""
-            manualUrl.text = ""
-            manualCountry.text = ""
-        }
+        app: root
+        compactMode: root.compactMode
     }
 
-    Dialog {
+    EditStationDialog {
         id: editDialog
-        title: qsTr("Edit station")
-        modal: true
-        anchors.centerIn: parent
-        width: compactMode ? 320 : 420
-        standardButtons: Dialog.Ok | Dialog.Cancel
-
-        property var stationObject: null
-
-        contentItem: ColumnLayout {
-            spacing: 8
-            TextField { id: editName; Layout.fillWidth: true; placeholderText: qsTr("Name") }
-            TextField { id: editUrl; Layout.fillWidth: true; placeholderText: qsTr("Stream URL (http/https)") }
-            TextField { id: editCountry; Layout.fillWidth: true; placeholderText: qsTr("Country (optional)") }
-        }
-
-        function setupAndOpen() {
-            if (stationObject) {
-                editName.text = stationObject.name || ""
-                editUrl.text = stationObject.url || ""
-                editCountry.text = (stationObject.country === qsTr("Manual") ? "" : (stationObject.country || ""))
-                open()
-            }
-        }
-
-        onAccepted: {
-            if (backend && stationObject) {
-                backend.editManualStation(stationObject, editName.text, editUrl.text, editCountry.text)
-                toast(qsTr("Station updated"))
-            }
-            stationObject = null
-            editName.text = ""
-            editUrl.text = ""
-            editCountry.text = ""
-        }
-
-        onRejected: {
-            stationObject = null
-            editName.text = ""
-            editUrl.text = ""
-            editCountry.text = ""
-        }
+        app: root
+        compactMode: root.compactMode
     }
 
     AboutDialog {

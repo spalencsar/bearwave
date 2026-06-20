@@ -12,6 +12,9 @@
         <file>qml/components/WorldCategories.qml</file>
         <file>qml/components/PlayerBar.qml</file>
         <file>qml/components/AboutDialog.qml</file>
+        <file>qml/components/AddStationDialog.qml</file>
+        <file>qml/components/EditStationDialog.qml</file>
+        <file>qml/components/LoadingOverlay.qml</file>
         <file>qml/utils/FlagUtils.js</file>
     </qresource>
     <qresource prefix="/">
