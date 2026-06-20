@@ -123,6 +123,11 @@ void NotificationManager::onTrackInfoChanged()
 
 void NotificationManager::downloadCover(const QString &url)
 {
+    if (!url.startsWith(QLatin1String("https://"))) {
+        qDebug() << "Skipping cover download for non-HTTPS URL";
+        return;
+    }
+
     if (m_currentReply) {
         QNetworkReply *reply = m_currentReply;
         m_currentReply = nullptr;
@@ -133,6 +138,7 @@ void NotificationManager::downloadCover(const QString &url)
 
     m_pendingCoverUrl = url;
     QNetworkRequest request(url);
+    request.setTransferTimeout(10000);
     m_currentReply = m_networkManager->get(request);
     connect(m_currentReply, &QNetworkReply::finished, this, &NotificationManager::onDownloadFinished);
 }

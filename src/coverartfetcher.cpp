@@ -42,6 +42,7 @@ void CoverArtFetcher::fetch(const QString &artist, const QString &title)
     url.setQuery(query);
 
     QNetworkRequest request(url);
+    request.setTransferTimeout(10000);
     m_currentReply = m_networkManager->get(request);
     connect(m_currentReply, &QNetworkReply::finished, this, &CoverArtFetcher::onReplyFinished);
 }

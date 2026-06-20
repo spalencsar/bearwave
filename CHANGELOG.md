@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.4] - 2026-06-20
+
+### Security
+
+- Validate manual station URLs: only `http://` and `https://` schemes are accepted.
+- Restrict notification cover art downloads to HTTPS URLs.
+- Add network transfer timeouts to ICY metadata, cover art, and notification fetches.
+
+### Fixed
+
+- Fix playback index for history, resume, and next/previous navigation.
+- Fix Radio Browser API race where stale responses could overwrite newer results.
+- Suppress error banner when cached station data is still available.
+- Fix search filter persisting across page changes and compact-mode debounce.
+- Fix stale list index after station list reload.
+- Fix Wayland system tray menu using native `QSystemTrayIcon`.
+- Fix MPRIS metadata publishing for desktop media widgets (e.g. PlasMusic).
+
+### Changed
+
+- Refactor monolithic `Main.qml` into reusable QML components and `BearTheme`.
+- Remove unused Kirigami, I18n, and CoreAddons dependencies.
+- Add backend unit tests for playback navigation and API race handling.
+
 ## [1.0.3] - 2026-05-30
 
 ### Added

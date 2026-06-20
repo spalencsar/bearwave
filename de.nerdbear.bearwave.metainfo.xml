@@ -59,6 +59,16 @@
   </provides>
   
   <releases>
+    <release version="1.0.4" date="2026-06-20">
+      <description>
+        <ul>
+          <li>Security: validate manual stream URLs (http/https only) and HTTPS-only cover downloads</li>
+          <li>Security: add network transfer timeouts for metadata and cover fetches</li>
+          <li>Fixed playback navigation, API race conditions, Wayland tray, and MPRIS metadata</li>
+          <li>Refactored QML UI into modular components</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.3" date="2026-05-30">
       <description>
         <ul>

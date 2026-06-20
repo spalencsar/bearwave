@@ -12,6 +12,7 @@
 #include <QJsonObject>
 #include <QStandardPaths>
 #include <QLocale>
+#include <QUrl>
 
 namespace {
 constexpr int kRecentLimit = 20;
@@ -19,6 +20,16 @@ constexpr int kRecentLimit = 20;
 QString appConfigDir()
 {
     return QDir::homePath() + QStringLiteral("/.config/bearwave");
+}
+
+bool isAllowedStreamUrl(const QString &urlString)
+{
+    const QUrl url(urlString.trimmed());
+    if (!url.isValid() || url.isEmpty()) {
+        return false;
+    }
+    const QString scheme = url.scheme().toLower();
+    return scheme == QStringLiteral("http") || scheme == QStringLiteral("https");
 }
 }
 
@@ -409,7 +420,12 @@ void RadioBackend::addManualStation(const QString &name, const QString &url, con
     if (name.trimmed().isEmpty() || url.trimmed().isEmpty()) {
         return;
     }
+    if (!isAllowedStreamUrl(url)) {
+        setLastError(tr("Stream URL must use http:// or https://"));
+        return;
+    }
 
+    setLastError(QString());
     RadioStation *station = new RadioStation(this);
     station->setName(name.trimmed());
     station->setUrl(url.trimmed());
@@ -848,7 +864,12 @@ void RadioBackend::editManualStation(QObject *stationObj, const QString &name, c
     if (!station || name.trimmed().isEmpty() || url.trimmed().isEmpty()) {
         return;
     }
+    if (!isAllowedStreamUrl(url)) {
+        setLastError(tr("Stream URL must use http:// or https://"));
+        return;
+    }
 
+    setLastError(QString());
     QString oldUrl = station->url();
     QString oldUrlResolved = station->urlResolved();
 

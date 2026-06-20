@@ -29,6 +29,8 @@ private slots:
     void cached_load_keeps_error_clear_after_network_failure();
     void list_reload_resyncs_index_for_playing_station();
     void list_next_disabled_when_playing_station_not_in_new_list();
+    void manual_station_rejects_unsafe_url_scheme();
+    void manual_station_accepts_http_and_https();
 };
 
 namespace {
@@ -300,6 +302,30 @@ void RadioBackendPlaybackTest::list_next_disabled_when_playing_station_not_in_ne
 
     backend.playNextStation();
     QCOMPARE(backend.currentStationUrl(), topUrl);
+}
+
+void RadioBackendPlaybackTest::manual_station_rejects_unsafe_url_scheme()
+{
+    RadioBackend backend;
+
+    backend.addManualStation(QStringLiteral("Unsafe"), QStringLiteral("file:///etc/passwd"), QStringLiteral("DE"));
+    QCOMPARE(backend.stations().size(), 0);
+    QVERIFY(!backend.lastError().isEmpty());
+
+    backend.addManualStation(QStringLiteral("FTP"), QStringLiteral("ftp://example.com/stream"), QStringLiteral("DE"));
+    QCOMPARE(backend.stations().size(), 0);
+}
+
+void RadioBackendPlaybackTest::manual_station_accepts_http_and_https()
+{
+    RadioBackend backend;
+
+    backend.addManualStation(QStringLiteral("HTTP"), QStringLiteral("http://example.com/stream"), QStringLiteral("DE"));
+    QCOMPARE(backend.stations().size(), 1);
+    QCOMPARE(backend.lastError(), QString());
+
+    backend.addManualStation(QStringLiteral("HTTPS"), QStringLiteral("https://example.com/stream"), QStringLiteral("DE"));
+    QCOMPARE(backend.stations().size(), 2);
 }
 
 QTEST_MAIN(RadioBackendPlaybackTest)
