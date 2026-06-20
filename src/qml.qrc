@@ -1,6 +1,15 @@
 <RCC>
+    <qresource prefix="/qml">
+        <file>qml/Main.qml</file>
+        <file>qml/theme/qmldir</file>
+        <file>qml/theme/BearTheme.qml</file>
+        <file>qml/components/qmldir</file>
+        <file>qml/components/HeaderNavigation.qml</file>
+        <file>qml/components/SearchToolbar.qml</file>
+        <file>qml/components/QuickFilters.qml</file>
+        <file>qml/utils/FlagUtils.js</file>
+    </qresource>
     <qresource prefix="/">
-        <file alias="Main.qml">qml/Main.qml</file>
         <file alias="assets/app/bearwave.png">../assets/app/bearwave.png</file>
         <file alias="assets/app/bearwave_line.png">../assets/app/bearwave_line.png</file>
         <file alias="assets/ui/globe.svg">../assets/ui/globe.svg</file>

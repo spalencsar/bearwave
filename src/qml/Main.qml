@@ -5,6 +5,10 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
+import theme 1.0
+import components 1.0
+import "utils/FlagUtils.js" as FlagUtils
+
 ApplicationWindow {
     id: root
     title: qsTr("BearWave")
@@ -27,32 +31,7 @@ ApplicationWindow {
     property string selectedWorldCategory: ""
     property string selectedWorldType: ""
     property string countrySearchText: ""
-
-    readonly property color bgA: "#0f141b"
-    readonly property color bgB: "#131b25"
-    readonly property color panel: "#182433"
-    readonly property color card: "#1b2a3d"
-    readonly property color cardHover: "#223654"
-    readonly property color cardBorder: "#2d4566"
-    readonly property color accent: "#2bb0ff"
-    readonly property color textMain: "#eaf1fb"
-    readonly property color textMuted: "#9eb1c9"
-    readonly property color warn: "#ff8b8b"
-
-    readonly property var worldTags: [
-        { name: qsTr("Pop"), tag: "pop", icon: "🎵" },
-        { name: qsTr("Rock"), tag: "rock", icon: "🎸" },
-        { name: qsTr("Electronic"), tag: "electronic", icon: "🎹" },
-        { name: qsTr("Classical"), tag: "classical", icon: "🎻" },
-        { name: qsTr("Jazz"), tag: "jazz", icon: "🎷" },
-        { name: qsTr("Metal"), tag: "metal", icon: "🤘" },
-        { name: qsTr("Hip Hop"), tag: "hiphop", icon: "🎤" },
-        { name: qsTr("Chillout"), tag: "chillout", icon: "🌴" },
-        { name: qsTr("News / Talk"), tag: "news", icon: "📻" },
-        { name: qsTr("Soundtracks"), tag: "soundtrack", icon: "🎬" },
-        { name: qsTr("Ambient"), tag: "ambient", icon: "🌌" },
-        { name: qsTr("Blues / Soul"), tag: "blues", icon: "🎺" }
-    ]
+    property alias searchField: searchToolbar.searchField
 
     function toast(message) {
         toastLabel.text = message
@@ -82,16 +61,6 @@ ApplicationWindow {
             }
         }
         return list;
-    }
-
-    function getFlagEmoji(countryCode) {
-        if (!countryCode || countryCode.length !== 2) return "🌎";
-        var codeUpper = countryCode.toUpperCase();
-        var codePoints = [];
-        for (var i = 0; i < codeUpper.length; i++) {
-            codePoints.push(127397 + codeUpper.charCodeAt(i));
-        }
-        return String.fromCodePoint.apply(null, codePoints);
     }
 
     function activeModel() {
@@ -139,8 +108,8 @@ ApplicationWindow {
     Rectangle {
         anchors.fill: parent
         gradient: Gradient {
-            GradientStop { position: 0.0; color: bgA }
-            GradientStop { position: 1.0; color: bgB }
+            GradientStop { position: 0.0; color: BearTheme.bgA }
+            GradientStop { position: 1.0; color: BearTheme.bgB }
         }
     }
 
@@ -153,8 +122,8 @@ ApplicationWindow {
             Layout.fillWidth: true
             Layout.preferredHeight: headerContent.implicitHeight + 20
             radius: 12
-            color: panel
-            border.color: cardBorder
+            color: BearTheme.panel
+            border.color: BearTheme.cardBorder
 
             ColumnLayout {
                 id: headerContent
@@ -162,584 +131,38 @@ ApplicationWindow {
                 anchors.margins: 10
                 spacing: 8
 
-                RowLayout {
-                    visible: !compactMode
+                HeaderNavigation {
                     Layout.fillWidth: true
-                    spacing: 8
-
-                    Image {
-                        Layout.preferredWidth: 112
-                        Layout.preferredHeight: 40
-                        source: "qrc:/assets/app/bearwave_line.png"
-                        fillMode: Image.PreserveAspectFit
-                        smooth: true
-                        mipmap: true
-                    }
-
-                    Rectangle {
-                        Layout.preferredWidth: 1
-                        Layout.fillHeight: true
-                        color: cardBorder
-                        opacity: 0.6
-                    }
-
-                    Button {
-                        text: qsTr("Top")
-                        highlighted: currentPage === "top"
-                        onClicked: {
-                            if (!backend) return
-                            currentPage = "top"
-                            activeQuickFilter = ""
-                            backend.loadTopStations()
-                        }
-                    }
-
-                    Button {
-                        text: qsTr("DE")
-                        highlighted: currentPage === "german"
-                        onClicked: {
-                            if (!backend) return
-                            currentPage = "german"
-                            activeQuickFilter = ""
-                            backend.loadGermanStations()
-                        }
-                    }
-
-                    Button {
-                        text: qsTr("NL")
-                        highlighted: currentPage === "dutch"
-                        onClicked: {
-                            if (!backend) return
-                            currentPage = "dutch"
-                            activeQuickFilter = ""
-                            backend.loadDutchStations()
-                        }
-                    }
-
-                    Button {
-                        text: qsTr("Favorites")
-                        highlighted: currentPage === "favorites"
-                        onClicked: {
-                            currentPage = "favorites"
-                            activeQuickFilter = ""
-                        }
-                    }
-
-                    Button {
-                        text: qsTr("History")
-                        highlighted: currentPage === "history"
-                        onClicked: {
-                            currentPage = "history"
-                            activeQuickFilter = ""
-                        }
-                    }
-
-                    Item { Layout.fillWidth: true }
-
-                    Button {
-                        text: compactMode ? "+" : qsTr("Manual +")
-                        onClicked: addDialog.open()
-                    }
-
-                    Button {
-                        text: qsTr("About")
-                        onClicked: aboutDialog.open()
-                    }
-
-                    Button {
-                        visible: backend && backend.canResumeLastStation
-                        text: compactMode ? "↺" : qsTr("Resume")
-                        onClicked: {
-                            if (backend) {
-                                backend.resumeLastStation()
-                            }
-                        }
-                    }
-                }
-
-                ColumnLayout {
-                    visible: compactMode
-                    Layout.fillWidth: true
-                    spacing: 8
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 8
-
-                        Image {
-                            Layout.preferredWidth: 96
-                            Layout.preferredHeight: 34
-                            source: "qrc:/assets/app/bearwave_line.png"
-                            fillMode: Image.PreserveAspectFit
-                            smooth: true
-                            mipmap: true
-                        }
-
-                        Item { Layout.fillWidth: true }
-
-                        Button {
-                            text: "+"
-                            onClicked: addDialog.open()
-                        }
-
-                        Button {
-                            text: qsTr("About")
-                            onClicked: aboutDialog.open()
-                        }
-
-                        Button {
-                            visible: backend && backend.canResumeLastStation
-                            text: "↺"
-                            onClicked: {
-                                if (backend) {
-                                    backend.resumeLastStation()
-                                }
-                            }
-                        }
-                    }
-
-                    Flow {
-                        Layout.fillWidth: true
-                        width: parent.width
-                        spacing: 8
-
-                        Button {
-                            text: qsTr("Top")
-                            highlighted: currentPage === "top"
-                            onClicked: {
-                                if (!backend) return
-                                currentPage = "top"
-                                activeQuickFilter = ""
-                                backend.loadTopStations()
-                            }
-                        }
-
-                        Button {
-                            text: qsTr("DE")
-                            highlighted: currentPage === "german"
-                            onClicked: {
-                                if (!backend) return
-                                currentPage = "german"
-                                activeQuickFilter = ""
-                                backend.loadGermanStations()
-                            }
-                        }
-
-                        Button {
-                            text: qsTr("NL")
-                            highlighted: currentPage === "dutch"
-                            onClicked: {
-                                if (!backend) return
-                                currentPage = "dutch"
-                                activeQuickFilter = ""
-                                backend.loadDutchStations()
-                            }
-                        }
-
-                        Button {
-                            text: qsTr("Favorites")
-                            highlighted: currentPage === "favorites"
-                            onClicked: {
-                                currentPage = "favorites"
-                                activeQuickFilter = ""
-                            }
-                        }
-
-                        Button {
-                            text: qsTr("History")
-                            highlighted: currentPage === "history"
-                            onClicked: {
-                                currentPage = "history"
-                                activeQuickFilter = ""
-                            }
-                        }
-                    }
+                    app: root
+                    compactMode: root.compactMode
                 }
 
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 1
-                    color: cardBorder
+                    color: BearTheme.cardBorder
                     opacity: 0.6
                 }
 
-                RowLayout {
-                    visible: !compactMode
+                SearchToolbar {
+                    id: searchToolbar
                     Layout.fillWidth: true
-                    spacing: 8
-
-                    TextField {
-                        id: searchField
-                        Layout.fillWidth: true
-                        placeholderText: qsTr("Search stations (name, genre, country)")
-                        onTextChanged: {
-                            if (backend) {
-                                backend.filterQuery = text
-                            }
-                            searchTimer.restart()
-                        }
-                        onAccepted: {
-                            if (text.length < 2 || !backend) return
-                            currentPage = "search"
-                            backend.searchStations(text)
-                        }
-                    }
-
-                    Button {
-                        text: qsTr("Search")
-                        highlighted: true
-                        onClicked: {
-                            if (searchField.text.length < 2 || !backend) return
-                            currentPage = "search"
-                            backend.searchStations(searchField.text)
-                        }
-                    }
-
-                    Button {
-                        text: compactMode ? "A-Z" : qsTr("Sort A-Z")
-                        onClicked: {
-                            if (backend && currentPage !== "favorites") {
-                                backend.sortStations("name")
-                            }
-                        }
-                    }
-
-                    Button {
-                        text: compactMode ? "kb" : qsTr("Sort Bitrate")
-                        onClicked: {
-                            if (backend && currentPage !== "favorites") {
-                                backend.sortStations("bitrate")
-                            }
-                        }
-                    }
-
-                    Button {
-                        text: compactMode ? "❤" : qsTr("Sort Votes")
-                        onClicked: {
-                            if (backend && currentPage !== "favorites") {
-                                backend.sortStations("votes")
-                            }
-                        }
-                    }
+                    app: root
+                    compactMode: root.compactMode
+                    searchTimer: searchTimer
                 }
 
-                ColumnLayout {
-                    visible: compactMode
+                QuickFilters {
                     Layout.fillWidth: true
-                    spacing: 8
-
-                    TextField {
-                        id: compactSearchField
-                        Layout.fillWidth: true
-                        placeholderText: qsTr("Search stations (name, genre, country)")
-                        text: searchField.text
-                        onTextChanged: {
-                            if (searchField.text !== text) {
-                                searchField.text = text
-                            }
-                            if (backend) {
-                                backend.filterQuery = text
-                            }
-                            searchTimer.restart()
-                        }
-                        onAccepted: {
-                            if (text.length < 2 || !backend) return
-                            currentPage = "search"
-                            backend.searchStations(text)
-                        }
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 8
-
-                        Item { Layout.fillWidth: true }
-
-                        Button {
-                            text: qsTr("Search")
-                            highlighted: true
-                            onClicked: {
-                                if (compactSearchField.text.length < 2 || !backend) return
-                                currentPage = "search"
-                                backend.searchStations(compactSearchField.text)
-                            }
-                        }
-                    }
-
-                    Flow {
-                        Layout.fillWidth: true
-                        width: parent.width
-                        spacing: 8
-
-                        Button {
-                            text: "A-Z"
-                            onClicked: {
-                                if (backend && currentPage !== "favorites") {
-                                    backend.sortStations("name")
-                                }
-                            }
-                        }
-
-                        Button {
-                            text: "kb"
-                            onClicked: {
-                                if (backend && currentPage !== "favorites") {
-                                    backend.sortStations("bitrate")
-                                }
-                            }
-                        }
-
-                        Button {
-                            text: "❤"
-                            onClicked: {
-                                if (backend && currentPage !== "favorites") {
-                                    backend.sortStations("votes")
-                                }
-                            }
-                        }
-                    }
-                }
-
-                Label {
-                    Layout.fillWidth: true
-                    text: qsTr("Tip: you are not limited to DE/NL. Search worldwide by country, genre, or station name.")
-                    color: textMuted
-                    font.pixelSize: 11
-                    wrapMode: compactMode ? Text.WordWrap : Text.NoWrap
-                    elide: compactMode ? Text.ElideNone : Text.ElideRight
-                }
-
-                RowLayout {
-                    visible: !compactMode
-                    Layout.fillWidth: true
-                    spacing: 6
-
-                    Label {
-                        text: qsTr("Genre:")
-                        color: textMuted
-                        font.pixelSize: 11
-                        rightPadding: 10
-                    }
-
-                    Button {
-                        text: qsTr("Rock")
-                        highlighted: activeQuickFilter === "tag:rock"
-                        onClicked: {
-                            if (!backend) return
-                            currentPage = "genre-rock"
-                            activeQuickFilter = "tag:rock"
-                            backend.loadByTag("rock")
-                        }
-                    }
-
-                    Button {
-                        text: qsTr("News")
-                        highlighted: activeQuickFilter === "tag:news"
-                        onClicked: {
-                            if (!backend) return
-                            currentPage = "genre-news"
-                            activeQuickFilter = "tag:news"
-                            backend.loadByTag("news")
-                        }
-                    }
-
-                    Button {
-                        text: qsTr("Jazz")
-                        highlighted: activeQuickFilter === "tag:jazz"
-                        onClicked: {
-                            if (!backend) return
-                            currentPage = "genre-jazz"
-                            activeQuickFilter = "tag:jazz"
-                            backend.loadByTag("jazz")
-                        }
-                    }
-
-                    Item { Layout.preferredWidth: 20 }
-
-                    Label {
-                        text: qsTr("Country:")
-                        color: textMuted
-                        font.pixelSize: 11
-                        rightPadding: 10
-                    }
-
-                    Button {
-                        text: qsTr("US")
-                        highlighted: activeQuickFilter === "cc:US"
-                        onClicked: {
-                            if (!backend) return
-                            currentPage = "country-us"
-                            activeQuickFilter = "cc:US"
-                            backend.loadByCountryCode("US")
-                        }
-                    }
-
-                    Button {
-                        text: qsTr("UK")
-                        highlighted: activeQuickFilter === "cc:GB"
-                        onClicked: {
-                            if (!backend) return
-                            currentPage = "country-gb"
-                            activeQuickFilter = "cc:GB"
-                            backend.loadByCountryCode("GB")
-                        }
-                    }
-
-                    Button {
-                        text: qsTr("FR")
-                        highlighted: activeQuickFilter === "cc:FR"
-                        onClicked: {
-                            if (!backend) return
-                            currentPage = "country-fr"
-                            activeQuickFilter = "cc:FR"
-                            backend.loadByCountryCode("FR")
-                        }
-                    }
-
-                    Button {
-                        text: qsTr("WORLD")
-                        highlighted: activeQuickFilter === "world"
-                        onClicked: {
-                            if (!backend) return
-                            currentPage = "world"
-                            activeQuickFilter = "world"
-                            selectedWorldCategory = ""
-                            selectedWorldType = ""
-                            if (backend.countries.length === 0) {
-                                backend.loadCountries()
-                            }
-                        }
-                    }
-
-                    Item { Layout.fillWidth: true }
-                }
-
-                ColumnLayout {
-                    visible: compactMode
-                    Layout.fillWidth: true
-                    spacing: 8
-
-                    Flow {
-                        Layout.fillWidth: true
-                        width: parent.width
-                        spacing: 8
-
-                        Label {
-                            text: qsTr("Genre:")
-                            color: textMuted
-                            font.pixelSize: 11
-                            verticalAlignment: Text.AlignVCenter
-                            leftPadding: 8
-                            rightPadding: 16
-                            topPadding: 8
-                            bottomPadding: 8
-                        }
-
-                        Button {
-                            text: qsTr("Rock")
-                            highlighted: activeQuickFilter === "tag:rock"
-                            onClicked: {
-                                if (!backend) return
-                                currentPage = "genre-rock"
-                                activeQuickFilter = "tag:rock"
-                                backend.loadByTag("rock")
-                            }
-                        }
-
-                        Button {
-                            text: qsTr("News")
-                            highlighted: activeQuickFilter === "tag:news"
-                            onClicked: {
-                                if (!backend) return
-                                currentPage = "genre-news"
-                                activeQuickFilter = "tag:news"
-                                backend.loadByTag("news")
-                            }
-                        }
-
-                        Button {
-                            text: qsTr("Jazz")
-                            highlighted: activeQuickFilter === "tag:jazz"
-                            onClicked: {
-                                if (!backend) return
-                                currentPage = "genre-jazz"
-                                activeQuickFilter = "tag:jazz"
-                                backend.loadByTag("jazz")
-                            }
-                        }
-                    }
-
-                    Flow {
-                        Layout.fillWidth: true
-                        width: parent.width
-                        spacing: 8
-
-                        Label {
-                            text: qsTr("Country:")
-                            color: textMuted
-                            font.pixelSize: 11
-                            verticalAlignment: Text.AlignVCenter
-                            leftPadding: 8
-                            rightPadding: 16
-                            topPadding: 8
-                            bottomPadding: 8
-                        }
-
-                        Button {
-                            text: qsTr("US")
-                            highlighted: activeQuickFilter === "cc:US"
-                            onClicked: {
-                                if (!backend) return
-                                currentPage = "country-us"
-                                activeQuickFilter = "cc:US"
-                                backend.loadByCountryCode("US")
-                            }
-                        }
-
-                        Button {
-                            text: qsTr("UK")
-                            highlighted: activeQuickFilter === "cc:GB"
-                            onClicked: {
-                                if (!backend) return
-                                currentPage = "country-gb"
-                                activeQuickFilter = "cc:GB"
-                                backend.loadByCountryCode("GB")
-                            }
-                        }
-
-                        Button {
-                            text: qsTr("FR")
-                            highlighted: activeQuickFilter === "cc:FR"
-                            onClicked: {
-                                if (!backend) return
-                                currentPage = "country-fr"
-                                activeQuickFilter = "cc:FR"
-                                backend.loadByCountryCode("FR")
-                            }
-                        }
-
-                        Button {
-                            text: qsTr("WORLD")
-                            highlighted: activeQuickFilter === "world"
-                            onClicked: {
-                                if (!backend) return
-                                currentPage = "world"
-                                activeQuickFilter = "world"
-                                selectedWorldCategory = ""
-                                selectedWorldType = ""
-                                if (backend.countries.length === 0) {
-                                    backend.loadCountries()
-                                }
-                            }
-                        }
-                    }
+                    app: root
+                    compactMode: root.compactMode
                 }
 
                 Label {
                     Layout.fillWidth: true
                     visible: backend && backend.lastError.length > 0
                     text: backend ? (qsTr("Error: ") + backend.lastError) : ""
-                    color: warn
+                    color: BearTheme.warn
                     elide: Text.ElideRight
                     font.pixelSize: 12
                 }
@@ -750,8 +173,8 @@ ApplicationWindow {
             Layout.fillWidth: true
             Layout.fillHeight: true
             radius: 12
-            color: panel
-            border.color: cardBorder
+            color: BearTheme.panel
+            border.color: BearTheme.cardBorder
             clip: true
             opacity: contentOpacity
 
@@ -782,7 +205,7 @@ ApplicationWindow {
                         text: selectedWorldType === "country"
                               ? (qsTr("World > Country: ") + selectedWorldCategory)
                               : (qsTr("World > Genre: ") + selectedWorldCategory)
-                        color: textMain
+                        color: BearTheme.textMain
                         font.bold: true
                         font.pixelSize: 13
                         Layout.fillWidth: true
@@ -828,8 +251,8 @@ ApplicationWindow {
 
                             color: stationCard.isCurrent
                                 ? (cardMouse.containsMouse ? "#1d3350" : "#16283e")
-                                : (cardMouse.containsMouse ? cardHover : card)
-                            border.color: stationCard.isCurrent ? accent : cardBorder
+                                : (cardMouse.containsMouse ? BearTheme.cardHover : BearTheme.card)
+                            border.color: stationCard.isCurrent ? BearTheme.accent : BearTheme.cardBorder
                             border.width: stationCard.isCurrent ? 2 : 1
 
                             MouseArea {
@@ -863,7 +286,7 @@ ApplicationWindow {
                                     Layout.preferredHeight: 44
                                     radius: 8
                                     color: "#123154"
-                                    border.color: accent
+                                    border.color: BearTheme.accent
 
                                     Image {
                                         id: stationFavicon
@@ -899,7 +322,7 @@ ApplicationWindow {
                                         Label {
                                             Layout.fillWidth: true
                                             text: stationCard.modelData.name
-                                            color: stationCard.isCurrent ? accent : textMain
+                                            color: stationCard.isCurrent ? BearTheme.accent : BearTheme.textMain
                                             font.bold: true
                                             font.pixelSize: compactMode ? 13 : 14
                                             elide: Text.ElideRight
@@ -915,7 +338,7 @@ ApplicationWindow {
                                                 id: bar1
                                                 width: 2
                                                 height: 12
-                                                color: accent
+                                                color: BearTheme.accent
                                                 radius: 1
                                                 Behavior on height {
                                                     NumberAnimation { duration: 120 }
@@ -925,7 +348,7 @@ ApplicationWindow {
                                                 id: bar2
                                                 width: 2
                                                 height: 12
-                                                color: accent
+                                                color: BearTheme.accent
                                                 radius: 1
                                                 Behavior on height {
                                                     NumberAnimation { duration: 120 }
@@ -935,7 +358,7 @@ ApplicationWindow {
                                                 id: bar3
                                                 width: 2
                                                 height: 12
-                                                color: accent
+                                                color: BearTheme.accent
                                                 radius: 1
                                                 Behavior on height {
                                                     NumberAnimation { duration: 120 }
@@ -968,7 +391,7 @@ ApplicationWindow {
                                         text: stationCard.modelData.country + "  •  "
                                               + (stationCard.modelData.codec && stationCard.modelData.codec !== "unknown" && stationCard.modelData.codec !== "" ? stationCard.modelData.codec.toUpperCase() + "  •  " : "")
                                               + (stationCard.modelData.bitrate > 0 ? stationCard.modelData.bitrate + " kbps" : qsTr("Stream"))
-                                        color: textMuted
+                                        color: BearTheme.textMuted
                                         font.pixelSize: 11
                                         elide: Text.ElideRight
                                     }
@@ -1042,7 +465,7 @@ ApplicationWindow {
                                 text: qsTr("Explore World Stations")
                                 font.bold: true
                                 font.pixelSize: 16
-                                color: textMain
+                                color: BearTheme.textMain
                                 Layout.fillWidth: true
                             }
 
@@ -1059,7 +482,7 @@ ApplicationWindow {
                         Label {
                             text: qsTr("Choose a country or music style to find radio stations from all over the world.")
                             font.pixelSize: 11
-                            color: textMuted
+                            color: BearTheme.textMuted
                             wrapMode: Text.WordWrap
                             width: parent.width
                             visible: countrySearchText === ""
@@ -1068,7 +491,7 @@ ApplicationWindow {
                         Rectangle {
                             width: parent.width
                             height: 1
-                            color: cardBorder
+                            color: BearTheme.cardBorder
                             opacity: 0.4
                             visible: countrySearchText === ""
                         }
@@ -1077,7 +500,7 @@ ApplicationWindow {
                             text: countrySearchText === "" ? qsTr("Countries") : qsTr("Filtered Countries")
                             font.bold: true
                             font.pixelSize: 13
-                            color: accent
+                            color: BearTheme.accent
                         }
 
                         Flow {
@@ -1092,8 +515,8 @@ ApplicationWindow {
                                     width: compactMode ? (countryFlow.width - 8) / 2 : (countryFlow.width - 16) / 3
                                     height: 62
                                     radius: 8
-                                    color: countryMouse.containsMouse ? cardHover : card
-                                    border.color: countryMouse.containsMouse ? accent : cardBorder
+                                    color: countryMouse.containsMouse ? BearTheme.cardHover : BearTheme.card
+                                    border.color: countryMouse.containsMouse ? BearTheme.accent : BearTheme.cardBorder
                                     border.width: 1
                                     scale: countryMouse.containsMouse ? 1.02 : 1.0
 
@@ -1123,7 +546,7 @@ ApplicationWindow {
                                         spacing: 12
 
                                         Label {
-                                            text: modelData.code === "GLOBAL" ? "🌎" : getFlagEmoji(modelData.code)
+                                            text: modelData.code === "GLOBAL" ? "🌎" : FlagUtils.flagEmoji(modelData.code)
                                             font.pixelSize: 26
                                             anchors.verticalCenter: parent.verticalCenter
                                         }
@@ -1136,7 +559,7 @@ ApplicationWindow {
                                             Label {
                                                 width: parent.width
                                                 text: modelData.name
-                                                color: textMain
+                                                color: BearTheme.textMain
                                                 font.bold: true
                                                 font.pixelSize: 13
                                                 elide: Text.ElideRight
@@ -1146,7 +569,7 @@ ApplicationWindow {
                                                 width: parent.width
                                                 text: modelData.code === "GLOBAL" ? qsTr("Top 200") :
                                                       (modelData.count ? modelData.count + " " + qsTr("stations") : modelData.code)
-                                                color: textMuted
+                                                color: BearTheme.textMuted
                                                 font.pixelSize: 10
                                                 elide: Text.ElideRight
                                             }
@@ -1164,7 +587,7 @@ ApplicationWindow {
                             Rectangle {
                                 width: parent.width
                                 height: 1
-                                color: cardBorder
+                                color: BearTheme.cardBorder
                                 opacity: 0.4
                             }
 
@@ -1172,7 +595,7 @@ ApplicationWindow {
                                 text: qsTr("Popular Music Styles")
                                 font.bold: true
                                 font.pixelSize: 13
-                                color: accent
+                                color: BearTheme.accent
                             }
 
                             Flow {
@@ -1181,14 +604,14 @@ ApplicationWindow {
                                 spacing: 8
 
                                 Repeater {
-                                    model: worldTags
+                                    model: BearTheme.worldTags
                                     delegate: Rectangle {
                                         id: tagCard
                                         width: compactMode ? (tagFlow.width - 8) / 2 : (tagFlow.width - 16) / 3
                                         height: 54
                                         radius: 8
-                                        color: tagMouse.containsMouse ? cardHover : card
-                                        border.color: tagMouse.containsMouse ? accent : cardBorder
+                                        color: tagMouse.containsMouse ? BearTheme.cardHover : BearTheme.card
+                                        border.color: tagMouse.containsMouse ? BearTheme.accent : BearTheme.cardBorder
                                         border.width: 1
                                         scale: tagMouse.containsMouse ? 1.02 : 1.0
 
@@ -1222,7 +645,7 @@ ApplicationWindow {
                                             Label {
                                                 width: parent.width - 34 // 22 (icon) + 12 (spacing)
                                                 text: modelData.name
-                                                color: textMain
+                                                color: BearTheme.textMain
                                                 font.bold: true
                                                 font.pixelSize: 13
                                                 elide: Text.ElideRight
@@ -1244,13 +667,13 @@ ApplicationWindow {
 
                 Label {
                     text: currentPage === "history" ? qsTr("No playback history") : qsTr("No stations loaded yet")
-                    color: textMain
+                    color: BearTheme.textMain
                     font.bold: true
                 }
 
                 Label {
                     text: currentPage === "history" ? qsTr("Play some stations to build history") : qsTr("Load DE/NL stations or use search")
-                    color: textMuted
+                    color: BearTheme.textMuted
                 }
             }
         }
@@ -1259,8 +682,8 @@ ApplicationWindow {
             Layout.fillWidth: true
             Layout.preferredHeight: 108
             radius: 12
-            color: panel
-            border.color: cardBorder
+            color: BearTheme.panel
+            border.color: BearTheme.cardBorder
 
             RowLayout {
                 anchors.fill: parent
@@ -1273,7 +696,7 @@ ApplicationWindow {
                     radius: 8
                     color: "#182637"
                     clip: true
-                    border.color: cardBorder
+                    border.color: BearTheme.cardBorder
 
                     Image {
                         id: coverImage
@@ -1314,7 +737,7 @@ ApplicationWindow {
                         Label {
                             Layout.fillWidth: true
                             text: backend && backend.player ? (backend.player.currentStationName || qsTr("No station selected")) : qsTr("No station selected")
-                            color: textMain
+                            color: BearTheme.textMain
                             font.pixelSize: 16
                             font.bold: true
                             elide: Text.ElideRight
@@ -1327,14 +750,14 @@ ApplicationWindow {
                             width: codecLabel.implicitWidth + 12
                             radius: 4
                             color: "transparent"
-                            border.color: accent
+                            border.color: BearTheme.accent
                             border.width: 1
 
                             Label {
                                 id: codecLabel
                                 anchors.centerIn: parent
                                 text: (backend && backend.currentStation && backend.currentStation.codec) ? backend.currentStation.codec.toUpperCase() : ""
-                                color: accent
+                                color: BearTheme.accent
                                 font.pixelSize: 9
                                 font.bold: true
                             }
@@ -1346,8 +769,8 @@ ApplicationWindow {
                             height: 18
                             width: bitrateLabel.implicitWidth + 12
                             radius: 4
-                            color: accent
-                            border.color: accent
+                            color: BearTheme.accent
+                            border.color: BearTheme.accent
                             border.width: 1
 
                             Label {
@@ -1366,7 +789,7 @@ ApplicationWindow {
                         text: backend && backend.player && backend.player.currentNowPlaying.length > 0
                               ? (qsTr("Now playing: ") + backend.player.currentNowPlaying)
                               : qsTr("Now playing: No track info")
-                        color: textMuted
+                        color: BearTheme.textMuted
                         font.pixelSize: 12
                         elide: Text.ElideRight
                     }
@@ -1466,8 +889,8 @@ ApplicationWindow {
             width: 210
             height: 110
             radius: 12
-            color: panel
-            border.color: cardBorder
+            color: BearTheme.panel
+            border.color: BearTheme.cardBorder
 
             Column {
                 anchors.centerIn: parent
@@ -1482,7 +905,7 @@ ApplicationWindow {
 
                 Label {
                     text: qsTr("Loading stations...")
-                    color: textMain
+                    color: BearTheme.textMain
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
             }
@@ -1596,7 +1019,7 @@ ApplicationWindow {
                 Label {
                     Layout.alignment: Qt.AlignHCenter
                     text: qsTr("BearWave")
-                    color: textMain
+                    color: BearTheme.textMain
                     font.bold: true
                     font.pixelSize: 26
                 }
@@ -1604,21 +1027,21 @@ ApplicationWindow {
                 Label {
                     Layout.alignment: Qt.AlignHCenter
                     text: qsTr("Internet Radio Player for KDE")
-                    color: textMuted
+                    color: BearTheme.textMuted
                     font.pixelSize: 14
                 }
 
                 Label {
                     Layout.alignment: Qt.AlignHCenter
                     text: qsTr("Version: %1").arg(Qt.application.version)
-                    color: textMuted
+                    color: BearTheme.textMuted
                     font.pixelSize: 12
                 }
 
                 Label {
                     Layout.alignment: Qt.AlignHCenter
                     text: qsTr("Public beta")
-                    color: accent
+                    color: BearTheme.accent
                     font.pixelSize: 12
                     font.bold: true
                 }
@@ -1634,7 +1057,7 @@ ApplicationWindow {
                 Label {
                     Layout.alignment: Qt.AlignHCenter
                     text: qsTr("Author: Sebastian Palencsár")
-                    color: textMain
+                    color: BearTheme.textMain
                     font.bold: true
                     font.pixelSize: 14
                 }
@@ -1662,7 +1085,7 @@ ApplicationWindow {
                         background: Rectangle {
                             radius: 20
                             color: parent.hovered ? "#274261" : "#1f3147"
-                            border.color: cardBorder
+                            border.color: BearTheme.cardBorder
                             border.width: 1
                         }
                     }
@@ -1686,7 +1109,7 @@ ApplicationWindow {
                         background: Rectangle {
                             radius: 20
                             color: parent.hovered ? "#274261" : "#1f3147"
-                            border.color: cardBorder
+                            border.color: BearTheme.cardBorder
                             border.width: 1
                         }
                     }
@@ -1710,7 +1133,7 @@ ApplicationWindow {
                         background: Rectangle {
                             radius: 20
                             color: parent.hovered ? "#274261" : "#1f3147"
-                            border.color: cardBorder
+                            border.color: BearTheme.cardBorder
                             border.width: 1
                         }
                     }
@@ -1728,12 +1151,12 @@ ApplicationWindow {
                     Label {
                         Layout.fillWidth: true
                         text: qsTr("GNU GPLv3 License")
-                        color: textMain
+                        color: BearTheme.textMain
                         font.bold: true
                     }
                     Label {
                         text: qsTr("Copyright (c) 2026")
-                        color: textMuted
+                        color: BearTheme.textMuted
                         font.pixelSize: 11
                     }
                 }
@@ -1744,7 +1167,7 @@ ApplicationWindow {
                     Layout.minimumHeight: 140
                     radius: 8
                     color: "#101a26"
-                    border.color: cardBorder
+                    border.color: BearTheme.cardBorder
 
                     ScrollView {
                         id: licenseScroll
@@ -1755,7 +1178,7 @@ ApplicationWindow {
 
                         Label {
                             width: licenseScroll.availableWidth
-                            color: textMain
+                            color: BearTheme.textMain
                             font.pixelSize: 11
                             wrapMode: Text.WordWrap
                             text: "This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.\n\nThis program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License along with this program.  If not, see <https://www.gnu.org/licenses/>."
@@ -1775,12 +1198,12 @@ ApplicationWindow {
         background: Rectangle {
             radius: 10
             color: "#24364e"
-            border.color: accent
+            border.color: BearTheme.accent
         }
 
         contentItem: Label {
             id: toastLabel
-            color: textMain
+            color: BearTheme.textMain
             font.pixelSize: 12
         }
 

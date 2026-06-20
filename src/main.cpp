@@ -49,6 +49,7 @@ int main(int argc, char *argv[])
     }
 
     QQmlApplicationEngine engine;
+    engine.addImportPath(QStringLiteral("qrc:/qml"));
 
     RadioBackend backend;
     engine.rootContext()->setContextProperty("radioBackend", &backend);
@@ -70,7 +71,7 @@ int main(int argc, char *argv[])
         mprisPlayer->publishState();
     }
 
-    const QUrl url(QStringLiteral("qrc:/Main.qml"));
+    const QUrl url(QStringLiteral("qrc:/qml/Main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [&app, url](QObject *obj, const QUrl &objUrl) {
         if (!obj && url == objUrl) {
