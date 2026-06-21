@@ -9,6 +9,9 @@ BearWave is designed for fast station browsing, simple playback controls, favori
 ![KDE Plasma](https://img.shields.io/badge/desktop-KDE%20Plasma-1f6feb)
 ![Qt 6](https://img.shields.io/badge/Qt-6-41cd52)
 ![License: GPL--3.0--or--later](https://img.shields.io/badge/license-GPL--3.0--or--later-lightgrey)
+![Version](https://img.shields.io/badge/version-1.0.4-blue)
+
+**Current release:** [1.0.4](CHANGELOG.md#104---2026-06-20) (2026-06-20) — security hardening, playback/tray/MPRIS fixes, modular QML UI.
 
 ## Screenshots
 
@@ -214,6 +217,16 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j"$(nproc)"
 ```
 
+### Tests
+
+From the build directory:
+
+```bash
+ctest --test-dir build --output-on-failure
+```
+
+This runs backend unit tests for playback navigation, API race handling, and manual station URL validation.
+
 ## Runtime Requirements
 
 - Linux desktop session
@@ -323,14 +336,17 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for local build and review expectations.
 
 ## Development Notes
 
-- main UI: `src/qml/Main.qml`
+- main UI shell: `src/qml/Main.qml`
+- QML components: `src/qml/components/` (navigation, search, station cards, player bar, dialogs)
+- theme singleton: `src/qml/theme/BearTheme.qml`
 - backend orchestration: `src/radiobackend.cpp`
 - stream playback: `src/bearplayer.cpp`
 - API layer: `src/radiobrowser.cpp`
 - MPRIS adapter: `src/mprisadaptor.cpp`
 - desktop notifications: `src/notificationmanager.cpp`
+- unit tests: `tests/`
 
-For contributor and agent guardrails, see `AGENTS.md`.
+See [CHANGELOG.md](CHANGELOG.md) for release history. For contributor and agent guardrails, see `AGENTS.md`.
 
 ## License
 

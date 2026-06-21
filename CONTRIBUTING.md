@@ -34,7 +34,13 @@ cmake --install build --prefix "$HOME/.local"
 If you changed QML:
 
 ```bash
-qmllint src/qml/Main.qml
+qmllint src/qml/Main.qml src/qml/components/*.qml src/qml/theme/BearTheme.qml
+```
+
+Run unit tests after backend changes:
+
+```bash
+ctest --test-dir build --output-on-failure
 ```
 
 ## Change Guidelines
