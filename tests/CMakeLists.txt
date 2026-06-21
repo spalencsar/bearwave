@@ -1,5 +1,10 @@
 find_package(Qt6 REQUIRED COMPONENTS Test)
 
+set(BEARWAVE_TEST_ENV
+    QT_QPA_PLATFORM=offscreen
+    QT_MEDIA_BACKEND=ffmpeg
+)
+
 set(TEST_SOURCES
     radiobackend_playback_test.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/radiobackend.cpp
@@ -25,6 +30,7 @@ target_link_libraries(radiobackend_playback_test PRIVATE
 )
 
 add_test(NAME radiobackend_playback_test COMMAND radiobackend_playback_test)
+set_tests_properties(radiobackend_playback_test PROPERTIES ENVIRONMENT "${BEARWAVE_TEST_ENV}")
 
 set(RACE_TEST_SOURCES
     radiobrowser_race_test.cpp
@@ -42,7 +48,7 @@ target_link_libraries(radiobrowser_race_test PRIVATE
     Qt6::Core
     Qt6::Network
     Qt6::Test
-    Qt6::Widgets
 )
 
 add_test(NAME radiobrowser_race_test COMMAND radiobrowser_race_test)
+set_tests_properties(radiobrowser_race_test PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")

@@ -35,6 +35,8 @@ jobs:
                 qt6-multimedia-ffmpeg
               cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
               cmake --build build -j"$(nproc)"
+              export QT_QPA_PLATFORM=offscreen
+              export QT_MEDIA_BACKEND=ffmpeg
               ctest --test-dir build --output-on-failure
               "$(/usr/lib/qt6/bin/qtpaths6 --query QT_INSTALL_BINS)/qmllint" src/qml/Main.qml src/qml/components/*.qml src/qml/theme/BearTheme.qml
             '

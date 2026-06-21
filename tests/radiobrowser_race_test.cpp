@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <QtTest>
-#include <QApplication>
+#include <QCoreApplication>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QDir>
@@ -100,5 +100,11 @@ void RadioBrowserRaceTest::latest_request_wins_after_rapid_category_switch()
             || finalName == QStringLiteral("NL Station"));
 }
 
-QTEST_MAIN(RadioBrowserRaceTest)
+int main(int argc, char *argv[])
+{
+    QCoreApplication app(argc, argv);
+    RadioBrowserRaceTest test;
+    return QTest::qExec(&test, argc, argv);
+}
+
 #include "radiobrowser_race_test.moc"

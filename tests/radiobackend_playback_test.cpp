@@ -328,5 +328,14 @@ void RadioBackendPlaybackTest::manual_station_accepts_http_and_https()
     QCOMPARE(backend.stations().size(), 2);
 }
 
-QTEST_MAIN(RadioBackendPlaybackTest)
+int main(int argc, char *argv[])
+{
+    qputenv("QT_QPA_PLATFORM", "offscreen");
+    qputenv("QT_MEDIA_BACKEND", "ffmpeg");
+
+    QApplication app(argc, argv);
+    RadioBackendPlaybackTest test;
+    return QTest::qExec(&test, argc, argv);
+}
+
 #include "radiobackend_playback_test.moc"
