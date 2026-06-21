@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.5] - 2026-06-20
+
+### Fixed
+
+- Fix unit tests aborting in headless CI/Docker by using Qt offscreen platform and FFmpeg media backend.
+
+### Changed
+
+- Document 1.0.4 changes in README and CONTRIBUTING; run `ctest` and broader `qmllint` in CI.
+
 ## [1.0.4] - 2026-06-20
 
 ### Security

@@ -9,9 +9,9 @@ BearWave is designed for fast station browsing, simple playback controls, favori
 ![KDE Plasma](https://img.shields.io/badge/desktop-KDE%20Plasma-1f6feb)
 ![Qt 6](https://img.shields.io/badge/Qt-6-41cd52)
 ![License: GPL--3.0--or--later](https://img.shields.io/badge/license-GPL--3.0--or--later-lightgrey)
-![Version](https://img.shields.io/badge/version-1.0.4-blue)
+![Version](https://img.shields.io/badge/version-1.0.5-blue)
 
-**Current release:** [1.0.4](CHANGELOG.md#104---2026-06-20) (2026-06-20) — security hardening, playback/tray/MPRIS fixes, modular QML UI.
+**Current release:** [1.0.5](CHANGELOG.md#105---2026-06-20) (2026-06-20) — includes [1.0.4](CHANGELOG.md#104---2026-06-20) security/stability/QML refactor plus CI test fixes.
 
 ## Screenshots
 

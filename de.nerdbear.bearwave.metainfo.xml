@@ -59,6 +59,14 @@
   </provides>
   
   <releases>
+    <release version="1.0.5" date="2026-06-20">
+      <description>
+        <ul>
+          <li>Fixed headless CI unit tests (Qt offscreen + FFmpeg backend)</li>
+          <li>Includes 1.0.4: URL validation, playback/tray/MPRIS fixes, modular QML UI</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.4" date="2026-06-20">
       <description>
         <ul>
