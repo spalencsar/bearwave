@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Version notes (1.0.3 → 1.0.5)
+
+- **1.0.3** — last GitHub release before the security/refactor batch.
+- **1.0.4** — git tag with security hardening, playback/tray/MPRIS fixes, and QML refactor; tagged before CI was green, so it was not published as a GitHub release at first.
+- **1.0.5** — current recommended release: everything in 1.0.4 plus headless CI test fixes.
+
 ## [1.0.5] - 2026-06-20
 
 ### Fixed
