@@ -22,12 +22,12 @@
 
 int main(int argc, char *argv[])
 {
+    QApplication app(argc, argv);
+
     QApplication::setApplicationName(QStringLiteral("BearWave"));
     QApplication::setDesktopFileName(QStringLiteral("de.nerdbear.bearwave"));
     QApplication::setOrganizationName(QStringLiteral("BearWave"));
     QApplication::setApplicationVersion(QStringLiteral(BEARWAVE_VERSION));
-
-    QApplication app(argc, argv);
 
     QDBusConnection sessionBus = QDBusConnection::sessionBus();
     if (sessionBus.isConnected() && sessionBus.interface() && sessionBus.interface()->isServiceRegistered(QStringLiteral("org.mpris.MediaPlayer2.bearwave"))) {
@@ -48,6 +48,9 @@ int main(int argc, char *argv[])
     if (appTranslator.load(QLocale::system(), QStringLiteral("bearwave"), QStringLiteral("_"), QStringLiteral(":/i18n"))) {
         app.installTranslator(&appTranslator);
     }
+
+    // QML disk cache can retain stale bytecode across app updates (same qrc paths).
+    qputenv("QML_DISABLE_DISK_CACHE", "1");
 
     QQmlApplicationEngine engine;
     engine.addImportPath(QStringLiteral("qrc:/qml"));

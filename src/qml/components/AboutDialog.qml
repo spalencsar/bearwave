@@ -14,6 +14,16 @@ Dialog {
     property string appVersion: Qt.application.version
     property string buildId: "?"
 
+    readonly property string versionLine: {
+        var version = root.appVersion
+        if (version === undefined || version === null || version === "")
+            version = Qt.application.version
+        var build = root.buildId
+        if (build === undefined || build === null || build === "")
+            build = "?"
+        return qsTr("Version") + " " + String(version) + " · " + qsTr("build") + " " + String(build)
+    }
+
     modal: true
     anchors.centerIn: parent
     width: compactMode ? 360 : 520
@@ -55,7 +65,7 @@ Dialog {
 
             Label {
                 Layout.alignment: Qt.AlignHCenter
-                text: qsTr("Version %1 · build %2").arg(root.appVersion).arg(root.buildId)
+                text: root.versionLine
                 color: BearTheme.textMuted
                 font.pixelSize: 12
             }
