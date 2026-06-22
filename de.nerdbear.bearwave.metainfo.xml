@@ -67,6 +67,7 @@
           <li>Flatpak: KDE 6.10 runtime, signed repo updates, QML resource path fix</li>
           <li>About dialog shows version and git build id; removed “Public beta” label</li>
           <li>Fixed About, Add station, and Edit station dialogs not opening after QML refactor</li>
+          <li>Flatpak: grant GPU access via --device=dri (fixes EGL/MESA warnings)</li>
         </ul>
       </description>
     </release>
