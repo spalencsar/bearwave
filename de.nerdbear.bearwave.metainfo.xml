@@ -59,6 +59,14 @@
   </provides>
   
   <releases>
+    <release version="1.0.7" date="2026-06-22">
+      <description>
+        <ul>
+          <li>About dialog shows the correct app version via explicit QML bindings</li>
+          <li>Removed confusing “Public beta” label from About</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.6" date="2026-06-22">
       <description>
         <ul>

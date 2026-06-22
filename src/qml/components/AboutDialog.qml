@@ -11,6 +11,8 @@ Dialog {
     id: root
 
     required property bool compactMode
+    required property string appVersion
+    required property string buildId
 
     modal: true
     anchors.centerIn: Overlay.overlay
@@ -53,19 +55,9 @@ Dialog {
 
             Label {
                 Layout.alignment: Qt.AlignHCenter
-                text: qsTr("Version: %1 (%2)").arg(
-                    (typeof bearwaveVersion !== "undefined" ? bearwaveVersion : Qt.application.version),
-                    (typeof bearwaveBuildId !== "undefined" ? bearwaveBuildId : "?"))
+                text: qsTr("Version %1 · build %2").arg(root.appVersion, root.buildId)
                 color: BearTheme.textMuted
                 font.pixelSize: 12
-            }
-
-            Label {
-                Layout.alignment: Qt.AlignHCenter
-                text: qsTr("Public beta")
-                color: BearTheme.accent
-                font.pixelSize: 12
-                font.bold: true
             }
         }
 

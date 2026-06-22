@@ -24,6 +24,8 @@ ApplicationWindow {
 
     property var currentPage: "top"
     property var backend: (typeof radioBackend !== "undefined" ? radioBackend : null)
+    readonly property string appVersion: (typeof bearwaveVersion !== "undefined" ? bearwaveVersion : Qt.application.version)
+    readonly property string appBuildId: (typeof bearwaveBuildId !== "undefined" ? bearwaveBuildId : "?")
     property bool compactMode: width < 780
     property real contentOpacity: 1.0
     property string activeQuickFilter: ""
@@ -240,6 +242,8 @@ ApplicationWindow {
     AboutDialog {
         id: aboutDialog
         compactMode: root.compactMode
+        appVersion: root.appVersion
+        buildId: root.appBuildId
     }
 
     ToastPopup {
