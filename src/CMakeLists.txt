@@ -18,6 +18,10 @@ set(SOURCES
 # Create executable
 add_executable(bearwave ${SOURCES})
 
+target_compile_definitions(bearwave PRIVATE
+    BEARWAVE_VERSION="${PROJECT_VERSION}"
+)
+
 # Qt Resources
 target_sources(bearwave PRIVATE qml.qrc)
 

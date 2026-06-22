@@ -52,3 +52,12 @@ target_link_libraries(radiobrowser_race_test PRIVATE
 
 add_test(NAME radiobrowser_race_test COMMAND radiobrowser_race_test)
 set_tests_properties(radiobrowser_race_test PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+add_executable(qrc_resources_test
+    qrc_resources_test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/qml.qrc
+)
+
+target_link_libraries(qrc_resources_test PRIVATE Qt6::Core Qt6::Test)
+
+add_test(NAME qrc_resources_test COMMAND qrc_resources_test)

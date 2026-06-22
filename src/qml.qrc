@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/qml">
+    <qresource prefix="/">
         <file>qml/Main.qml</file>
         <file>qml/theme/qmldir</file>
         <file>qml/theme/BearTheme.qml</file>

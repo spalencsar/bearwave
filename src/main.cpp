@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     QApplication::setApplicationName(QStringLiteral("BearWave"));
     QApplication::setDesktopFileName(QStringLiteral("de.nerdbear.bearwave"));
     QApplication::setOrganizationName(QStringLiteral("BearWave"));
-    QApplication::setApplicationVersion(QStringLiteral("1.0.5"));
+    QApplication::setApplicationVersion(QStringLiteral(BEARWAVE_VERSION));
 
     QApplication app(argc, argv);
 
