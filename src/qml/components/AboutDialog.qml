@@ -53,7 +53,9 @@ Dialog {
 
             Label {
                 Layout.alignment: Qt.AlignHCenter
-                text: qsTr("Version: %1").arg(Qt.application.version)
+                text: qsTr("Version: %1 (%2)").arg(
+                    (typeof bearwaveVersion !== "undefined" ? bearwaveVersion : Qt.application.version),
+                    (typeof bearwaveBuildId !== "undefined" ? bearwaveBuildId : "?"))
                 color: BearTheme.textMuted
                 font.pixelSize: 12
             }

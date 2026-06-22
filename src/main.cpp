@@ -53,6 +53,8 @@ int main(int argc, char *argv[])
 
     RadioBackend backend;
     engine.rootContext()->setContextProperty("radioBackend", &backend);
+    engine.rootContext()->setContextProperty("bearwaveVersion", QStringLiteral(BEARWAVE_VERSION));
+    engine.rootContext()->setContextProperty("bearwaveBuildId", QStringLiteral(BEARWAVE_GIT_HASH));
 
     auto *mprisRoot = new MprisRootAdaptor(&backend, &app);
     auto *mprisPlayer = new MprisPlayerAdaptor(&backend);

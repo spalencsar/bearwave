@@ -59,6 +59,14 @@
   </provides>
   
   <releases>
+    <release version="1.0.6" date="2026-06-22">
+      <description>
+        <ul>
+          <li>Flatpak: KDE 6.10 runtime, signed repo updates, QML resource path fix</li>
+          <li>Version display now follows CMake project version</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.5" date="2026-06-20">
       <description>
         <ul>

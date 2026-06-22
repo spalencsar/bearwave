@@ -18,8 +18,20 @@ set(SOURCES
 # Create executable
 add_executable(bearwave ${SOURCES})
 
+execute_process(
+    COMMAND git rev-parse --short HEAD
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/..
+    OUTPUT_VARIABLE BEARWAVE_GIT_HASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+)
+if(NOT BEARWAVE_GIT_HASH)
+    set(BEARWAVE_GIT_HASH "unknown")
+endif()
+
 target_compile_definitions(bearwave PRIVATE
     BEARWAVE_VERSION="${PROJECT_VERSION}"
+    BEARWAVE_GIT_HASH="${BEARWAVE_GIT_HASH}"
 )
 
 # Qt Resources
