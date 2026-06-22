@@ -18,13 +18,19 @@ set(SOURCES
 # Create executable
 add_executable(bearwave ${SOURCES})
 
-execute_process(
-    COMMAND git rev-parse --short HEAD
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/..
-    OUTPUT_VARIABLE BEARWAVE_GIT_HASH
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    ERROR_QUIET
-)
+if(BEARWAVE_GIT_HASH)
+    # set via -D from build scripts
+elseif(DEFINED ENV{BEARWAVE_GIT_HASH} AND NOT "$ENV{BEARWAVE_GIT_HASH}" STREQUAL "")
+    set(BEARWAVE_GIT_HASH "$ENV{BEARWAVE_GIT_HASH}")
+else()
+    execute_process(
+        COMMAND git rev-parse --short HEAD
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/..
+        OUTPUT_VARIABLE BEARWAVE_GIT_HASH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+endif()
 if(NOT BEARWAVE_GIT_HASH)
     set(BEARWAVE_GIT_HASH "unknown")
 endif()
