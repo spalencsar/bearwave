@@ -40,3 +40,21 @@ jobs:
               ctest --test-dir build --output-on-failure
               "$(/usr/lib/qt6/bin/qtpaths6 --query QT_INSTALL_BINS)/qmllint" src/qml/Main.qml src/qml/components/*.qml src/qml/theme/BearTheme.qml
             '
+
+  flatpak-build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build Flatpak manifest
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+          flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y flathub org.kde.Sdk//6.10 org.kde.Platform//6.10
+          flatpak-builder --user --force-clean flatpak_build de.nerdbear.bearwave.json
+          grep -q '"runtime-version" : "6.10"' flatpak_build/files/manifest.json
+          test "$(grep '^runtime=' flatpak_build/metadata)" = "runtime=org.kde.Platform/x86_64/6.10"
