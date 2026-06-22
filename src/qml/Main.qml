@@ -34,6 +34,9 @@ ApplicationWindow {
     property string countrySearchText: ""
     property alias searchField: searchToolbar.searchField
     property alias stationList: stationPanel.stationList
+    property alias addDialog: addDialog
+    property alias editDialog: editDialog
+    property alias aboutDialog: aboutDialog
 
     function toast(message) {
         toastPopup.show(message)

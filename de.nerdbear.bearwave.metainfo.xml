@@ -59,6 +59,13 @@
   </provides>
   
   <releases>
+    <release version="1.0.8" date="2026-06-22">
+      <description>
+        <ul>
+          <li>Fixed About, Add station, and Edit station dialogs not opening after QML refactor</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.7" date="2026-06-22">
       <description>
         <ul>

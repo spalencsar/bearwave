@@ -11,11 +11,11 @@ Dialog {
     id: root
 
     required property bool compactMode
-    required property string appVersion
-    required property string buildId
+    property string appVersion: Qt.application.version
+    property string buildId: "?"
 
     modal: true
-    anchors.centerIn: Overlay.overlay
+    anchors.centerIn: parent
     width: compactMode ? 360 : 520
     height: compactMode ? 560 : 680
     standardButtons: Dialog.Ok
