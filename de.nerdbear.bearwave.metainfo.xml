@@ -59,34 +59,14 @@
   </provides>
   
   <releases>
-    <release version="1.0.8" date="2026-06-22">
-      <description>
-        <ul>
-          <li>Fixed About, Add station, and Edit station dialogs not opening after QML refactor</li>
-        </ul>
-      </description>
-    </release>
-    <release version="1.0.7" date="2026-06-22">
-      <description>
-        <ul>
-          <li>About dialog shows the correct app version via explicit QML bindings</li>
-          <li>Removed confusing “Public beta” label from About</li>
-        </ul>
-      </description>
-    </release>
-    <release version="1.0.6" date="2026-06-22">
-      <description>
-        <ul>
-          <li>Flatpak: KDE 6.10 runtime, signed repo updates, QML resource path fix</li>
-          <li>Version display now follows CMake project version</li>
-        </ul>
-      </description>
-    </release>
-    <release version="1.0.5" date="2026-06-20">
+    <release version="1.0.5" date="2026-06-22">
       <description>
         <ul>
           <li>Fixed headless CI unit tests (Qt offscreen + FFmpeg backend)</li>
           <li>Includes 1.0.4: URL validation, playback/tray/MPRIS fixes, modular QML UI</li>
+          <li>Flatpak: KDE 6.10 runtime, signed repo updates, QML resource path fix</li>
+          <li>About dialog shows version and git build id; removed “Public beta” label</li>
+          <li>Fixed About, Add station, and Edit station dialogs not opening after QML refactor</li>
         </ul>
       </description>
     </release>
