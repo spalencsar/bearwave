@@ -55,7 +55,7 @@ Dialog {
 
             Label {
                 Layout.alignment: Qt.AlignHCenter
-                text: qsTr("Version %1 · build %2").arg(root.appVersion, root.buildId)
+                text: qsTr("Version %1 · build %2").arg(String(root.appVersion), String(root.buildId))
                 color: BearTheme.textMuted
                 font.pixelSize: 12
             }

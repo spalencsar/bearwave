@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
             QStringLiteral("Raise")
         );
         sessionBus.call(call);
+        qInfo() << "BearWave is already running; raised the existing window.";
         return 0;
     }
     app.setWindowIcon(QIcon::fromTheme(QStringLiteral("de.nerdbear.bearwave")));
@@ -64,15 +65,6 @@ int main(int argc, char *argv[])
     Q_UNUSED(controlAdaptor)
     Q_UNUSED(notificationManager)
 
-    if (!sessionBus.registerObject(QStringLiteral("/org/mpris/MediaPlayer2"), &backend, QDBusConnection::ExportAdaptors)) {
-        qWarning() << "Failed to register MPRIS D-Bus object";
-    }
-    if (!sessionBus.registerService(QStringLiteral("org.mpris.MediaPlayer2.bearwave"))) {
-        qWarning() << "Failed to register MPRIS D-Bus service org.mpris.MediaPlayer2.bearwave";
-    } else {
-        mprisPlayer->publishState();
-    }
-
     const QUrl url(QStringLiteral("qrc:/qml/Main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [&app, url](QObject *obj, const QUrl &objUrl) {
@@ -93,6 +85,25 @@ int main(int argc, char *argv[])
         qCritical("Failed to obtain main window");
         return EXIT_FAILURE;
     }
+
+    QObject::connect(&backend, &RadioBackend::raiseRequested, mainWindow, [mainWindow]() {
+        mainWindow->show();
+        mainWindow->raise();
+        mainWindow->requestActivate();
+    });
+
+    if (!sessionBus.registerObject(QStringLiteral("/org/mpris/MediaPlayer2"), &backend, QDBusConnection::ExportAdaptors)) {
+        qWarning() << "Failed to register MPRIS D-Bus object";
+    }
+    if (!sessionBus.registerService(QStringLiteral("org.mpris.MediaPlayer2.bearwave"))) {
+        qWarning() << "Failed to register MPRIS D-Bus service org.mpris.MediaPlayer2.bearwave";
+    } else {
+        mprisPlayer->publishState();
+    }
+
+    mainWindow->show();
+    mainWindow->raise();
+    mainWindow->requestActivate();
 
     SystemTrayManager trayManager(&backend, mainWindow, &app);
     Q_UNUSED(trayManager)

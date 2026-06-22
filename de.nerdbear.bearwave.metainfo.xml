@@ -68,6 +68,8 @@
           <li>About dialog shows version and git build id; removed “Public beta” label</li>
           <li>Fixed About, Add station, and Edit station dialogs not opening after QML refactor</li>
           <li>Flatpak: grant GPU access via --device=dri (fixes EGL/MESA warnings)</li>
+          <li>Fixed startup when re-launching: MPRIS Raise now always shows the window</li>
+          <li>Fixed dialog property aliases and About version label binding</li>
         </ul>
       </description>
     </release>

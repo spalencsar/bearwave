@@ -34,9 +34,9 @@ ApplicationWindow {
     property string countrySearchText: ""
     property alias searchField: searchToolbar.searchField
     property alias stationList: stationPanel.stationList
-    property alias addDialog: addDialog
-    property alias editDialog: editDialog
-    property alias aboutDialog: aboutDialog
+    property alias addDialog: addDialogPane
+    property alias editDialog: editDialogPane
+    property alias aboutDialog: aboutDialogPane
 
     function toast(message) {
         toastPopup.show(message)
@@ -231,19 +231,19 @@ ApplicationWindow {
     }
 
     AddStationDialog {
-        id: addDialog
+        id: addDialogPane
         app: root
         compactMode: root.compactMode
     }
 
     EditStationDialog {
-        id: editDialog
+        id: editDialogPane
         app: root
         compactMode: root.compactMode
     }
 
     AboutDialog {
-        id: aboutDialog
+        id: aboutDialogPane
         compactMode: root.compactMode
         appVersion: root.appVersion
         buildId: root.appBuildId
