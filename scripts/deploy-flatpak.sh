@@ -12,6 +12,8 @@ if [[ ! -d flatpak_repo/objects ]]; then
 fi
 
 rsync -avz \
+  -e 'ssh -o RemoteCommand=none -o RequestTTY=no' \
+  --no-group --no-owner \
   --exclude='.lock' \
   flatpak_repo/ \
   "${deploy_target}"
