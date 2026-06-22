@@ -11,7 +11,7 @@ BearWave is designed for fast station browsing, simple playback controls, favori
 ![License: GPL--3.0--or--later](https://img.shields.io/badge/license-GPL--3.0--or--later-lightgrey)
 ![Version](https://img.shields.io/badge/version-1.0.5-blue)
 
-**Current release:** [1.0.5](CHANGELOG.md#105---2026-06-20) (2026-06-20)
+**Current release:** [1.0.5](CHANGELOG.md#105---2026-06-22) (2026-06-22)
 
 Why not 1.0.4 on GitHub? [1.0.4](CHANGELOG.md#104---2026-06-20) exists as a **git tag** (security, stability, QML refactor) but was tagged before CI passed. **1.0.5** is the first verified GitHub release after [1.0.3](CHANGELOG.md#103---2026-05-30). See [version notes](CHANGELOG.md#version-notes-103--105) in the changelog.
 

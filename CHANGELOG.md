@@ -11,17 +11,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **1.0.3** — last GitHub release before the security/refactor batch.
 - **1.0.4** — git tag with security hardening, playback/tray/MPRIS fixes, and QML refactor; tagged before CI was green, so it was not published as a GitHub release at first.
-- **1.0.5** — current recommended release: everything in 1.0.4 plus headless CI test fixes.
+- **1.0.5** — current recommended release: everything in 1.0.4 plus CI, packaging, and post-release bugfixes (AUR/Flatpak rebuilds use `pkgrel` bumps, not a new app version).
 
-## [1.0.5] - 2026-06-20
+## [1.0.5] - 2026-06-22
 
 ### Fixed
 
 - Fix unit tests aborting in headless CI/Docker by using Qt offscreen platform and FFmpeg media backend.
+- Fix QML resource paths so `qrc:/qml/Main.qml` loads in AUR and release builds (regression from 1.0.4 refactor).
+- Fix About, Add station, and Edit station dialogs not opening after QML refactor (missing `property alias` in `Main.qml`).
+- Fix About dialog version label binding and disable stale QML disk cache in development builds.
+- Fix About dialog crash when opening the license scroll area.
+- Fix startup when re-launching: MPRIS `Raise` now always shows the window (even without tray).
+- Flatpak: grant GPU access via `--device=dri` (fixes EGL/MESA warnings on some systems).
+- Flatpak: inject git build id into About when `.git` is unavailable in the builder sandbox.
 
 ### Changed
 
 - Document 1.0.4 changes in README and CONTRIBUTING; run `ctest` and broader `qmllint` in CI.
+- About dialog shows app version and git build id; removed “Public beta” label.
+- Flatpak: upgrade to KDE Platform/SDK 6.10 (EOL 6.6 runtimes); GPG-sign repo summaries on build and deploy.
 
 ## [1.0.4] - 2026-06-20
 
