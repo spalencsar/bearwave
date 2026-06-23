@@ -23,5 +23,15 @@ rsync -avz \
   flatpak_repo/ \
   "${deploy_target}"
 
+for ref_file in bearwave.flatpakref flatpak_repo/bearwave.flatpakref flatpak_repo/bearwave.flatpakrepo; do
+  if [[ -f "${ref_file}" ]]; then
+    rsync -avz \
+      -e 'ssh -o RemoteCommand=none -o RequestTTY=no' \
+      --no-group --no-owner \
+      "${ref_file}" \
+      "${deploy_target}$(basename "${ref_file}")"
+    echo "Deployed ${ref_file} to ${deploy_target}"
+  fi
+done
+
 echo "Deployed flatpak_repo/ to ${deploy_target}"
-echo "bearwave.flatpakrepo on the server is left unchanged."

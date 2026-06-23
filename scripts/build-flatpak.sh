@@ -4,7 +4,7 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 
-gpg_key_id="${BEARWAVE_FLATPAK_GPG_KEY:-AA1D2F0170800855}"
+gpg_key_id="${BEARWAVE_FLATPAK_GPG_KEY:-5BAA384577671E45}"
 mode="build"
 deploy=false
 

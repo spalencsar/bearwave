@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Flatpak repository signing key replaced with `Bearwave App <dev@bearwave.app>` (`5BAA384577671E45`).
+
 ## Version notes (1.0.3 → 1.0.5)
 
 - **1.0.3** — last GitHub release before the security/refactor batch.
