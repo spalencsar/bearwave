@@ -41,17 +41,23 @@ For security (sandboxing) and ease of updates, we recommend installing BearWave 
 
 **Prerequisite:** [Flatpak](https://flatpak.org/setup/) must be installed on your system. On many distributions it is already present; otherwise install it from your package manager first.
 
-**Install:**
+**Install (recommended):**
 
 ```bash
-# Add the BearWave repository (GPG-signed)
-flatpak remote-add --user bearwave-repo https://flatpak.bearwave.app/bearwave.flatpakrepo
-
-# Install the application (first run also pulls the KDE Platform 6.10 runtime)
-flatpak install --user bearwave-repo de.nerdbear.bearwave
+# One-step install from the signed Flatpak ref (adds the remote automatically)
+flatpak install --from https://flatpak.bearwave.app/bearwave.flatpakref
 ```
 
-Confirm the prompts when Flatpak asks to install the runtime and app.
+The ref file is also included in this repository as [`bearwave.flatpakref`](bearwave.flatpakref).
+
+Confirm the prompts when Flatpak asks to install the runtime and app (first install also pulls the KDE Platform 6.10 runtime).
+
+**Alternative (manual remote):**
+
+```bash
+flatpak remote-add --user bearwave-repo https://flatpak.bearwave.app/bearwave.flatpakrepo
+flatpak install --user bearwave-repo de.nerdbear.bearwave
+```
 
 **Launch:**
 
@@ -355,6 +361,7 @@ rm -f "$HOME/.config/autostart/de.nerdbear.bearwave.desktop"
 ### Flatpak install or update fails
 
 - verify Flatpak is installed: `flatpak --version`
+- retry the one-step install: `flatpak install --from https://flatpak.bearwave.app/bearwave.flatpakref`
 - if the remote already exists: `flatpak remote-modify --user bearwave-repo --url=https://flatpak.bearwave.app/bearwave.flatpakrepo`
 - check installed build: `flatpak info de.nerdbear.bearwave`
 - signature errors usually mean the repository on the server is out of date; retry later or report an issue
