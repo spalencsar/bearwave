@@ -18,7 +18,7 @@ fi
 
 rsync -avz \
   -e 'ssh -o RemoteCommand=none -o RequestTTY=no' \
-  --no-group --no-owner \
+  --no-group --no-owner --omit-dir-times \
   --exclude='.lock' \
   flatpak_repo/ \
   "${deploy_target}"
@@ -27,7 +27,7 @@ for ref_file in bearwave.flatpakref flatpak_repo/bearwave.flatpakref flatpak_rep
   if [[ -f "${ref_file}" ]]; then
     rsync -avz \
       -e 'ssh -o RemoteCommand=none -o RequestTTY=no' \
-      --no-group --no-owner \
+      --no-group --no-owner --omit-dir-times \
       "${ref_file}" \
       "${deploy_target}$(basename "${ref_file}")"
     echo "Deployed ${ref_file} to ${deploy_target}"
