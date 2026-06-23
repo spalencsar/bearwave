@@ -37,14 +37,54 @@ Three sensible paths right now:
 
 ### Option A: Flatpak (Recommended)
 
-For security (sandboxing) and ease of updates, we recommend installing BearWave from our independent, GPG-signed repository. This is also the ideal path for immutable distributions (like Fedora Silverblue or SteamOS):
+For security (sandboxing) and ease of updates, we recommend installing BearWave from our independent, GPG-signed repository. This is also the ideal path for immutable distributions (like Fedora Silverblue or SteamOS) and on non-Arch distributions (e.g. Fedora with Plasma, Deepin with DDE).
+
+**Prerequisite:** [Flatpak](https://flatpak.org/setup/) must be installed on your system. On many distributions it is already present; otherwise install it from your package manager first.
+
+**Install:**
 
 ```bash
-# Add the BearWave repository
+# Add the BearWave repository (GPG-signed)
 flatpak remote-add --user bearwave-repo https://flatpak.bearwave.app/bearwave.flatpakrepo
 
-# Install the application
+# Install the application (first run also pulls the KDE Platform 6.10 runtime)
 flatpak install --user bearwave-repo de.nerdbear.bearwave
+```
+
+Confirm the prompts when Flatpak asks to install the runtime and app.
+
+**Launch:**
+
+```bash
+flatpak run de.nerdbear.bearwave
+```
+
+After installation, BearWave should also appear in your application menu as `BearWave`.
+
+**Update:**
+
+```bash
+flatpak update de.nerdbear.bearwave
+```
+
+**Uninstall:**
+
+```bash
+flatpak uninstall de.nerdbear.bearwave
+# optional: remove the remote if you no longer need it
+flatpak remote-delete bearwave-repo
+```
+
+**Notes:**
+
+- BearWave is a single-instance app. Starting it again while it is already running raises the existing window instead of opening a second copy.
+- Desktop integration is best on KDE Plasma. On other desktops (e.g. DDE), the app runs via Flatpak but keeps its KDE-first look and does not adopt native desktop styling.
+- If the UI behaves oddly right after an update, clear the Flatpak QML cache and restart:
+
+```bash
+rm -rf ~/.var/app/de.nerdbear.bearwave/cache/BearWave/BearWave/qmlcache
+killall bearwave
+flatpak run de.nerdbear.bearwave
 ```
 
 ### Option B: Arch Linux (AUR)
@@ -175,15 +215,15 @@ If the system language is German, BearWave appears in German. Otherwise it falls
 
 BearWave should currently be understood as:
 
-- officially documented for source builds
-- most naturally aligned with Arch Linux packaging
-- likely portable to other Linux distributions with Qt 6 / KF6 / QtMultimedia packages available
-- not yet positioned as a broadly packaged consumer desktop app
+- officially documented for Flatpak, source builds, and Arch Linux (AUR)
+- most naturally aligned with Arch Linux + KDE Plasma for development and source installs
+- broadly usable on other distributions via Flatpak, with KDE-first desktop integration
+- not yet positioned as a broadly packaged consumer desktop app beyond the Flatpak repository
 
 If you want the least surprising path today, use either:
 
-- a local source build
-- the included Arch `PKGBUILD`
+- **Flatpak** on Fedora, immutable distros, or non-Arch systems
+- a local source build or the included Arch `PKGBUILD` on Arch Linux
 
 ## Dependencies
 
@@ -312,7 +352,20 @@ rm -f "$HOME/.config/autostart/de.nerdbear.bearwave.desktop"
 
 ## Troubleshooting
 
-### No audio playback
+### Flatpak install or update fails
+
+- verify Flatpak is installed: `flatpak --version`
+- if the remote already exists: `flatpak remote-modify --user bearwave-repo --url=https://flatpak.bearwave.app/bearwave.flatpakrepo`
+- check installed build: `flatpak info de.nerdbear.bearwave`
+- signature errors usually mean the repository on the server is out of date; retry later or report an issue
+
+### Flatpak: no audio playback
+
+- ensure PulseAudio or PipeWire with PulseAudio compatibility is running (the Flatpak uses `--socket=pulseaudio`)
+- test another station URL because some streams go offline
+- confirm you are running the Flatpak build, not a leftover source/AUR binary: `which bearwave` vs `flatpak run de.nerdbear.bearwave`
+
+### No audio playback (source / AUR build)
 
 - ensure `qt6-multimedia` and a backend like `qt6-multimedia-ffmpeg` or `gst-plugins-good` are installed
 - test another station URL because some streams go offline
