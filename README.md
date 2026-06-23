@@ -35,9 +35,26 @@ Screenshots: KDE Plasma on Linux.
 
 Three sensible paths right now:
 
-### Option A: Arch Linux (AUR)
+### Option A: Flatpak (Recommended)
 
-BearWave is officially available in the Arch User Repository as `bearwave-git`. You can easily install it using an AUR helper like `yay` or `paru`:
+For security (sandboxing) and ease of updates, we recommend installing BearWave from our independent, GPG-signed repository. This is also the ideal path for immutable distributions (like Fedora Silverblue or SteamOS):
+
+```bash
+# Add the BearWave repository
+flatpak remote-add --user bearwave-repo https://flatpak.bearwave.app/bearwave.flatpakrepo
+
+# Install the application
+flatpak install --user bearwave-repo de.nerdbear.bearwave
+```
+
+### Option B: Arch Linux (AUR)
+
+BearWave is available in the Arch User Repository as `bearwave-git`. 
+
+> [!WARNING]
+> The AUR is community-driven and packages are not officially vetted. Always inspect the `PKGBUILD` and its source files before building/installing.
+
+Install using an AUR helper like `yay` or `paru`:
 
 ```bash
 yay -S bearwave-git
@@ -45,7 +62,9 @@ yay -S bearwave-git
 
 _(Alternatively, you can build from the included `PKGBUILD` locally by running `makepkg -si`)_
 
-### Option B: Local source build
+### Option C: Local source build
+
+If you prefer building from source and having full control over compilation:
 
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
@@ -57,18 +76,6 @@ Then launch:
 
 ```bash
 ~/.local/bin/bearwave
-```
-
-### Option C: Flatpak (Universal / Immutable OS)
-
-If you are running an immutable Linux distribution (like Fedora Silverblue, SteamOS) or simply prefer sandboxed applications, you can install BearWave directly from our independent repository:
-
-```bash
-# Add the BearWave repository
-flatpak remote-add --user bearwave-repo https://flatpak.bearwave.app/bearwave.flatpakrepo
-
-# Install the application
-flatpak install bearwave-repo de.nerdbear.bearwave
 ```
 
 ## What BearWave Is
