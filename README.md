@@ -49,7 +49,7 @@ flatpak install --user bearwave-repo de.nerdbear.bearwave
 
 ### Option B: Arch Linux (AUR)
 
-BearWave is available in the Arch User Repository as `bearwave-git`. 
+BearWave is available in the Arch User Repository as `bearwave-git`.
 
 > [!WARNING]
 > The AUR is community-driven and packages are not officially vetted. Always inspect the `PKGBUILD` and its source files before building/installing.
@@ -60,7 +60,7 @@ Install using an AUR helper like `yay` or `paru`:
 yay -S bearwave-git
 ```
 
-_(Alternatively, you can build from the included `PKGBUILD` locally by running `makepkg -si`)_
+(Alternatively, you can build from the included `PKGBUILD` locally by running `makepkg -si`)
 
 ### Option C: Local source build
 
@@ -115,7 +115,7 @@ BearWave intentionally does not aim to be:
 
 BearWave is an early public, source-first desktop project.
 
-BearWave is currently in public beta and is best supported on Arch Linux and KDE Plasma.
+BearWave is currently in public beta and is best supported on Arch Linux and KDE Plasma. The Flatpak build also runs on other distributions, but desktop integration and visual fit remain KDE-first.
 
 It is already usable, but it should currently be treated as software for testers, contributors, and technically comfortable Linux users rather than a polished end-user release.
 
@@ -137,18 +137,28 @@ BearWave is intentionally KDE-first.
 - primary platform target: Linux
 - primary desktop target: KDE Plasma 6
 - primary development environment: Arch Linux
-- other Linux distributions may build from source, but are not yet documented or tested to the same level
+- Flatpak is the recommended path on non-Arch distributions
+- other Linux distributions may build from source, but are not documented or tested to the same level
 
 ### Tested On
 
-BearWave is currently aligned with and tested primarily against:
+**Verified (manual testing):**
 
-- Arch Linux
-- KDE Plasma 6
+- Arch Linux + KDE Plasma 6 (source build, AUR, primary development target)
+- Fedora + KDE Plasma (Flatpak)
+- Deepin + DDE (Flatpak) — core app works; UI does not adapt to DDE look and feel
+
+**Expected (not yet verified here):**
+
+- other KDE-based distributions (e.g. openSUSE, Kubuntu) should behave similarly to Fedora + Plasma when installed via Flatpak
+- Ubuntu and other non-KDE desktops should behave similarly to Deepin: functional via Flatpak, but without native desktop styling or full Plasma integration
+
+**Runtime stack:**
+
 - Qt 6
 - Qt6 Multimedia
 
-If support for other distributions becomes reliable, they should be added here explicitly instead of implied.
+Add distributions here only after explicit testing, not by assumption alone.
 
 ### Language Support
 
@@ -327,8 +337,9 @@ If desktop caches are stale, a logout/login cycle may still be required.
 ## Current Limitations
 
 - packaging and install guidance are strongest on Arch Linux
-- broader distro support is not yet validated to the same standard
-- there are no official binary releases for non-technical end users yet
+- Flatpak works on non-Arch distributions, but only Fedora + Plasma and Deepin + DDE have been manually verified so far
+- on non-KDE desktops (e.g. DDE, GNOME on Ubuntu), BearWave runs but does not adopt native desktop styling or full panel integration
+- there are no official binary releases beyond the Flatpak repository for non-technical end users yet
 
 ## Contributing
 
