@@ -7,9 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add Russian language support and translation (thanks to [@aaly11](https://github.com/aaly11)).
+
 ### Changed
 
 - Flatpak repository signing key replaced with `Bearwave App <dev@bearwave.app>` (`5BAA384577671E45`).
+
+### Fixed
+
+- Fix German translation contexts broken after the QML refactor (thanks to [@aaly11](https://github.com/aaly11)).
 
 ## Version notes (1.0.3 → 1.0.5)
 
