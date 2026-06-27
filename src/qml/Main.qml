@@ -211,7 +211,7 @@ ApplicationWindow {
                     Layout.fillWidth: true
                     app: root
                     compactMode: root.compactMode
-                    visible: root.compactMode || currentPage === "about"
+                    visible: root.compactMode
                 }
 
                 Rectangle {
@@ -219,7 +219,7 @@ ApplicationWindow {
                     Layout.preferredHeight: 1
                     color: BearTheme.cardBorder
                     opacity: 0.6
-                    visible: root.compactMode || currentPage === "about"
+                    visible: root.compactMode
                 }
 
                 SearchToolbar {
@@ -228,14 +228,12 @@ ApplicationWindow {
                     app: root
                     compactMode: root.compactMode
                     searchTimer: searchTimer
-                    visible: currentPage !== "about"
                 }
 
                 QuickFilters {
                     Layout.fillWidth: true
                     app: root
                     compactMode: root.compactMode
-                    visible: currentPage !== "about"
                 }
 
                 Label {
