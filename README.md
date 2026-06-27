@@ -29,7 +29,9 @@ Screenshots: KDE Plasma on Linux.
 
 ### Demo Video
 
-👉 [**Click here to watch the Demo Video**](https://github.com/spalencsar/bearwave/raw/main/screens/bearwave_demo.mp4)
+https://github.com/spalencsar/bearwave/raw/main/screens/bearwave.webm
+
+👉 [**Watch the BearWave demo (WebM)**](https://github.com/spalencsar/bearwave/raw/main/screens/bearwave.webm) · [MP4 fallback](https://github.com/spalencsar/bearwave/raw/main/screens/bearwave_demo.mp4)
 
 ---
 
