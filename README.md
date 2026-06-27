@@ -17,11 +17,13 @@ Why not 1.0.4 on GitHub? [1.0.4](CHANGELOG.md#104---2026-06-20) exists as a **gi
 
 ## Screenshots
 
-| Main window                               | Station browser                              |
+| Main window (Top Global)                  | Station browser with details panel           |
 | ----------------------------------------- | -------------------------------------------- |
 | ![Main Window](screenshots/screen01.png)  | ![Station Browser](screenshots/screen02.png) |
-| ![About Page](screenshots/screen03.png)   | ![Additional View](screenshots/screen04.png) |
-| ![World View](screenshots/screen05.png)   |                                              |
+| Favorites                                 | History                                      |
+| ![Favorites](screenshots/screen03.png)    | ![History](screenshots/screen05.png)         |
+| Favorites with now playing                | About page (1.1.0)                           |
+| ![Now Playing](screenshots/screen04.png)  | ![About Page](screenshots/screen06.png)      |
 
 Screenshots: KDE Plasma on Linux.
 

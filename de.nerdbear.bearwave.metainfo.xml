@@ -31,19 +31,27 @@
   <screenshots>
     <screenshot type="default">
       <image>https://raw.githubusercontent.com/spalencsar/bearwave/main/screenshots/screen01.png</image>
-      <caption>Main window displaying radio categories</caption>
+      <caption>Main window with sidebar navigation and station list</caption>
     </screenshot>
     <screenshot>
       <image>https://raw.githubusercontent.com/spalencsar/bearwave/main/screenshots/screen02.png</image>
-      <caption>Station browser and search filters</caption>
+      <caption>Station browser with details panel and now-playing bar</caption>
     </screenshot>
     <screenshot>
       <image>https://raw.githubusercontent.com/spalencsar/bearwave/main/screenshots/screen03.png</image>
-      <caption>The About dialog showing application info</caption>
+      <caption>Favorites view with station details</caption>
     </screenshot>
     <screenshot>
       <image>https://raw.githubusercontent.com/spalencsar/bearwave/main/screenshots/screen04.png</image>
-      <caption>Application view</caption>
+      <caption>Favorites with active playback and stream details</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/spalencsar/bearwave/main/screenshots/screen05.png</image>
+      <caption>Playback history with compact station rows</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/spalencsar/bearwave/main/screenshots/screen06.png</image>
+      <caption>About page with version, license, and third-party notes</caption>
     </screenshot>
   </screenshots>
   
