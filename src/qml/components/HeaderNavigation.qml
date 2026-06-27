@@ -58,14 +58,6 @@ Item {
             highlighted: app.currentPage === "history"
             onClicked: app.navigateToHistory()
         }
-
-        Item { Layout.fillWidth: true }
-
-        Button {
-            text: qsTr("About")
-            highlighted: app.currentPage === "about"
-            onClicked: app.navigateToAbout()
-        }
     }
 
     ColumnLayout {
