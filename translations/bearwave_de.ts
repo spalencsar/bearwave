@@ -45,8 +45,8 @@
     </message>
     <message>
         <location filename="../src/qml/components/AboutPage.qml" line="25"/>
-            <source>Build</source>
-            <translation>Build-Nr.</translation>
+        <source>Build</source>
+        <translation>Build-Nr.</translation>
     </message>
     <message>
         <location filename="../src/qml/components/AboutPage.qml" line="30"/>
@@ -146,7 +146,7 @@
     <message>
         <location filename="../src/qml/components/AboutPage.qml" line="224"/>
         <source>BearWave uses the following frameworks, services, and desktop standards. These components are not relicensed by BearWave.</source>
-            <translation>BearWave nutzt die folgenden Rahmenwerke, Dienste und Desktop-Standards. Diese Komponenten werden nicht durch BearWave neu lizenziert.</translation>
+        <translation>BearWave nutzt die folgenden Rahmenwerke, Dienste und Desktop-Standards. Diese Komponenten werden nicht durch BearWave neu lizenziert.</translation>
     </message>
     <message>
         <location filename="../src/qml/components/AboutPage.qml" line="298"/>
@@ -236,13 +236,13 @@
     </message>
     <message>
         <location filename="../src/qml/theme/BearTheme.qml" line="30"/>
-            <source>News / Talk</source>
-            <translation>Nachrichten / Talk</translation>
+        <source>News / Talk</source>
+        <translation>Nachrichten / Talk</translation>
     </message>
     <message>
         <location filename="../src/qml/theme/BearTheme.qml" line="31"/>
-            <source>Soundtracks</source>
-            <translation>Filmmusik</translation>
+        <source>Soundtracks</source>
+        <translation>Filmmusik</translation>
     </message>
     <message>
         <location filename="../src/qml/theme/BearTheme.qml" line="32"/>
@@ -291,27 +291,38 @@
 <context>
     <name>HeaderNavigation</name>
     <message>
-        <location filename="../src/qml/components/HeaderNavigation.qml" line="68"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="27"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="121"/>
         <source>Top</source>
         <translation>Top</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/HeaderNavigation.qml" line="74"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="33"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="127"/>
         <source>DE</source>
         <translation>DE</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/HeaderNavigation.qml" line="80"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="39"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="133"/>
         <source>NL</source>
         <translation>NL</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/HeaderNavigation.qml" line="86"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="45"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="151"/>
+        <source>World</source>
+        <translation>Welt</translation>
+    </message>
+    <message>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="51"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="139"/>
         <source>Favorites</source>
         <translation>Favoriten</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/HeaderNavigation.qml" line="92"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="57"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="145"/>
         <source>History</source>
         <translation>Verlauf</translation>
     </message>
@@ -320,9 +331,10 @@
         <translation type="obsolete">Manuell +</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/HeaderNavigation.qml" line="46"/>
-            <source>About</source>
-            <translation>Info</translation>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="65"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="99"/>
+        <source>About</source>
+        <translation>Info</translation>
     </message>
     <message>
         <source>Resume</source>
@@ -345,7 +357,7 @@
         <translation>BearWave</translation>
     </message>
     <message>
-        <location filename="../src/qml/Main.qml" line="245"/>
+        <location filename="../src/qml/Main.qml" line="244"/>
         <source>Error: </source>
         <translation>Fehler: </translation>
     </message>
@@ -553,42 +565,42 @@
 <context>
     <name>SidebarNavigation</name>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="52"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="61"/>
         <source>Stations</source>
         <translation>Sender</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="64"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="73"/>
         <source>Top Global</source>
         <translation>Weltweite Top-Sender</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="71"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="80"/>
         <source>Germany</source>
         <translation>Deutschland</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="78"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="87"/>
         <source>Netherlands</source>
         <translation>Niederlande</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="93"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="102"/>
         <source>Library</source>
         <translation>Mediathek</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="106"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="115"/>
         <source>Favorites</source>
         <translation>Favoriten</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="113"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="122"/>
         <source>History</source>
         <translation>Verlauf</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="85"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="94"/>
         <source>Worldwide</source>
         <translation>Weltweit</translation>
     </message>
@@ -605,17 +617,17 @@
         <translation type="vanished">MEDIATHEK</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="127"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="136"/>
         <source>Add Station</source>
         <translation>Sender hinzufügen</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="134"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="143"/>
         <source>About BearWave</source>
         <translation>Über BearWave</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="142"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="151"/>
         <source>Resume</source>
         <translation>Fortsetzen</translation>
     </message>

@@ -23,28 +23,37 @@ Rectangle {
         anchors.margins: 20
         spacing: 14
 
-        RowLayout {
+        MouseArea {
             Layout.fillWidth: true
-            spacing: 10
             Layout.bottomMargin: 8
+            height: brandRow.implicitHeight
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: app.navigateToTop()
 
-            Image {
-                Layout.preferredWidth: 34
-                Layout.preferredHeight: 34
-                source: "qrc:/assets/app/bearwave.png"
-                fillMode: Image.PreserveAspectFit
-                smooth: true
-                mipmap: true
-            }
+            RowLayout {
+                id: brandRow
+                anchors.fill: parent
+                spacing: 10
 
-            Image {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 28
-                source: "qrc:/assets/app/bearwave_line.png"
-                fillMode: Image.PreserveAspectFit
-                horizontalAlignment: Image.AlignLeft
-                smooth: true
-                mipmap: true
+                Image {
+                    Layout.preferredWidth: 34
+                    Layout.preferredHeight: 34
+                    source: "qrc:/assets/app/bearwave.png"
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
+                    mipmap: true
+                }
+
+                Image {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 28
+                    source: "qrc:/assets/app/bearwave_line.png"
+                    fillMode: Image.PreserveAspectFit
+                    horizontalAlignment: Image.AlignLeft
+                    smooth: true
+                    mipmap: true
+                }
             }
         }
 

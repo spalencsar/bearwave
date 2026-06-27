@@ -184,7 +184,7 @@ ApplicationWindow {
 
         Rectangle {
             id: headerPanel
-            height: currentPage === "about" && !root.compactMode ? 1 : headerContent.implicitHeight + 18
+            height: headerContent.implicitHeight + 18
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: parent.top
@@ -206,13 +206,12 @@ ApplicationWindow {
                 anchors.fill: parent
                 anchors.margins: 9
                 spacing: 8
-                visible: !(currentPage === "about" && !root.compactMode)
 
                 HeaderNavigation {
                     Layout.fillWidth: true
                     app: root
                     compactMode: root.compactMode
-                    visible: root.compactMode
+                    visible: root.compactMode || currentPage === "about"
                 }
 
                 Rectangle {
@@ -220,7 +219,7 @@ ApplicationWindow {
                     Layout.preferredHeight: 1
                     color: BearTheme.cardBorder
                     opacity: 0.6
-                    visible: root.compactMode
+                    visible: root.compactMode || currentPage === "about"
                 }
 
                 SearchToolbar {

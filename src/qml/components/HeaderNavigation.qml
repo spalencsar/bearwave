@@ -13,13 +13,66 @@ Item {
     required property var app
     required property bool compactMode
 
-    implicitWidth: compactNav.implicitWidth
-    implicitHeight: compactNav.implicitHeight
+    implicitWidth: root.compactMode ? compactNav.implicitWidth : desktopNav.implicitWidth
+    implicitHeight: root.compactMode ? compactNav.implicitHeight : desktopNav.implicitHeight
+
+    RowLayout {
+        id: desktopNav
+        anchors.left: parent.left
+        anchors.right: parent.right
+        visible: !root.compactMode
+        spacing: 8
+
+        Button {
+            text: qsTr("Top")
+            highlighted: app.currentPage === "top"
+            onClicked: app.navigateToTop()
+        }
+
+        Button {
+            text: qsTr("DE")
+            highlighted: app.currentPage === "german"
+            onClicked: app.navigateToGerman()
+        }
+
+        Button {
+            text: qsTr("NL")
+            highlighted: app.currentPage === "dutch"
+            onClicked: app.navigateToDutch()
+        }
+
+        Button {
+            text: qsTr("World")
+            highlighted: app.currentPage === "world"
+            onClicked: app.navigateToWorld()
+        }
+
+        Button {
+            text: qsTr("Favorites")
+            highlighted: app.currentPage === "favorites"
+            onClicked: app.navigateToFavorites()
+        }
+
+        Button {
+            text: qsTr("History")
+            highlighted: app.currentPage === "history"
+            onClicked: app.navigateToHistory()
+        }
+
+        Item { Layout.fillWidth: true }
+
+        Button {
+            text: qsTr("About")
+            highlighted: app.currentPage === "about"
+            onClicked: app.navigateToAbout()
+        }
+    }
 
     ColumnLayout {
         id: compactNav
         anchors.left: parent.left
         anchors.right: parent.right
+        visible: root.compactMode
         spacing: 8
 
         RowLayout {
@@ -92,6 +145,12 @@ Item {
                 text: qsTr("History")
                 highlighted: app.currentPage === "history"
                 onClicked: app.navigateToHistory()
+            }
+
+            Button {
+                text: qsTr("World")
+                highlighted: app.currentPage === "world"
+                onClicked: app.navigateToWorld()
             }
         }
     }

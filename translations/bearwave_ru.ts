@@ -299,27 +299,38 @@
 <context>
     <name>HeaderNavigation</name>
     <message>
-        <location filename="../src/qml/components/HeaderNavigation.qml" line="68"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="27"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="121"/>
         <source>Top</source>
         <translation>Топ</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/HeaderNavigation.qml" line="74"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="33"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="127"/>
         <source>DE</source>
         <translation>DE</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/HeaderNavigation.qml" line="80"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="39"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="133"/>
         <source>NL</source>
         <translation>NL</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/HeaderNavigation.qml" line="86"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="45"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="151"/>
+        <source>World</source>
+        <translation>Мир</translation>
+    </message>
+    <message>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="51"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="139"/>
         <source>Favorites</source>
         <translation>Избранные</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/HeaderNavigation.qml" line="92"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="57"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="145"/>
         <source>History</source>
         <translation>История</translation>
     </message>
@@ -328,7 +339,8 @@
         <translation type="vanished">Вручную +</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/HeaderNavigation.qml" line="46"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="65"/>
+        <location filename="../src/qml/components/HeaderNavigation.qml" line="99"/>
         <source>About</source>
         <translation>О BearWave</translation>
     </message>
@@ -353,7 +365,7 @@
         <translation>BearWave</translation>
     </message>
     <message>
-        <location filename="../src/qml/Main.qml" line="245"/>
+        <location filename="../src/qml/Main.qml" line="244"/>
         <source>Error: </source>
         <translation>Ошибка: </translation>
     </message>
@@ -561,42 +573,42 @@
 <context>
     <name>SidebarNavigation</name>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="52"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="61"/>
         <source>Stations</source>
         <translation>Станции</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="64"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="73"/>
         <source>Top Global</source>
         <translation>Всемирный топ</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="71"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="80"/>
         <source>Germany</source>
         <translation>Германия</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="78"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="87"/>
         <source>Netherlands</source>
         <translation>Нидерланды</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="93"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="102"/>
         <source>Library</source>
         <translation>Библиотека</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="106"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="115"/>
         <source>Favorites</source>
         <translation>Избранные</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="113"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="122"/>
         <source>History</source>
         <translation>История</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="85"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="94"/>
         <source>Worldwide</source>
         <translation>Весь мир</translation>
     </message>
@@ -605,17 +617,17 @@
         <translation type="obsolete">Поиск</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="127"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="136"/>
         <source>Add Station</source>
         <translation>Добавить станцию</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="134"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="143"/>
         <source>About BearWave</source>
         <translation>О BearWave</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="142"/>
+        <location filename="../src/qml/components/SidebarNavigation.qml" line="151"/>
         <source>Resume</source>
         <translation>Продолжить</translation>
     </message>
