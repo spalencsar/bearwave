@@ -9,11 +9,11 @@ BearWave is designed for fast station browsing, simple playback controls, favori
 ![KDE Plasma](https://img.shields.io/badge/desktop-KDE%20Plasma-1f6feb)
 ![Qt 6](https://img.shields.io/badge/Qt-6-41cd52)
 ![License: GPL--3.0--or--later](https://img.shields.io/badge/license-GPL--3.0--or--later-lightgrey)
-![Version](https://img.shields.io/badge/version-1.0.5-blue)
+![Version](https://img.shields.io/badge/version-1.1.0-blue)
 
-**Current release:** [1.0.5](CHANGELOG.md#105---2026-06-22) (2026-06-22)
+**Current release:** [1.1.0](CHANGELOG.md#110---2026-06-27) (2026-06-27)
 
-Why not 1.0.4 on GitHub? [1.0.4](CHANGELOG.md#104---2026-06-20) exists as a **git tag** (security, stability, QML refactor) but was tagged before CI passed. **1.0.5** is the first verified GitHub release after [1.0.3](CHANGELOG.md#103---2026-05-30). See [version notes](CHANGELOG.md#version-notes-103--105) in the changelog.
+Why not 1.0.4 on GitHub? [1.0.4](CHANGELOG.md#104---2026-06-20) exists as a **git tag** (security, stability, QML refactor) but was tagged before CI passed. **1.0.5** was the last patch release before the [1.1.0](CHANGELOG.md#110---2026-06-27) desktop redesign. See [version notes](CHANGELOG.md#version-notes-105--110) in the changelog.
 
 ## Screenshots
 

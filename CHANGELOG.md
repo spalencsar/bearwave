@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Version notes (1.0.5 → 1.1.0)
+
+- **1.0.5** — last patch release before the desktop UI redesign.
+- **1.1.0** — current recommended release: Mac-inspired layout, About page, Russian UI, and post-redesign navigation/i18n fixes.
+
+## [1.1.0] - 2026-06-27
+
 ### Added
 
 - Add Russian language support and translation (thanks to [@aaly11](https://github.com/aaly11)).
@@ -27,12 +34,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix the embedded GPL text failing to load in QML by loading the resource in C++ and exposing it to QML as context data.
 - Fix the About license view formatting so the text uses the available width without an oversized empty box.
 - Fix right-side station details and top toolbar clipping in the Mac-style layout.
+- Fix About-page navigation: sidebar logo returns home, header stays consistent with the main app, and search/filter actions leave About again.
+- Reduce Denglish in the German UI while keeping common tech terms such as Votes and Bitrate.
+- Restore German and Russian translations for tray, backend error, and notification strings.
 
 ## Version notes (1.0.3 → 1.0.5)
 
 - **1.0.3** — last GitHub release before the security/refactor batch.
 - **1.0.4** — git tag with security hardening, playback/tray/MPRIS fixes, and QML refactor; tagged before CI was green, so it was not published as a GitHub release at first.
-- **1.0.5** — current recommended release: everything in 1.0.4 plus CI, packaging, and post-release bugfixes (AUR/Flatpak rebuilds use `pkgrel` bumps, not a new app version).
+- **1.0.5** — patch release: everything in 1.0.4 plus CI, packaging, and post-release bugfixes (AUR/Flatpak rebuilds use `pkgrel` bumps, not a new app version).
 
 ## [1.0.5] - 2026-06-22
 

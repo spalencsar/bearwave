@@ -59,6 +59,17 @@
   </provides>
   
   <releases>
+    <release version="1.1.0" date="2026-06-27">
+      <description>
+        <ul>
+          <li>Mac-inspired desktop redesign with sidebar navigation, station details panel, and compact player bar</li>
+          <li>Embedded About page with full GPLv3 license text and third-party technology notes</li>
+          <li>Added Russian UI translation; improved German translations and reduced Denglish</li>
+          <li>Refreshed dark theme and responsive search/filter/player layout</li>
+          <li>Fixed About navigation, GPL text loading, and post-redesign layout clipping</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.5" date="2026-06-22">
       <description>
         <ul>
