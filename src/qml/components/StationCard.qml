@@ -16,9 +16,9 @@ Rectangle {
     required property bool compactMode
     required property real listWidth
 
-    height: compactMode ? 72 : 78
+    height: 52
     width: listWidth
-    radius: 10
+    radius: 0
 
     readonly property bool isCurrent: {
         if (!app.backend || !modelData) return false
@@ -34,10 +34,24 @@ Rectangle {
     readonly property bool isPlaying: isCurrent && app.backend && app.backend.player && app.backend.player.playing
 
     color: isCurrent
-        ? (cardMouse.containsMouse ? "#1d3350" : "#16283e")
-        : (cardMouse.containsMouse ? BearTheme.cardHover : BearTheme.card)
-    border.color: isCurrent ? BearTheme.accent : BearTheme.cardBorder
-    border.width: isCurrent ? 2 : 1
+        ? "#4a4a4d"
+        : (cardMouse.containsMouse ? "#2d2e34" : "transparent")
+
+    border.width: 0
+
+    readonly property string metadataText: {
+        if (!modelData) return ""
+        var parts = []
+        if (modelData.country) parts.push(modelData.country)
+        if (modelData.codec && modelData.codec !== "unknown" && modelData.codec !== "") parts.push(modelData.codec.toUpperCase())
+        if (modelData.bitrate > 0) parts.push(modelData.bitrate + " kbps")
+        if (modelData.votes > 0) {
+            parts.push(modelData.votes.toLocaleString(Qt.locale(), "f", 0) + " " + qsTr("votes"))
+        } else {
+            parts.push(qsTr("Stream"))
+        }
+        return parts.join("  •  ")
+    }
 
     function playStation() {
         if (!app.backend) return
@@ -56,6 +70,7 @@ Rectangle {
         hoverEnabled: true
         acceptedButtons: Qt.LeftButton
         onClicked: {
+            app.selectedStation = root.modelData
             if (!app.backend) return
             if (root.isCurrent) {
                 app.backend.player.togglePlayPause()
@@ -65,22 +80,33 @@ Rectangle {
         }
     }
 
+    Rectangle {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        height: 1
+        color: BearTheme.cardBorder
+        opacity: 0.65
+    }
+
     RowLayout {
         anchors.fill: parent
-        anchors.margins: 10
+        anchors.leftMargin: 8
+        anchors.rightMargin: 8
         spacing: 10
 
+        // Favicon Rect
         Rectangle {
-            Layout.preferredWidth: 44
-            Layout.preferredHeight: 44
-            radius: 8
-            color: "#123154"
-            border.color: BearTheme.accent
+            Layout.preferredWidth: 34
+            Layout.preferredHeight: 34
+            radius: 5
+            color: "#34353b"
+            clip: true
 
             Image {
                 id: stationFavicon
                 anchors.fill: parent
-                anchors.margins: 3
+                anchors.margins: 2
                 source: (root.modelData.favicon && root.modelData.favicon.startsWith("https://"))
                         ? root.modelData.favicon
                         : ""
@@ -100,9 +126,11 @@ Rectangle {
             }
         }
 
+        // Info Column
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 2
+            spacing: 1
+            Layout.alignment: Qt.AlignVCenter
 
             RowLayout {
                 Layout.fillWidth: true
@@ -113,10 +141,11 @@ Rectangle {
                     text: root.modelData.name
                     color: root.isCurrent ? BearTheme.accent : BearTheme.textMain
                     font.bold: true
-                    font.pixelSize: compactMode ? 13 : 14
+                    font.pixelSize: 13
                     elide: Text.ElideRight
                 }
 
+                // Tiny EQ Indicator
                 Row {
                     id: eqAnimation
                     spacing: 2
@@ -126,32 +155,26 @@ Rectangle {
                     Rectangle {
                         id: bar1
                         width: 2
-                        height: 12
-                        color: BearTheme.accent
+                        height: 10
+                        color: BearTheme.playingAccent
                         radius: 1
-                        Behavior on height {
-                            NumberAnimation { duration: 120 }
-                        }
+                        Behavior on height { NumberAnimation { duration: 120 } }
                     }
                     Rectangle {
                         id: bar2
                         width: 2
-                        height: 12
-                        color: BearTheme.accent
+                        height: 10
+                        color: BearTheme.playingAccent
                         radius: 1
-                        Behavior on height {
-                            NumberAnimation { duration: 120 }
-                        }
+                        Behavior on height { NumberAnimation { duration: 120 } }
                     }
                     Rectangle {
                         id: bar3
                         width: 2
-                        height: 12
-                        color: BearTheme.accent
+                        height: 10
+                        color: BearTheme.playingAccent
                         radius: 1
-                        Behavior on height {
-                            NumberAnimation { duration: 120 }
-                        }
+                        Behavior on height { NumberAnimation { duration: 120 } }
                     }
 
                     Timer {
@@ -159,17 +182,17 @@ Rectangle {
                         running: root.isPlaying
                         repeat: true
                         onTriggered: {
-                            bar1.height = Math.floor(Math.random() * 11) + 3
-                            bar2.height = Math.floor(Math.random() * 11) + 3
-                            bar3.height = Math.floor(Math.random() * 11) + 3
+                            bar1.height = Math.floor(Math.random() * 9) + 2
+                            bar2.height = Math.floor(Math.random() * 9) + 2
+                            bar3.height = Math.floor(Math.random() * 9) + 2
                         }
                     }
 
                     onVisibleChanged: {
                         if (!visible) {
-                            bar1.height = 12
-                            bar2.height = 12
-                            bar3.height = 12
+                            bar1.height = 10
+                            bar2.height = 10
+                            bar3.height = 10
                         }
                     }
                 }
@@ -177,21 +200,20 @@ Rectangle {
 
             Label {
                 Layout.fillWidth: true
-                text: root.modelData.country + "  •  "
-                      + (root.modelData.codec && root.modelData.codec !== "unknown" && root.modelData.codec !== ""
-                         ? root.modelData.codec.toUpperCase() + "  •  " : "")
-                      + (root.modelData.bitrate > 0 ? root.modelData.bitrate + " kbps" : qsTr("Stream"))
+                text: root.metadataText
                 color: BearTheme.textMuted
                 font.pixelSize: 11
                 elide: Text.ElideRight
             }
         }
 
+        // Edit Button (Custom User Stations Only)
         Button {
             visible: !root.modelData.uuid
-            Layout.preferredWidth: compactMode ? 34 : 40
-            Layout.preferredHeight: 40
+            Layout.preferredWidth: 32
+            Layout.preferredHeight: 32
             text: "✏"
+            flat: true
             ToolTip.visible: hovered
             ToolTip.text: qsTr("Edit Station")
             onClicked: {
@@ -200,10 +222,13 @@ Rectangle {
             }
         }
 
+        // Favorite Button
         Button {
-            Layout.preferredWidth: compactMode ? 34 : 40
-            Layout.preferredHeight: 40
+            Layout.preferredWidth: 32
+            Layout.preferredHeight: 32
             text: root.modelData.isFavorite ? "★" : "☆"
+            flat: true
+            font.pixelSize: 14
             onClicked: {
                 if (!app.backend) return
                 app.backend.toggleFavoriteById(root.modelData.uuid, root.modelData.urlResolved)
@@ -211,10 +236,13 @@ Rectangle {
             }
         }
 
+        // Play/Pause Button
         Button {
-            Layout.preferredWidth: compactMode ? 34 : 40
-            Layout.preferredHeight: 40
+            Layout.preferredWidth: 32
+            Layout.preferredHeight: 32
             text: (root.isCurrent && app.backend && app.backend.player && app.backend.player.playing) ? "⏸" : "▶"
+            flat: true
+            font.pixelSize: 13
             onClicked: {
                 if (!app.backend) return
                 if (root.isCurrent) {

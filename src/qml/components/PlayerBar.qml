@@ -12,23 +12,34 @@ Rectangle {
 
     required property var app
 
-    implicitHeight: 108
-    radius: 12
+    implicitHeight: 76
+    radius: 0
     color: BearTheme.panel
-    border.color: BearTheme.cardBorder
+    border.color: "transparent"
+
+    Rectangle {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        height: 1
+        color: BearTheme.cardBorder
+    }
 
     RowLayout {
         anchors.fill: parent
-        anchors.margins: 10
+        anchors.leftMargin: 12
+        anchors.rightMargin: 12
+        anchors.topMargin: 9
+        anchors.bottomMargin: 9
         spacing: 12
 
         Rectangle {
-            Layout.preferredWidth: 88
-            Layout.preferredHeight: 88
-            radius: 8
-            color: "#182637"
+            Layout.preferredWidth: 56
+            Layout.preferredHeight: 56
+            radius: 6
+            color: "#34353b"
             clip: true
-            border.color: BearTheme.cardBorder
+            border.color: "transparent"
 
             Image {
                 id: coverImage
@@ -58,161 +69,119 @@ Rectangle {
                             && app.backend.currentStation.favicon.startsWith("https://")) {
                         return 8
                     }
-                    return 16
+                    return 10
                 }
             }
         }
 
         ColumnLayout {
             Layout.fillWidth: true
-            Layout.fillHeight: true
-            spacing: 6
+            Layout.alignment: Qt.AlignVCenter
+            spacing: 3
 
-            RowLayout {
+            Label {
                 Layout.fillWidth: true
-                spacing: 8
-
-                Label {
-                    Layout.fillWidth: true
-                    text: app.backend && app.backend.player
-                          ? (app.backend.player.currentStationName || qsTr("No station selected"))
-                          : qsTr("No station selected")
-                    color: BearTheme.textMain
-                    font.pixelSize: 16
-                    font.bold: true
-                    elide: Text.ElideRight
-                }
-
-                Rectangle {
-                    visible: app.backend && app.backend.currentStation && app.backend.currentStation.codec
-                             && app.backend.currentStation.codec !== "unknown"
-                             && app.backend.currentStation.codec !== ""
-                    height: 18
-                    width: codecLabel.implicitWidth + 12
-                    radius: 4
-                    color: "transparent"
-                    border.color: BearTheme.accent
-                    border.width: 1
-
-                    Label {
-                        id: codecLabel
-                        anchors.centerIn: parent
-                        text: (app.backend && app.backend.currentStation && app.backend.currentStation.codec)
-                              ? app.backend.currentStation.codec.toUpperCase() : ""
-                        color: BearTheme.accent
-                        font.pixelSize: 9
-                        font.bold: true
-                    }
-                }
-
-                Rectangle {
-                    visible: app.backend && app.backend.currentStation && app.backend.currentStation.bitrate > 0
-                    height: 18
-                    width: bitrateLabel.implicitWidth + 12
-                    radius: 4
-                    color: BearTheme.accent
-                    border.color: BearTheme.accent
-                    border.width: 1
-
-                    Label {
-                        id: bitrateLabel
-                        anchors.centerIn: parent
-                        text: (app.backend && app.backend.currentStation)
-                              ? app.backend.currentStation.bitrate + " kbps" : ""
-                        color: "#ffffff"
-                        font.pixelSize: 9
-                        font.bold: true
-                    }
-                }
+                text: app.backend && app.backend.player
+                      ? (app.backend.player.currentStationName || qsTr("No station selected"))
+                      : qsTr("No station selected")
+                color: BearTheme.textMain
+                font.pixelSize: 14
+                font.bold: true
+                elide: Text.ElideRight
             }
 
             Label {
                 Layout.fillWidth: true
                 text: app.backend && app.backend.player && app.backend.player.currentNowPlaying.length > 0
                       ? (qsTr("Now playing: ") + app.backend.player.currentNowPlaying)
-                      : qsTr("Now playing: No track info")
+                      : qsTr("Live radio")
                 color: BearTheme.textMuted
                 font.pixelSize: 12
                 elide: Text.ElideRight
             }
+        }
 
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 8
+        RowLayout {
+            Layout.alignment: Qt.AlignVCenter
+            spacing: 8
 
-                Button {
-                    text: "⏮"
-                    Layout.preferredWidth: 44
-                    enabled: app.backend ? app.backend.hasPreviousStation() : false
-                    onClicked: {
-                        if (app.backend) {
-                            app.backend.playPreviousStation()
+            Button {
+                text: "⏮"
+                Layout.preferredWidth: 42
+                Layout.preferredHeight: 30
+                enabled: app.backend ? app.backend.hasPreviousStation() : false
+                onClicked: {
+                    if (app.backend) {
+                        app.backend.playPreviousStation()
+                    }
+                }
+            }
+
+            Button {
+                text: app.backend && app.backend.player && app.backend.player.playing ? "⏸" : "▶"
+                Layout.preferredWidth: 42
+                Layout.preferredHeight: 30
+                onClicked: {
+                    if (app.backend && app.backend.player) {
+                        app.backend.player.togglePlayPause()
+                    }
+                }
+            }
+
+            Button {
+                text: "⏹"
+                Layout.preferredWidth: 42
+                Layout.preferredHeight: 30
+                onClicked: {
+                    if (app.backend && app.backend.player) {
+                        app.backend.player.stop()
+                    }
+                }
+            }
+
+            Button {
+                text: "⏭"
+                Layout.preferredWidth: 42
+                Layout.preferredHeight: 30
+                enabled: app.backend ? app.backend.hasNextStation() : false
+                onClicked: {
+                    if (app.backend) {
+                        app.backend.playNextStation()
+                    }
+                }
+            }
+
+            Button {
+                id: muteButton
+                text: (app.backend && app.backend.player && app.backend.player.volume > 0) ? "🔊" : "🔇"
+                Layout.preferredWidth: 36
+                Layout.preferredHeight: 30
+                property real lastVolume: 0.5
+
+                ToolTip.visible: hovered
+                ToolTip.text: (app.backend && app.backend.player && app.backend.player.volume > 0)
+                              ? qsTr("Mute") : qsTr("Unmute")
+
+                onClicked: {
+                    if (app.backend && app.backend.player) {
+                        if (app.backend.player.volume > 0) {
+                            lastVolume = app.backend.player.volume
+                            app.backend.player.setVolume(0)
+                        } else {
+                            app.backend.player.setVolume(lastVolume > 0 ? lastVolume : 0.5)
                         }
                     }
                 }
+            }
 
-                Button {
-                    text: app.backend && app.backend.player && app.backend.player.playing ? "⏸" : "▶"
-                    Layout.preferredWidth: 44
-                    onClicked: {
-                        if (app.backend && app.backend.player) {
-                            app.backend.player.togglePlayPause()
-                        }
-                    }
-                }
-
-                Button {
-                    text: "⏹"
-                    Layout.preferredWidth: 44
-                    onClicked: {
-                        if (app.backend && app.backend.player) {
-                            app.backend.player.stop()
-                        }
-                    }
-                }
-
-                Button {
-                    text: "⏭"
-                    Layout.preferredWidth: 44
-                    enabled: app.backend ? app.backend.hasNextStation() : false
-                    onClicked: {
-                        if (app.backend) {
-                            app.backend.playNextStation()
-                        }
-                    }
-                }
-
-                Button {
-                    id: muteButton
-                    text: (app.backend && app.backend.player && app.backend.player.volume > 0) ? "🔊" : "🔇"
-                    Layout.preferredWidth: 44
-                    property real lastVolume: 0.5
-
-                    ToolTip.visible: hovered
-                    ToolTip.text: (app.backend && app.backend.player && app.backend.player.volume > 0)
-                                  ? qsTr("Mute") : qsTr("Unmute")
-
-                    onClicked: {
-                        if (app.backend && app.backend.player) {
-                            if (app.backend.player.volume > 0) {
-                                lastVolume = app.backend.player.volume
-                                app.backend.player.setVolume(0)
-                            } else {
-                                app.backend.player.setVolume(lastVolume > 0 ? lastVolume : 0.5)
-                            }
-                        }
-                    }
-                }
-
-                Slider {
-                    Layout.fillWidth: true
-                    from: 0
-                    to: 1
-                    value: app.backend && app.backend.player ? app.backend.player.volume : 0.5
-                    onMoved: {
-                        if (app.backend && app.backend.player) {
-                            app.backend.player.setVolume(value)
-                        }
+            Slider {
+                Layout.preferredWidth: app.width < 1180 ? 115 : 160
+                from: 0
+                to: 1
+                value: app.backend && app.backend.player ? app.backend.player.volume : 0.5
+                onMoved: {
+                    if (app.backend && app.backend.player) {
+                        app.backend.player.setVolume(value)
                     }
                 }
             }

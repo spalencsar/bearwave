@@ -20,7 +20,7 @@ Why not 1.0.4 on GitHub? [1.0.4](CHANGELOG.md#104---2026-06-20) exists as a **gi
 | Main window                               | Station browser                              |
 | ----------------------------------------- | -------------------------------------------- |
 | ![Main Window](screenshots/screen01.png)  | ![Station Browser](screenshots/screen02.png) |
-| ![About Dialog](screenshots/screen03.png) | ![Additional View](screenshots/screen04.png) |
+| ![About Page](screenshots/screen03.png)   | ![Additional View](screenshots/screen04.png) |
 | ![World View](screenshots/screen05.png)   |                                              |
 
 Screenshots: KDE Plasma on Linux.
@@ -163,7 +163,8 @@ BearWave intentionally does not aim to be:
 - MPRIS integration for Plasma media controls and media keys
 - system tray integration for background playback
 - desktop notifications for song/track changes with local cover art caching
-- embedded About dialog with links and GNU GPLv3 license text
+- Mac-inspired three-pane desktop layout with sidebar navigation, station list, details panel, and compact now-playing bar
+- embedded About page with author links, full GNU GPLv3 license text, and third-party technology notes
 
 ## Project Status
 
@@ -216,14 +217,14 @@ Add distributions here only after explicit testing, not by assumption alone.
 
 ### Language Support
 
-BearWave currently supports English and German.
+BearWave currently supports English, German, and Russian.
 
 - the application uses the system locale to select its UI language
 - English is the base UI language
-- German is provided as a bundled translation
+- German and Russian are provided as bundled translations
 - README, repository metadata, and development-facing material remain in English
 
-If the system language is German, BearWave appears in German. Otherwise it falls back to English.
+If the system language matches a bundled translation, BearWave uses that language. Otherwise it falls back to English.
 
 ## Installation Status
 
@@ -288,6 +289,16 @@ If you want a clean rebuild:
 rm -rf build
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j"$(nproc)"
+```
+
+### UI layout development build
+
+For layout work that should not disturb the normal `build/` directory, a separate build tree can be used:
+
+```bash
+cmake -S . -B build-maclayout -DCMAKE_BUILD_TYPE=Release
+cmake --build build-maclayout -j"$(nproc)"
+./build-maclayout/src/bearwave
 ```
 
 ### Tests
@@ -425,13 +436,14 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for local build and review expectations.
 ## Development Notes
 
 - main UI shell: `src/qml/Main.qml`
-- QML components: `src/qml/components/` (navigation, search, station cards, player bar, dialogs)
+- QML components: `src/qml/components/` (navigation, search, station rows, detail panel, About page, player bar, dialogs)
 - theme singleton: `src/qml/theme/BearTheme.qml`
 - backend orchestration: `src/radiobackend.cpp`
 - stream playback: `src/bearplayer.cpp`
 - API layer: `src/radiobrowser.cpp`
 - MPRIS adapter: `src/mprisadaptor.cpp`
 - desktop notifications: `src/notificationmanager.cpp`
+- embedded GPL license resource: `qrc:/assets/legal/gpl-3.0.txt` from `LICENSE`
 - unit tests: `tests/`
 
 See [CHANGELOG.md](CHANGELOG.md) for release history. For contributor and agent guardrails, see `AGENTS.md`.

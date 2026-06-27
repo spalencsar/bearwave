@@ -24,6 +24,7 @@ void QrcResourcesTest::qmlModulesAreEmbedded()
     QVERIFY(QFile::exists(QStringLiteral(":/qml/theme/qmldir")));
     QVERIFY(QFile::exists(QStringLiteral(":/qml/components/qmldir")));
     QVERIFY(QFile::exists(QStringLiteral(":/assets/app/bearwave.png")));
+    QVERIFY(QFile::exists(QStringLiteral(":/assets/legal/gpl-3.0.txt")));
 }
 
 QTEST_APPLESS_MAIN(QrcResourcesTest)

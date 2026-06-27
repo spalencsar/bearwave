@@ -37,6 +37,14 @@ If you changed QML:
 qmllint src/qml/Main.qml src/qml/components/*.qml src/qml/theme/BearTheme.qml
 ```
 
+For UI layout work that should be tested separately from the default build tree:
+
+```bash
+cmake -S . -B build-maclayout -DCMAKE_BUILD_TYPE=Release
+cmake --build build-maclayout -j"$(nproc)"
+./build-maclayout/src/bearwave
+```
+
 Run unit tests after backend changes:
 
 ```bash
@@ -51,6 +59,7 @@ ctest --test-dir build --output-on-failure
 - Keep network operations asynchronous.
 - Preserve MPRIS behavior and user state compatibility.
 - When changing resources, register them in `src/qml.qrc`.
+- When changing the About page, keep the full GPL text resource visible and keep third-party technology notes accurate.
 
 ## Manual Checks
 
@@ -63,6 +72,7 @@ Please smoke-test the area you changed when possible:
 - favorites persist across restart
 - resume restores last station and volume
 - tray and MPRIS behavior still work
+- About page opens from sidebar/compact navigation, social links work, and the GPL license text is scrollable
 
 ## Pull Requests
 

@@ -5,9 +5,12 @@ StationCard 1.0 StationCard.qml
 WorldCategoryHeader 1.0 WorldCategoryHeader.qml
 WorldCategories 1.0 WorldCategories.qml
 PlayerBar 1.0 PlayerBar.qml
-AboutDialog 1.0 AboutDialog.qml
+AboutPage 1.0 AboutPage.qml
 AddStationDialog 1.0 AddStationDialog.qml
 EditStationDialog 1.0 EditStationDialog.qml
 LoadingOverlay 1.0 LoadingOverlay.qml
 ToastPopup 1.0 ToastPopup.qml
 StationListPanel 1.0 StationListPanel.qml
+SidebarNavigation 1.0 SidebarNavigation.qml
+SidebarButton 1.0 SidebarButton.qml
+StationDetailsPanel 1.0 StationDetailsPanel.qml

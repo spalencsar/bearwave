@@ -4,7 +4,11 @@ build.md
 
 ## Build directories
 build/
+build-about/
 build-ci/
+build-fix/
+build-maclayout/
+build-test/
 build-arch-ci/
 build-dir/
 cmake-build-*/
@@ -36,6 +40,11 @@ test-*.json
 pkg/
 src/bearwave/
 bearwave/
+flatpak_repo/
+.flatpak-builder/
+.flatpak-builder-manifest.json
+scratch/
+spalencsar-README.md
 *.pkg.tar.zst
 *.pkg.tar.zst.sig
 *.pkg.tar.xz

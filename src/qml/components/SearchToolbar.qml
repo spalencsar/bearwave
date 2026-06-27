@@ -21,12 +21,13 @@ ColumnLayout {
     RowLayout {
         visible: !root.compactMode
         Layout.fillWidth: true
-        spacing: 8
+        spacing: 10
 
         TextField {
             id: searchField
             Layout.fillWidth: true
-            placeholderText: qsTr("Search stations (name, genre, country)")
+            Layout.minimumWidth: 180
+            placeholderText: qsTr("Search stations (name, genre, country)...")
             onTextChanged: {
                 if (app.backend) {
                     app.backend.filterQuery = text
@@ -40,44 +41,35 @@ ColumnLayout {
             }
         }
 
-        Button {
-            text: qsTr("Search")
-            highlighted: true
-            onClicked: {
-                if (searchField.text.length < 2 || !app.backend) return
-                app.currentPage = "search"
-                app.backend.searchStations(searchField.text)
-            }
-        }
+        // Right Search and Clear buttons
+        RowLayout {
+            spacing: 6
 
-        Button {
-            text: qsTr("Sort A-Z")
-            onClicked: {
-                if (app.backend && app.currentPage !== "favorites") {
-                    app.backend.sortStations("name")
+            Button {
+                text: root.app.width < 1180 ? "🔍" : "🔍  " + qsTr("Search")
+                highlighted: true
+                Layout.preferredWidth: root.app.width < 1180 ? 44 : 88
+                onClicked: {
+                    if (searchField.text.length < 2 || !app.backend) return
+                    app.currentPage = "search"
+                    app.backend.searchStations(searchField.text)
                 }
             }
-        }
 
-        Button {
-            text: qsTr("Sort Bitrate")
-            onClicked: {
-                if (app.backend && app.currentPage !== "favorites") {
-                    app.backend.sortStations("bitrate")
-                }
-            }
-        }
-
-        Button {
-            text: qsTr("Sort Votes")
-            onClicked: {
-                if (app.backend && app.currentPage !== "favorites") {
-                    app.backend.sortStations("votes")
+            Button {
+                text: root.app.width < 1180 ? "✕" : "✕  " + qsTr("Clear")
+                Layout.preferredWidth: root.app.width < 1180 ? 44 : 82
+                onClicked: {
+                    searchField.text = ""
+                    if (app.backend) {
+                        app.backend.filterQuery = ""
+                    }
                 }
             }
         }
     }
 
+    // Compact Mode (Mobile/Narrow) Search Layout
     ColumnLayout {
         visible: root.compactMode
         Layout.fillWidth: true
@@ -108,59 +100,27 @@ ColumnLayout {
             Layout.fillWidth: true
             spacing: 8
 
-            Item { Layout.fillWidth: true }
-
             Button {
-                text: qsTr("Search")
+                text: "🔍  " + qsTr("Search")
                 highlighted: true
+                Layout.fillWidth: true
                 onClicked: {
-                    if (compactSearchField.text.length < 2 || !app.backend) return
+                    if (searchField.text.length < 2 || !app.backend) return
                     app.currentPage = "search"
-                    app.backend.searchStations(compactSearchField.text)
-                }
-            }
-        }
-
-        Flow {
-            Layout.fillWidth: true
-            width: parent.width
-            spacing: 8
-
-            Button {
-                text: "A-Z"
-                onClicked: {
-                    if (app.backend && app.currentPage !== "favorites") {
-                        app.backend.sortStations("name")
-                    }
+                    app.backend.searchStations(searchField.text)
                 }
             }
 
             Button {
-                text: "kb"
+                text: "✕  " + qsTr("Clear")
+                Layout.fillWidth: true
                 onClicked: {
-                    if (app.backend && app.currentPage !== "favorites") {
-                        app.backend.sortStations("bitrate")
-                    }
-                }
-            }
-
-            Button {
-                text: "❤"
-                onClicked: {
-                    if (app.backend && app.currentPage !== "favorites") {
-                        app.backend.sortStations("votes")
+                    searchField.text = ""
+                    if (app.backend) {
+                        app.backend.filterQuery = ""
                     }
                 }
             }
         }
-    }
-
-    Label {
-        Layout.fillWidth: true
-        text: qsTr("Tip: you are not limited to DE/NL. Search worldwide by country, genre, or station name.")
-        color: BearTheme.textMuted
-        font.pixelSize: 11
-        wrapMode: root.compactMode ? Text.WordWrap : Text.NoWrap
-        elide: root.compactMode ? Text.ElideNone : Text.ElideRight
     }
 }

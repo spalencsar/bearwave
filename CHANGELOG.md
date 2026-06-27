@@ -10,14 +10,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add Russian language support and translation (thanks to [@aaly11](https://github.com/aaly11)).
+- Add a Mac-inspired desktop layout with persistent sidebar navigation, flat station rows, right-side station details, and a compact now-playing bar.
+- Add an embedded About page with full GPLv3 license text loaded from the bundled `LICENSE` resource and a third-party technologies section.
 
 ### Changed
 
 - Flatpak repository signing key replaced with `Bearwave App <dev@bearwave.app>` (`5BAA384577671E45`).
+- Replace the modal About dialog with an in-app About page reachable from sidebar and compact navigation.
+- Refresh the QML visual theme toward a neutral dark palette and align the main layout more closely with the macOS BearWave structure.
+- Use the BearWave line logo asset in the sidebar and remove duplicate branding from the top search toolbar.
+- Make the top search/filter area and bottom player bar more responsive to narrower desktop window sizes.
 
 ### Fixed
 
 - Fix German translation contexts broken after the QML refactor (thanks to [@aaly11](https://github.com/aaly11)).
+- Fix the embedded GPL text failing to load in QML by loading the resource in C++ and exposing it to QML as context data.
+- Fix the About license view formatting so the text uses the available width without an oversized empty box.
+- Fix right-side station details and top toolbar clipping in the Mac-style layout.
 
 ## Version notes (1.0.3 → 1.0.5)
 

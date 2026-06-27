@@ -6,6 +6,7 @@
 #include <QDBusConnectionInterface>
 #include <QDBusMessage>
 #include <QDebug>
+#include <QFile>
 #include <QIcon>
 #include <QLocale>
 #include <QQmlApplicationEngine>
@@ -56,9 +57,17 @@ int main(int argc, char *argv[])
     engine.addImportPath(QStringLiteral("qrc:/qml"));
 
     RadioBackend backend;
+    QFile licenseFile(QStringLiteral(":/assets/legal/gpl-3.0.txt"));
+    QString licenseText;
+    if (licenseFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        licenseText = QString::fromUtf8(licenseFile.readAll());
+    } else {
+        qWarning() << "Failed to load embedded GPLv3 license text";
+    }
     engine.rootContext()->setContextProperty("radioBackend", &backend);
     engine.rootContext()->setContextProperty("bearwaveVersion", QStringLiteral(BEARWAVE_VERSION));
     engine.rootContext()->setContextProperty("bearwaveBuildId", QStringLiteral(BEARWAVE_GIT_HASH));
+    engine.rootContext()->setContextProperty("bearwaveLicenseText", licenseText);
 
     auto *mprisRoot = new MprisRootAdaptor(&backend, &app);
     auto *mprisPlayer = new MprisPlayerAdaptor(&backend);

@@ -11,12 +11,15 @@
         <file>qml/components/WorldCategoryHeader.qml</file>
         <file>qml/components/WorldCategories.qml</file>
         <file>qml/components/PlayerBar.qml</file>
-        <file>qml/components/AboutDialog.qml</file>
+        <file>qml/components/AboutPage.qml</file>
         <file>qml/components/AddStationDialog.qml</file>
         <file>qml/components/EditStationDialog.qml</file>
         <file>qml/components/LoadingOverlay.qml</file>
         <file>qml/components/ToastPopup.qml</file>
         <file>qml/components/StationListPanel.qml</file>
+        <file>qml/components/SidebarNavigation.qml</file>
+        <file>qml/components/SidebarButton.qml</file>
+        <file>qml/components/StationDetailsPanel.qml</file>
         <file>qml/utils/FlagUtils.js</file>
     </qresource>
     <qresource prefix="/">
@@ -25,5 +28,6 @@
         <file alias="assets/ui/globe.svg">../assets/ui/globe.svg</file>
         <file alias="assets/ui/github.svg">../assets/ui/github.svg</file>
         <file alias="assets/ui/linkedin.svg">../assets/ui/linkedin.svg</file>
+        <file alias="assets/legal/gpl-3.0.txt">../LICENSE</file>
     </qresource>
 </RCC>
