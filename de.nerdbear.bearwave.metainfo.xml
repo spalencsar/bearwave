@@ -67,6 +67,15 @@
   </provides>
   
   <releases>
+    <release version="1.1.1" date="2026-07-21">
+      <description>
+        <ul>
+          <li>Security: enforce http/https stream URLs on every play path and when loading favorites/history/resume state</li>
+          <li>Use SVG app and tray icon (PNG fallback retained)</li>
+          <li>Fix light borders on search and dialog buttons in dark theme</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.1.0" date="2026-06-27">
       <description>
         <ul>

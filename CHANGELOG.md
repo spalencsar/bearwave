@@ -7,14 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Version notes (1.1.0 → 1.1.1)
+
+- **1.1.0** — desktop UI redesign release.
+- **1.1.1** — current recommended patch: SVG app/tray icon, button style fixes, and stronger stream URL validation.
+
+## [1.1.1] - 2026-07-21
+
 ### Security
 
 - Validate stream URLs (`http`/`https` only) before every playback attempt and when loading favorites/history/resume state from disk.
 
-## Version notes (1.0.5 → 1.1.0)
+### Added
 
-- **1.0.5** — last patch release before the desktop UI redesign.
-- **1.1.0** — current recommended release: Mac-inspired layout, About page, Russian UI, and post-redesign navigation/i18n fixes.
+- Use `bearwave.svg` as the primary app and tray icon (PNG remains as raster fallback).
+
+### Fixed
+
+- Remove light/white borders on search and dialog buttons on dark UI.
+- Keep the About page header consistent with the main app and improve return navigation.
 
 ## [1.1.0] - 2026-06-27
 
