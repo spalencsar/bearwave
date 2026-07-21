@@ -283,7 +283,8 @@ This installs:
 
 - binary: `~/.local/bin/bearwave`
 - desktop file: `~/.local/share/applications/de.nerdbear.bearwave.desktop`
-- icon: `~/.local/share/icons/hicolor/256x256/apps/de.nerdbear.bearwave.png`
+- icon (SVG): `~/.local/share/icons/hicolor/scalable/apps/de.nerdbear.bearwave.svg`
+- icon (PNG fallback): `~/.local/share/icons/hicolor/256x256/apps/de.nerdbear.bearwave.png`
 
 Note: the generated desktop file uses the install prefix chosen during `cmake --install`.
 

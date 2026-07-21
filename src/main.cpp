@@ -14,6 +14,7 @@
 #include <QQuickWindow>
 #include <QTranslator>
 
+#include "appicon.h"
 #include "radiobackend.h"
 #include "mprisadaptor.h"
 #include "bearwavecontroladaptor.h"
@@ -42,7 +43,7 @@ int main(int argc, char *argv[])
         qInfo() << "BearWave is already running; raised the existing window.";
         return 0;
     }
-    app.setWindowIcon(QIcon::fromTheme(QStringLiteral("de.nerdbear.bearwave")));
+    app.setWindowIcon(bearwaveAppIcon());
     app.setQuitOnLastWindowClosed(false);
 
     QTranslator appTranslator;

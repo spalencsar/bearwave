@@ -29,8 +29,13 @@ configure_file(
 )
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/de.nerdbear.bearwave.desktop DESTINATION share/applications)
 
-# Install app icon
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/assets/app/bearwave.png DESTINATION share/icons/hicolor/256x256/apps RENAME de.nerdbear.bearwave.png)
+# Install app icons (SVG is primary for desktop/tray theme lookup; PNG remains for MPRIS/fallbacks)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/assets/app/bearwave.svg
+        DESTINATION share/icons/hicolor/scalable/apps
+        RENAME de.nerdbear.bearwave.svg)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/assets/app/bearwave.png
+        DESTINATION share/icons/hicolor/256x256/apps
+        RENAME de.nerdbear.bearwave.png)
 
 # Install AppStream metadata
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/de.nerdbear.bearwave.metainfo.xml DESTINATION share/metainfo)

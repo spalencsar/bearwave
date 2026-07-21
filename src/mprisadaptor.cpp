@@ -258,7 +258,12 @@ QVariantMap MprisPlayerAdaptor::metadata() const
     if (!artUrl.isEmpty()) {
         map.insert(QStringLiteral("mpris:artUrl"), artUrl);
     } else {
-        QString iconPath = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QStringLiteral("icons/hicolor/256x256/apps/de.nerdbear.bearwave.png"));
+        QString iconPath = QStandardPaths::locate(QStandardPaths::GenericDataLocation,
+                                                  QStringLiteral("icons/hicolor/scalable/apps/de.nerdbear.bearwave.svg"));
+        if (iconPath.isEmpty()) {
+            iconPath = QStandardPaths::locate(QStandardPaths::GenericDataLocation,
+                                              QStringLiteral("icons/hicolor/256x256/apps/de.nerdbear.bearwave.png"));
+        }
         if (!iconPath.isEmpty()) {
             map.insert(QStringLiteral("mpris:artUrl"), QStringLiteral("file://") + iconPath);
         }
