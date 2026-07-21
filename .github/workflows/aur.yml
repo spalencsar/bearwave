@@ -22,4 +22,5 @@ jobs:
           commit_email: moin@nerdbear.de
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_message: "Update AUR package via GitHub Actions"
+          allow_empty_commits: true
           ssh_keyscan_types: rsa,ecdsa,ed25519
