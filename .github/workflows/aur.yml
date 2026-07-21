@@ -14,13 +14,63 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Publish bearwave-git to AUR
-        uses: KSXGitHub/github-actions-deploy-aur@v3
-        with:
-          pkgname: bearwave-git
-          pkgbuild: ./PKGBUILD
-          commit_username: ${{ secrets.AUR_USERNAME }}
-          commit_email: moin@nerdbear.de
-          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-          commit_message: "Update AUR package via GitHub Actions"
-          allow_empty_commits: true
-          ssh_keyscan_types: rsa,ecdsa,ed25519
+        env:
+          AUR_USERNAME: ${{ secrets.AUR_USERNAME }}
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${AUR_SSH_PRIVATE_KEY:-}" ]]; then
+            echo "AUR_SSH_PRIVATE_KEY secret is missing" >&2
+            exit 1
+          fi
+
+          SSH_DIR="${HOME}/.ssh"
+          mkdir -p "${SSH_DIR}"
+          chmod 700 "${SSH_DIR}"
+          printf '%s\n' "${AUR_SSH_PRIVATE_KEY}" > "${SSH_DIR}/aur"
+          chmod 600 "${SSH_DIR}/aur"
+
+          ssh-keyscan -t rsa,ecdsa,ed25519 aur.archlinux.org >> "${SSH_DIR}/known_hosts" 2>/dev/null
+          chmod 600 "${SSH_DIR}/known_hosts"
+
+          cat > "${SSH_DIR}/config" <<EOF
+          Host aur.archlinux.org
+            User aur
+            IdentityFile ${SSH_DIR}/aur
+            StrictHostKeyChecking yes
+          EOF
+          # strip leading spaces from heredoc lines for valid ssh config
+          sed -i 's/^[[:space:]]*//' "${SSH_DIR}/config"
+          chmod 600 "${SSH_DIR}/config"
+
+          git config --global user.name "${AUR_USERNAME:-bearwave-ci}"
+          git config --global user.email "moin@nerdbear.de"
+
+          WORKDIR="$(mktemp -d)"
+          git clone "ssh://aur@aur.archlinux.org/bearwave-git.git" "${WORKDIR}/repo"
+          cd "${WORKDIR}/repo"
+
+          # Detached HEAD after clone is common with this action; always work on master.
+          git fetch origin master
+          git checkout -B master "origin/master"
+
+          cp "${GITHUB_WORKSPACE}/PKGBUILD" ./PKGBUILD
+
+          # Generate .SRCINFO with Arch tooling (ubuntu runners lack makepkg).
+          docker run --rm \
+            -v "${PWD}:/pkg" \
+            -w /pkg \
+            archlinux:latest \
+            bash -lc 'pacman -Sy --noconfirm --needed base-devel >/dev/null && makepkg --printsrcinfo > .SRCINFO'
+
+          git add PKGBUILD .SRCINFO
+          if git diff --cached --quiet; then
+            echo "No AUR package content changes; allowing empty commit"
+            git commit --allow-empty -m "Update AUR package via GitHub Actions"
+          else
+            git commit -m "Update AUR package via GitHub Actions"
+          fi
+
+          # Push current commit explicitly to master (avoids detached-HEAD refspec errors).
+          git push origin HEAD:master
