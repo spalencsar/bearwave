@@ -20,6 +20,7 @@
         <file>qml/components/SidebarNavigation.qml</file>
         <file>qml/components/SidebarButton.qml</file>
         <file>qml/components/StationDetailsPanel.qml</file>
+        <file>qml/components/ThemedButton.qml</file>
         <file>qml/utils/FlagUtils.js</file>
     </qresource>
     <qresource prefix="/">

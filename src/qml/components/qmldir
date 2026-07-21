@@ -14,3 +14,4 @@ StationListPanel 1.0 StationListPanel.qml
 SidebarNavigation 1.0 SidebarNavigation.qml
 SidebarButton 1.0 SidebarButton.qml
 StationDetailsPanel 1.0 StationDetailsPanel.qml
+ThemedButton 1.0 ThemedButton.qml

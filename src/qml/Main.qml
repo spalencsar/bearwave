@@ -17,6 +17,27 @@ ApplicationWindow {
     minimumHeight: 460
     visible: true
 
+    // Dark control palette so default Buttons/Dialogs do not draw light Fusion borders.
+    palette {
+        window: BearTheme.panel
+        windowText: BearTheme.textMain
+        base: BearTheme.card
+        alternateBase: BearTheme.cardHover
+        text: BearTheme.textMain
+        button: BearTheme.card
+        buttonText: BearTheme.textMain
+        brightText: "#ffffff"
+        highlight: BearTheme.playingAccent
+        highlightedText: "#ffffff"
+        mid: BearTheme.cardBorder
+        midlight: BearTheme.cardHover
+        dark: BearTheme.bgA
+        light: BearTheme.cardHover
+        shadow: "#000000"
+        link: BearTheme.playingAccent
+        placeholderText: BearTheme.textMuted
+    }
+
     onClosing: function(close) {
         close.accepted = false
         root.hide()

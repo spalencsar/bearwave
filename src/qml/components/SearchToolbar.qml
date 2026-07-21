@@ -18,6 +18,19 @@ ColumnLayout {
 
     spacing: 8
 
+    function runSearch() {
+        if (searchField.text.length < 2 || !app.backend)
+            return
+        app.currentPage = "search"
+        app.backend.searchStations(searchField.text)
+    }
+
+    function clearSearch() {
+        searchField.text = ""
+        if (app.backend)
+            app.backend.filterQuery = ""
+    }
+
     RowLayout {
         visible: !root.compactMode
         Layout.fillWidth: true
@@ -34,42 +47,27 @@ ColumnLayout {
                 }
                 searchTimer.restart()
             }
-            onAccepted: {
-                if (text.length < 2 || !app.backend) return
-                app.currentPage = "search"
-                app.backend.searchStations(text)
-            }
+            onAccepted: root.runSearch()
         }
 
-        // Right Search and Clear buttons
         RowLayout {
             spacing: 6
 
-            Button {
+            ThemedButton {
                 text: root.app.width < 1180 ? "🔍" : "🔍  " + qsTr("Search")
-                highlighted: true
+                primary: true
                 Layout.preferredWidth: root.app.width < 1180 ? 44 : 88
-                onClicked: {
-                    if (searchField.text.length < 2 || !app.backend) return
-                    app.currentPage = "search"
-                    app.backend.searchStations(searchField.text)
-                }
+                onClicked: root.runSearch()
             }
 
-            Button {
+            ThemedButton {
                 text: root.app.width < 1180 ? "✕" : "✕  " + qsTr("Clear")
                 Layout.preferredWidth: root.app.width < 1180 ? 44 : 82
-                onClicked: {
-                    searchField.text = ""
-                    if (app.backend) {
-                        app.backend.filterQuery = ""
-                    }
-                }
+                onClicked: root.clearSearch()
             }
         }
     }
 
-    // Compact Mode (Mobile/Narrow) Search Layout
     ColumnLayout {
         visible: root.compactMode
         Layout.fillWidth: true
@@ -89,37 +87,24 @@ ColumnLayout {
                 }
                 searchTimer.restart()
             }
-            onAccepted: {
-                if (text.length < 2 || !app.backend) return
-                app.currentPage = "search"
-                app.backend.searchStations(text)
-            }
+            onAccepted: root.runSearch()
         }
 
         RowLayout {
             Layout.fillWidth: true
             spacing: 8
 
-            Button {
+            ThemedButton {
                 text: "🔍  " + qsTr("Search")
-                highlighted: true
+                primary: true
                 Layout.fillWidth: true
-                onClicked: {
-                    if (searchField.text.length < 2 || !app.backend) return
-                    app.currentPage = "search"
-                    app.backend.searchStations(searchField.text)
-                }
+                onClicked: root.runSearch()
             }
 
-            Button {
+            ThemedButton {
                 text: "✕  " + qsTr("Clear")
                 Layout.fillWidth: true
-                onClicked: {
-                    searchField.text = ""
-                    if (app.backend) {
-                        app.backend.filterQuery = ""
-                    }
-                }
+                onClicked: root.clearSearch()
             }
         }
     }

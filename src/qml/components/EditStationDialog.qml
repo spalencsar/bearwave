@@ -5,6 +5,8 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
+import theme 1.0
+
 Dialog {
     id: root
 
@@ -17,13 +19,60 @@ Dialog {
     modal: true
     anchors.centerIn: parent
     width: compactMode ? 320 : 420
-    standardButtons: Dialog.Ok | Dialog.Cancel
+    standardButtons: Dialog.NoButton
+
+    background: Rectangle {
+        color: BearTheme.panel
+        border.color: BearTheme.cardBorder
+        border.width: 1
+        radius: 8
+    }
+
+    header: Label {
+        text: root.title
+        color: BearTheme.textMain
+        font.bold: true
+        font.pixelSize: 14
+        leftPadding: 16
+        rightPadding: 16
+        topPadding: 14
+        bottomPadding: 6
+    }
 
     contentItem: ColumnLayout {
         spacing: 8
-        TextField { id: editName; Layout.fillWidth: true; placeholderText: qsTr("Name") }
-        TextField { id: editUrl; Layout.fillWidth: true; placeholderText: qsTr("Stream URL (http/https)") }
-        TextField { id: editCountry; Layout.fillWidth: true; placeholderText: qsTr("Country (optional)") }
+        TextField {
+            id: editName
+            Layout.fillWidth: true
+            placeholderText: qsTr("Name")
+        }
+        TextField {
+            id: editUrl
+            Layout.fillWidth: true
+            placeholderText: qsTr("Stream URL (http/https)")
+        }
+        TextField {
+            id: editCountry
+            Layout.fillWidth: true
+            placeholderText: qsTr("Country (optional)")
+        }
+    }
+
+    footer: DialogButtonBox {
+        alignment: Qt.AlignRight
+        background: Item {}
+        padding: 12
+        spacing: 8
+
+        ThemedButton {
+            text: qsTr("Cancel")
+            DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
+        }
+        ThemedButton {
+            text: qsTr("OK")
+            primary: true
+            DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
+        }
     }
 
     function setupAndOpen() {
