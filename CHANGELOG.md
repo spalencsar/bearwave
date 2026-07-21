@@ -16,16 +16,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-- Validate stream URLs (`http`/`https` only) before every playback attempt and when loading favorites/history/resume state from disk.
+- Validate stream URLs (`http`/`https` only) before every playback attempt and when loading favorites/history/resume state from disk (shared `isAllowedStreamUrl` gate in backend, player, and ICY reader).
 
 ### Added
 
-- Use `bearwave.svg` as the primary app and tray icon (PNG remains as raster fallback).
+- Use `bearwave.svg` as the primary app and tray icon; install as hicolor scalable theme icon (`de.nerdbear.bearwave.svg`). PNG remains as raster fallback for MPRIS and older desktops.
+
+### Changed
+
+- Flatpak app version set to **1.1.1** (`de.nerdbear.bearwave.json`).
+- Refresh README/AppStream screenshots and demo video assets for the 1.1 desktop layout.
 
 ### Fixed
 
-- Remove light/white borders on search and dialog buttons on dark UI.
-- Keep the About page header consistent with the main app and improve return navigation.
+- Remove light/white borders on search and dialog buttons on dark UI (`ThemedButton` + dark window palette).
+- Keep the About page header consistent with the main app and improve return navigation (sidebar logo / search / filters).
+- Flatpak deploy rsync no longer fails on remote permission attributes (`--no-perms` / `--no-times`).
 
 ## [1.1.0] - 2026-06-27
 
