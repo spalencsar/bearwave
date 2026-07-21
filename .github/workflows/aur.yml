@@ -58,11 +58,19 @@ jobs:
           cp "${GITHUB_WORKSPACE}/PKGBUILD" ./PKGBUILD
 
           # Generate .SRCINFO with Arch tooling (ubuntu runners lack makepkg).
+          # makepkg refuses to run as root, so use an unprivileged user in the container.
           docker run --rm \
             -v "${PWD}:/pkg" \
             -w /pkg \
             archlinux:latest \
-            bash -lc 'pacman -Sy --noconfirm --needed base-devel >/dev/null && makepkg --printsrcinfo > .SRCINFO'
+            bash -lc '
+              set -euo pipefail
+              pacman -Sy --noconfirm --needed base-devel >/dev/null
+              useradd -m builder
+              chown -R builder:builder /pkg
+              su -s /bin/bash builder -c "makepkg --printsrcinfo" > .SRCINFO
+              chown -R root:root /pkg
+            '
 
           git add PKGBUILD .SRCINFO
           if git diff --cached --quiet; then
