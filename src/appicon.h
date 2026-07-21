@@ -7,18 +7,19 @@
 #include <QIcon>
 #include <QString>
 
-// Desktop/tray icon: installed theme name first (SVG scalable preferred),
-// then bundled SVG/PNG for uninstalled development builds.
+// Window/tray icon: prefer the bundled SVG so a stale theme PNG in
+// ~/.local/share/icons cannot override the current branding. Theme lookup
+// remains for desktop launchers (Icon=de.nerdbear.bearwave).
 inline QIcon bearwaveAppIcon()
 {
-    QIcon themeIcon = QIcon::fromTheme(QStringLiteral("de.nerdbear.bearwave"));
-    if (!themeIcon.isNull()) {
-        return themeIcon;
-    }
-
     QIcon svgIcon(QStringLiteral(":/assets/app/bearwave.svg"));
     if (!svgIcon.isNull()) {
         return svgIcon;
+    }
+
+    QIcon themeIcon = QIcon::fromTheme(QStringLiteral("de.nerdbear.bearwave"));
+    if (!themeIcon.isNull()) {
+        return themeIcon;
     }
 
     QIcon pngIcon(QStringLiteral(":/assets/app/bearwave.png"));
