@@ -31,6 +31,8 @@ private slots:
     void list_next_disabled_when_playing_station_not_in_new_list();
     void manual_station_rejects_unsafe_url_scheme();
     void manual_station_accepts_http_and_https();
+    void playback_rejects_unsafe_url_from_station_list();
+    void favorites_and_state_skip_unsafe_urls();
 };
 
 namespace {
@@ -326,6 +328,77 @@ void RadioBackendPlaybackTest::manual_station_accepts_http_and_https()
 
     backend.addManualStation(QStringLiteral("HTTPS"), QStringLiteral("https://example.com/stream"), QStringLiteral("DE"));
     QCOMPARE(backend.stations().size(), 2);
+}
+
+void RadioBackendPlaybackTest::playback_rejects_unsafe_url_from_station_list()
+{
+    const QString topEndpoint = QStringLiteral("/stations/topvote/100");
+    writeStationCache(topEndpoint, QStringLiteral("Bad File"), QStringLiteral("file:///tmp/x"),
+                      QStringLiteral("uuid-file"));
+
+    RadioBackend backend;
+    backend.loadTopStations();
+    QTRY_VERIFY_WITH_TIMEOUT(backend.stations().size() == 1, 2000);
+
+    backend.playStation(0);
+    QVERIFY(!backend.lastError().isEmpty());
+    QCOMPARE(backend.currentStationUrl(), QString());
+    QVERIFY(!backend.player()->playing());
+}
+
+void RadioBackendPlaybackTest::favorites_and_state_skip_unsafe_urls()
+{
+    const QString configDir = QDir::homePath() + QStringLiteral("/.config/bearwave");
+    QDir().mkpath(configDir);
+
+    QJsonArray favorites;
+    favorites.append(QJsonObject{
+        {QStringLiteral("uuid"), QStringLiteral("safe")},
+        {QStringLiteral("name"), QStringLiteral("Safe")},
+        {QStringLiteral("url"), QStringLiteral("https://example.com/safe")},
+        {QStringLiteral("urlResolved"), QStringLiteral("https://example.com/safe")},
+        {QStringLiteral("country"), QStringLiteral("DE")}
+    });
+    favorites.append(QJsonObject{
+        {QStringLiteral("uuid"), QStringLiteral("bad")},
+        {QStringLiteral("name"), QStringLiteral("Bad")},
+        {QStringLiteral("url"), QStringLiteral("file:///etc/passwd")},
+        {QStringLiteral("urlResolved"), QStringLiteral("file:///etc/passwd")},
+        {QStringLiteral("country"), QStringLiteral("DE")}
+    });
+    QFile favFile(configDir + QStringLiteral("/favorites.json"));
+    QVERIFY(favFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    favFile.write(QJsonDocument(favorites).toJson());
+    favFile.close();
+
+    QJsonObject state;
+    state.insert(QStringLiteral("lastStationName"), QStringLiteral("Evil"));
+    state.insert(QStringLiteral("lastStationUrl"), QStringLiteral("file:///tmp/evil"));
+    state.insert(QStringLiteral("volume"), 0.4);
+    QJsonArray recent;
+    recent.append(QJsonObject{
+        {QStringLiteral("name"), QStringLiteral("Evil Recent")},
+        {QStringLiteral("uuid"), QStringLiteral("evil-r")},
+        {QStringLiteral("urlResolved"), QStringLiteral("ftp://evil.example/stream")}
+    });
+    recent.append(QJsonObject{
+        {QStringLiteral("name"), QStringLiteral("Good Recent")},
+        {QStringLiteral("uuid"), QStringLiteral("good-r")},
+        {QStringLiteral("urlResolved"), QStringLiteral("https://example.com/recent")}
+    });
+    state.insert(QStringLiteral("recentStations"), recent);
+    QFile stateFile(configDir + QStringLiteral("/state.json"));
+    QVERIFY(stateFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    stateFile.write(QJsonDocument(state).toJson());
+    stateFile.close();
+
+    RadioBackend backend;
+    QCOMPARE(backend.favoriteStations().size(), 1);
+    QCOMPARE(backend.favoriteStations().first()->property("name").toString(), QStringLiteral("Safe"));
+    QVERIFY(!backend.canResumeLastStation());
+    QCOMPARE(backend.recentStations().size(), 1);
+    QCOMPARE(backend.recentStations().first().toMap().value(QStringLiteral("uuid")).toString(),
+             QStringLiteral("good-r"));
 }
 
 int main(int argc, char *argv[])

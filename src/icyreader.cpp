@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "icyreader.h"
+#include "streamurl.h"
 #include <QNetworkRequest>
 #include <QDebug>
 #include <QRegularExpression>
@@ -21,7 +22,7 @@ void IcyReader::start(const QString &url)
 {
     stop();
 
-    if (url.isEmpty())
+    if (url.isEmpty() || !isAllowedStreamUrl(url))
         return;
 
     QNetworkRequest request((QUrl(url)));

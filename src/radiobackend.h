@@ -128,6 +128,7 @@ private:
     void recordRecentStation(const QVariantMap &stationData);
     void playCurrentSelection();
     void playHistoryAtIndex(int index, bool updateRecent);
+    bool startPlayback(const QString &url, const QString &name);
     void syncStationListIndex();
     static QVariantMap toVariantMap(const RadioStation *station);
     static bool matchesStation(const RadioStation *station, const QString &uuid, const QString &urlResolved);

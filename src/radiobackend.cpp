@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "radiobackend.h"
+#include "streamurl.h"
 
 #include <QDebug>
 #include <algorithm>
@@ -22,14 +23,15 @@ QString appConfigDir()
     return QDir::homePath() + QStringLiteral("/.config/bearwave");
 }
 
-bool isAllowedStreamUrl(const QString &urlString)
+QString preferredStreamUrl(const RadioStation *station)
 {
-    const QUrl url(urlString.trimmed());
-    if (!url.isValid() || url.isEmpty()) {
-        return false;
+    if (!station) {
+        return {};
     }
-    const QString scheme = url.scheme().toLower();
-    return scheme == QStringLiteral("http") || scheme == QStringLiteral("https");
+    if (!station->urlResolved().isEmpty()) {
+        return station->urlResolved();
+    }
+    return station->url();
 }
 }
 
@@ -561,7 +563,15 @@ void RadioBackend::resumeLastStation()
     m_currentStationUrl = m_lastStationUrl;
     emit currentStationChanged();
 
-    m_player->playUrl(m_lastStationUrl, m_lastStationName.isEmpty() ? tr("Last played") : m_lastStationName);
+    if (!startPlayback(m_lastStationUrl,
+                       m_lastStationName.isEmpty() ? tr("Last played") : m_lastStationName)) {
+        m_lastStationUrl.clear();
+        m_lastStationName.clear();
+        m_currentStationUrl.clear();
+        m_currentStationUuid.clear();
+        emit resumeStateChanged();
+        emit currentStationChanged();
+    }
 }
 
 void RadioBackend::loadFavorites()
@@ -583,11 +593,27 @@ void RadioBackend::loadFavorites()
             continue;
         }
         QJsonObject o = v.toObject();
+        const QString url = o.value("url").toString();
+        const QString urlResolved = o.value("urlResolved").toString();
+        const QString streamUrl = !urlResolved.isEmpty() ? urlResolved : url;
+        if (!isAllowedStreamUrl(streamUrl)) {
+            qWarning() << "Skipping favorite with disallowed stream URL scheme";
+            continue;
+        }
+        if (!url.isEmpty() && !isAllowedStreamUrl(url)) {
+            qWarning() << "Skipping favorite with disallowed raw URL scheme";
+            continue;
+        }
+        if (!urlResolved.isEmpty() && !isAllowedStreamUrl(urlResolved)) {
+            qWarning() << "Skipping favorite with disallowed resolved URL scheme";
+            continue;
+        }
+
         RadioStation *s = new RadioStation(this);
         s->setUuid(o.value("uuid").toString());
         s->setName(o.value("name").toString());
-        s->setUrl(o.value("url").toString());
-        s->setUrlResolved(o.value("urlResolved").toString());
+        s->setUrl(url);
+        s->setUrlResolved(urlResolved.isEmpty() ? url : urlResolved);
         s->setCountry(o.value("country").toString());
         s->setIsFavorite(true);
         m_favorites.append(s);
@@ -636,6 +662,11 @@ void RadioBackend::loadState()
     const QJsonObject obj = doc.object();
     m_lastStationName = obj.value("lastStationName").toString();
     m_lastStationUrl = obj.value("lastStationUrl").toString();
+    if (!m_lastStationUrl.isEmpty() && !isAllowedStreamUrl(m_lastStationUrl)) {
+        qWarning() << "Discarding last station URL with disallowed scheme";
+        m_lastStationUrl.clear();
+        m_lastStationName.clear();
+    }
     const double volume = obj.value("volume").toDouble(0.5);
     const QJsonArray recentArray = obj.value("recentStations").toArray();
     m_recentStations.clear();
@@ -644,7 +675,8 @@ void RadioBackend::loadState()
             continue;
         }
         const QVariantMap recentStation = value.toObject().toVariantMap();
-        if (recentStation.value(QStringLiteral("urlResolved")).toString().isEmpty()) {
+        const QString recentUrl = recentStation.value(QStringLiteral("urlResolved")).toString();
+        if (recentUrl.isEmpty() || !isAllowedStreamUrl(recentUrl)) {
             continue;
         }
         m_recentStations.append(recentStation);
@@ -742,7 +774,7 @@ void RadioBackend::rebuildFilteredStations(bool emitFilterSignal)
 void RadioBackend::recordRecentStation(const QVariantMap &stationData)
 {
     const QString url = stationData.value(QStringLiteral("urlResolved")).toString();
-    if (url.isEmpty()) {
+    if (url.isEmpty() || !isAllowedStreamUrl(url)) {
         return;
     }
 
@@ -800,7 +832,12 @@ void RadioBackend::playHistoryAtIndex(int index, bool updateRecent)
     m_currentStationUuid = station.value(QStringLiteral("uuid")).toString();
     m_currentStationUrl = url;
     emit currentStationChanged();
-    m_player->playUrl(url, m_lastStationName.isEmpty() ? tr("Last played") : m_lastStationName);
+    if (!startPlayback(url, m_lastStationName.isEmpty() ? tr("Last played") : m_lastStationName)) {
+        m_lastStationUrl.clear();
+        m_currentStationUrl.clear();
+        emit resumeStateChanged();
+        emit currentStationChanged();
+    }
 }
 
 void RadioBackend::syncStationListIndex()
@@ -818,6 +855,18 @@ void RadioBackend::syncStationListIndex()
     }
 }
 
+bool RadioBackend::startPlayback(const QString &url, const QString &name)
+{
+    if (!isAllowedStreamUrl(url)) {
+        setLastError(tr("Stream URL must use http:// or https://"));
+        qWarning() << "Rejected stream playback for disallowed URL scheme";
+        return false;
+    }
+    setLastError(QString());
+    m_player->playUrl(url, name);
+    return true;
+}
+
 void RadioBackend::playCurrentSelection()
 {
     const QList<RadioStation*> list = currentList();
@@ -829,9 +878,13 @@ void RadioBackend::playCurrentSelection()
     m_standalonePlayback = false;
 
     RadioStation *station = list[m_currentIndex];
-    QString url = station->urlResolved().isEmpty()
-                  ? station->url()
-                  : station->urlResolved();
+    const QString url = preferredStreamUrl(station);
+    if (!isAllowedStreamUrl(url)) {
+        setLastError(tr("Stream URL must use http:// or https://"));
+        qWarning() << "Rejected station list playback for disallowed URL scheme";
+        return;
+    }
+
     m_lastStationName = station->name();
     m_lastStationUrl = url;
     emit resumeStateChanged();
@@ -840,7 +893,7 @@ void RadioBackend::playCurrentSelection()
     m_currentStationUuid = station->uuid();
     m_currentStationUrl = url;
     emit currentStationChanged();
-    m_player->playUrl(url, station->name());
+    startPlayback(url, station->name());
 }
 
 QObject* RadioBackend::currentStation() const

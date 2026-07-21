@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "bearplayer.h"
+#include "streamurl.h"
 
 #include <QDebug>
 #include <QMediaMetaData>
@@ -43,7 +44,8 @@ BearPlayer::BearPlayer(QObject *parent) : QObject(parent) {
 BearPlayer::~BearPlayer() { stop(); }
 
 void BearPlayer::playUrl(const QString &url, const QString &name) {
-  if (url.isEmpty()) {
+  if (url.isEmpty() || !isAllowedStreamUrl(url)) {
+    qWarning() << "BearPlayer: rejected stream URL with disallowed scheme";
     return;
   }
 

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- Validate stream URLs (`http`/`https` only) before every playback attempt and when loading favorites/history/resume state from disk.
+
 ## Version notes (1.0.5 → 1.1.0)
 
 - **1.0.5** — last patch release before the desktop UI redesign.
