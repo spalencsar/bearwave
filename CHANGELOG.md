@@ -51,6 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the current schema.
 - Remove the unsupported Flatpak manifest `version` property; Flatpak receives
   the release version from AppStream metadata.
+- Align the downloadable Flatpak reference with the repository's exported
+  `master` branch so direct installations resolve the published app.
 
 ## Version notes (1.1.0 → 1.2.0)
 

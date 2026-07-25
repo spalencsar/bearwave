@@ -1,6 +1,6 @@
 [Flatpak Ref]
 Name=de.nerdbear.bearwave
-Branch=stable
+Branch=master
 Title=BearWave
 Url=https://flatpak.bearwave.app/
 IsRuntime=false
