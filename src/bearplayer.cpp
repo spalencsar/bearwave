@@ -27,16 +27,29 @@ BearPlayer::BearPlayer(QObject *parent) : QObject(parent) {
           &BearPlayer::onMediaStatusChanged);
   connect(m_mediaPlayer, &QMediaPlayer::metaDataChanged, this,
           &BearPlayer::onMetaDataChanged);
+  connect(m_mediaPlayer, &QMediaPlayer::errorOccurred, this,
+          [this](QMediaPlayer::Error error, const QString &) {
+    if (error != QMediaPlayer::NoError && m_hasActiveSource) {
+      setPlaying(false);
+      scheduleRetry();
+    }
+  });
 
   m_retryTimer.setSingleShot(true);
   m_retryTimer.setInterval(1200);
   connect(&m_retryTimer, &QTimer::timeout, this, [this]() {
     if (m_lastUrl.isEmpty() || m_playing || m_retryAttempts >= 2) {
+      if (m_hasActiveSource && !m_playing && m_retryAttempts >= 2) {
+        setConnectionState(QStringLiteral("error"));
+      }
       return;
     }
     ++m_retryAttempts;
+    setConnectionState(QStringLiteral("connecting"));
+    m_changingSource = true;
     m_mediaPlayer->setSource(QUrl(m_lastUrl));
     m_mediaPlayer->play();
+    m_changingSource = false;
     qDebug() << "Retry stream" << m_retryAttempts << m_lastName;
   });
 }
@@ -49,35 +62,51 @@ void BearPlayer::playUrl(const QString &url, const QString &name) {
     return;
   }
 
+  m_retryTimer.stop();
   m_currentStationName = name;
   m_lastName = name;
   m_lastUrl = url;
   m_retryAttempts = 0;
+  m_hasActiveSource = true;
   emit currentStationChanged(m_currentStationName);
   clearTrackInfo();
 
+  setConnectionState(QStringLiteral("connecting"));
+  m_changingSource = true;
   m_mediaPlayer->setSource(QUrl(url));
   m_mediaPlayer->play();
-  m_icyReader->start(url);
+  m_changingSource = false;
+  m_icyReader->start(url, m_nowPlayingState.sourceGeneration());
 
   qDebug() << "Playing:" << name << url;
 }
 
 void BearPlayer::stop() {
-  m_mediaPlayer->stop();
-  m_icyReader->stop();
+  m_retryTimer.stop();
+  m_hasActiveSource = false;
   m_currentStationName.clear();
   m_lastName.clear();
   m_lastUrl.clear();
   m_retryAttempts = 0;
+  m_mediaPlayer->stop();
+  m_icyReader->stop();
+  setPlaying(false);
+  setConnectionState(QStringLiteral("idle"));
   emit currentStationChanged(QString());
   clearTrackInfo();
 }
 
 void BearPlayer::togglePlayPause() {
+  if (!m_hasActiveSource) {
+    return;
+  }
   if (m_playing) {
     m_mediaPlayer->pause();
   } else {
+    if (m_connectionState == QStringLiteral("error")) {
+      m_retryAttempts = 0;
+    }
+    setConnectionState(QStringLiteral("connecting"));
     m_mediaPlayer->play();
   }
 }
@@ -88,29 +117,92 @@ void BearPlayer::setVolume(qreal vol) {
 }
 
 void BearPlayer::onPlaybackStateChanged(QMediaPlayer::PlaybackState state) {
-  m_playing = (state == QMediaPlayer::PlayingState);
-  emit playingChanged(m_playing);
+  if (state == QMediaPlayer::PlayingState) {
+    setPlaying(true);
+    setConnectionState(QStringLiteral("playing"));
+  } else if (state == QMediaPlayer::PausedState) {
+    setPlaying(false);
+    setConnectionState(QStringLiteral("paused"));
+  } else {
+    setPlaying(false);
+  }
 
-  if (state == QMediaPlayer::StoppedState) {
+  if (state == QMediaPlayer::StoppedState && !m_changingSource) {
     scheduleRetry();
   }
 }
 
 void BearPlayer::onMediaStatusChanged(QMediaPlayer::MediaStatus status) {
-  if (status == QMediaPlayer::InvalidMedia) {
-    m_playing = false;
-    emit playingChanged(m_playing);
+  switch (status) {
+  case QMediaPlayer::LoadingMedia:
+    if (m_hasActiveSource) {
+      setConnectionState(QStringLiteral("connecting"));
+    }
+    break;
+  case QMediaPlayer::BufferingMedia:
+  case QMediaPlayer::StalledMedia:
+    if (m_hasActiveSource) {
+      setConnectionState(
+          m_mediaPlayer->playbackState() == QMediaPlayer::PausedState
+              ? QStringLiteral("paused")
+              : QStringLiteral("buffering"));
+    }
+    break;
+  case QMediaPlayer::LoadedMedia:
+  case QMediaPlayer::BufferedMedia:
+    if (m_hasActiveSource) {
+      if (m_mediaPlayer->playbackState() == QMediaPlayer::PlayingState) {
+        setConnectionState(QStringLiteral("playing"));
+      } else if (m_mediaPlayer->playbackState() == QMediaPlayer::PausedState) {
+        setConnectionState(QStringLiteral("paused"));
+      } else {
+        setConnectionState(QStringLiteral("connecting"));
+      }
+    }
+    break;
+  case QMediaPlayer::InvalidMedia:
+  case QMediaPlayer::EndOfMedia:
+    setPlaying(false);
     scheduleRetry();
+    break;
+  case QMediaPlayer::NoMedia:
+    if (!m_hasActiveSource) {
+      setConnectionState(QStringLiteral("idle"));
+    }
+    break;
+  default:
+    break;
   }
 }
 
 void BearPlayer::scheduleRetry() {
-  if (m_lastUrl.isEmpty() || m_retryAttempts >= 2 || m_playing) {
+  if (!m_hasActiveSource || m_lastUrl.isEmpty() || m_playing) {
+    return;
+  }
+  if (m_retryAttempts >= 2) {
+    setConnectionState(QStringLiteral("error"));
     return;
   }
   if (!m_retryTimer.isActive()) {
+    setConnectionState(QStringLiteral("retrying"));
     m_retryTimer.start();
   }
+}
+
+void BearPlayer::setConnectionState(const QString &state) {
+  if (m_connectionState == state) {
+    return;
+  }
+  m_connectionState = state;
+  emit connectionStateChanged();
+}
+
+void BearPlayer::setPlaying(bool playing) {
+  if (m_playing == playing) {
+    return;
+  }
+  m_playing = playing;
+  emit playingChanged(m_playing);
 }
 
 void BearPlayer::onMetaDataChanged() {
@@ -129,57 +221,53 @@ void BearPlayer::onMetaDataChanged() {
     return;
   }
 
-  if (m_currentTrackArtist == artist && m_currentTrackTitle == title) {
+  const quint64 sourceGeneration = m_nowPlayingState.sourceGeneration();
+  if (!m_nowPlayingState.updateMetadata(sourceGeneration, artist, title)) {
     return;
   }
 
-  m_currentTrackArtist = artist;
-  m_currentTrackTitle = title;
-  m_currentCoverArtUrl.clear();
-  m_coverArtFetcher->fetch(artist, title);
+  m_coverArtFetcher->fetch(artist, title, sourceGeneration);
   emit trackInfoChanged();
 }
 
-void BearPlayer::onCoverUrlReady(const QString &url) {
-  if (m_currentCoverArtUrl != url) {
-    m_currentCoverArtUrl = url;
+void BearPlayer::onCoverUrlReady(const QString &url, quint64 sourceGeneration) {
+  if (m_nowPlayingState.updateCover(sourceGeneration, url)) {
     emit trackInfoChanged();
   }
 }
 
 void BearPlayer::onIcyMetaDataReceived(const QString &artist,
-                                       const QString &title) {
-  if (m_currentTrackArtist == artist && m_currentTrackTitle == title) {
+                                       const QString &title,
+                                       quint64 sourceGeneration) {
+  if (!m_nowPlayingState.updateMetadata(sourceGeneration, artist, title)) {
     return;
   }
 
-  m_currentTrackArtist = artist;
-  m_currentTrackTitle = title;
-  m_currentCoverArtUrl.clear();
-  m_coverArtFetcher->fetch(artist, title);
+  m_coverArtFetcher->fetch(artist, title, sourceGeneration);
   emit trackInfoChanged();
 }
 
 QString BearPlayer::currentNowPlaying() const {
-  if (!m_currentTrackArtist.isEmpty() && !m_currentTrackTitle.isEmpty()) {
-    return m_currentTrackArtist + QStringLiteral(" - ") + m_currentTrackTitle;
+  const QString artist = m_nowPlayingState.artist();
+  const QString title = m_nowPlayingState.title();
+  if (!artist.isEmpty() && !title.isEmpty()) {
+    return artist + QStringLiteral(" - ") + title;
   }
-  if (!m_currentTrackTitle.isEmpty()) {
-    return m_currentTrackTitle;
+  if (!title.isEmpty()) {
+    return title;
   }
-  if (!m_currentTrackArtist.isEmpty()) {
-    return m_currentTrackArtist;
+  if (!artist.isEmpty()) {
+    return artist;
   }
   return QString();
 }
 
 void BearPlayer::clearTrackInfo() {
-  if (m_currentTrackArtist.isEmpty() && m_currentTrackTitle.isEmpty()) {
-    return;
+  m_coverArtFetcher->cancel();
+
+  const bool hadTrackInfo = m_nowPlayingState.hasTrackInfo();
+  m_nowPlayingState.resetSource();
+  if (hadTrackInfo) {
+    emit trackInfoChanged();
   }
-  m_currentTrackArtist.clear();
-  m_currentTrackTitle.clear();
-  m_currentCoverArtUrl.clear();
-  m_coverArtFetcher->fetch(QString(), QString());
-  emit trackInfoChanged();
 }

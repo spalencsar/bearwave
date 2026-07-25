@@ -14,17 +14,12 @@ CoverArtFetcher::CoverArtFetcher(QObject *parent)
     m_networkManager = new QNetworkAccessManager(this);
 }
 
-void CoverArtFetcher::fetch(const QString &artist, const QString &title)
+void CoverArtFetcher::fetch(const QString &artist, const QString &title, quint64 sourceGeneration)
 {
-    if (m_currentReply) {
-        QNetworkReply *reply = m_currentReply;
-        m_currentReply = nullptr;
-        reply->abort();
-        reply->deleteLater();
-    }
+    cancel();
 
     if (artist.isEmpty() && title.isEmpty()) {
-        emit coverUrlReady(QString());
+        emit coverUrlReady(QString(), sourceGeneration);
         return;
     }
 
@@ -44,7 +39,20 @@ void CoverArtFetcher::fetch(const QString &artist, const QString &title)
     QNetworkRequest request(url);
     request.setTransferTimeout(10000);
     m_currentReply = m_networkManager->get(request);
+    m_currentReply->setProperty("sourceGeneration", QVariant::fromValue(sourceGeneration));
     connect(m_currentReply, &QNetworkReply::finished, this, &CoverArtFetcher::onReplyFinished);
+}
+
+void CoverArtFetcher::cancel()
+{
+    if (!m_currentReply) {
+        return;
+    }
+
+    QNetworkReply *reply = m_currentReply;
+    m_currentReply = nullptr;
+    reply->abort();
+    reply->deleteLater();
 }
 
 void CoverArtFetcher::onReplyFinished()
@@ -52,6 +60,7 @@ void CoverArtFetcher::onReplyFinished()
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
     if (!reply) return;
 
+    const quint64 sourceGeneration = reply->property("sourceGeneration").toULongLong();
     if (reply == m_currentReply) {
         m_currentReply = nullptr;
     }
@@ -82,5 +91,5 @@ void CoverArtFetcher::onReplyFinished()
     }
 
     reply->deleteLater();
-    emit coverUrlReady(coverUrl);
+    emit coverUrlReady(coverUrl, sourceGeneration);
 }

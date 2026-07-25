@@ -18,7 +18,7 @@ IcyReader::~IcyReader()
     stop();
 }
 
-void IcyReader::start(const QString &url)
+void IcyReader::start(const QString &url, quint64 sourceGeneration)
 {
     stop();
 
@@ -34,6 +34,7 @@ void IcyReader::start(const QString &url)
     request.setTransferTimeout(15000);
 
     m_reply = m_nam->get(request);
+    m_reply->setProperty("sourceGeneration", QVariant::fromValue(sourceGeneration));
 
     connect(m_reply, &QNetworkReply::readyRead, this, &IcyReader::onReadyRead);
     connect(m_reply, &QNetworkReply::finished, this, &IcyReader::onFinished);
@@ -55,13 +56,16 @@ void IcyReader::stop()
 
 void IcyReader::onReadyRead()
 {
-    if (!m_reply)
+    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+    if (!reply || reply != m_reply)
         return;
+
+    const quint64 sourceGeneration = reply->property("sourceGeneration").toULongLong();
 
     // Check if we just received headers and parse icy-metaint
     if (m_metaInt == 0) {
-        if (m_reply->hasRawHeader("icy-metaint")) {
-            m_metaInt = m_reply->rawHeader("icy-metaint").toInt();
+        if (reply->hasRawHeader("icy-metaint")) {
+            m_metaInt = reply->rawHeader("icy-metaint").toInt();
             qDebug() << "ICYREADER: Found icy-metaint =" << m_metaInt;
         } else {
             // No ICY metadata supported by stream
@@ -73,20 +77,20 @@ void IcyReader::onReadyRead()
     if (m_metaInt <= 0)
         return;
 
-    while (m_reply && m_reply->bytesAvailable() > 0) {
+    while (reply == m_reply && reply->bytesAvailable() > 0) {
         if (m_state == ReadingAudio) {
             qint64 bytesToRead = m_metaInt - m_audioBytesRead;
-            if (m_reply->bytesAvailable() >= bytesToRead) {
-                m_reply->read(bytesToRead); // Discard audio data
+            if (reply->bytesAvailable() >= bytesToRead) {
+                reply->read(bytesToRead); // Discard audio data
                 m_audioBytesRead = 0;
                 m_state = ReadingMetaLength;
             } else {
-                m_audioBytesRead += m_reply->readAll().size();
+                m_audioBytesRead += reply->readAll().size();
                 break; // Wait for more data
             }
         } else if (m_state == ReadingMetaLength) {
             char lengthByte;
-            if (m_reply->read(&lengthByte, 1) == 1) {
+            if (reply->read(&lengthByte, 1) == 1) {
                 m_metaLength = static_cast<unsigned char>(lengthByte) * 16;
                 if (m_metaLength > 0) {
                     m_state = ReadingMetaData;
@@ -95,9 +99,9 @@ void IcyReader::onReadyRead()
                 }
             }
         } else if (m_state == ReadingMetaData) {
-            if (m_reply->bytesAvailable() >= m_metaLength) {
-                QByteArray metaData = m_reply->read(m_metaLength);
-                parseMetaData(metaData);
+            if (reply->bytesAvailable() >= m_metaLength) {
+                QByteArray metaData = reply->read(m_metaLength);
+                parseMetaData(metaData, sourceGeneration);
                 m_state = ReadingAudio;
             } else {
                 break; // Wait for more metadata bytes
@@ -108,14 +112,18 @@ void IcyReader::onReadyRead()
 
 void IcyReader::onFinished()
 {
-    if (m_reply) {
-        QNetworkReply *reply = m_reply;
-        m_reply = nullptr;
-        reply->deleteLater();
+    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+    if (!reply) {
+        return;
     }
+
+    if (reply == m_reply) {
+        m_reply = nullptr;
+    }
+    reply->deleteLater();
 }
 
-void IcyReader::parseMetaData(const QByteArray &metaData)
+void IcyReader::parseMetaData(const QByteArray &metaData, quint64 sourceGeneration)
 {
     QString metaString = QString::fromUtf8(metaData).trimmed();
     if (metaString.isEmpty())
@@ -143,7 +151,7 @@ void IcyReader::parseMetaData(const QByteArray &metaData)
         }
 
         qDebug() << "ICYREADER: PARSED METADATA -> Artist:" << artist << "Title:" << title;
-        emit metaDataReceived(artist, title);
+        emit metaDataReceived(artist, title, sourceGeneration);
     } else {
         qDebug() << "ICYREADER: Regex failed on string:" << metaString;
     }

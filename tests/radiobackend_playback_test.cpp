@@ -14,6 +14,8 @@
 #include <QTimer>
 
 #include "radiobackend.h"
+#include "bearplayer.h"
+#include "nowplayingstate.h"
 
 class RadioBackendPlaybackTest : public QObject
 {
@@ -33,6 +35,10 @@ private slots:
     void manual_station_accepts_http_and_https();
     void playback_rejects_unsafe_url_from_station_list();
     void favorites_and_state_skip_unsafe_urls();
+    void selected_station_tracks_visible_list_selection();
+    void play_selected_station_uses_selection_without_prior_playback();
+    void source_change_clears_cover_and_rejects_stale_results();
+    void player_exposes_connection_and_retry_states();
 };
 
 namespace {
@@ -333,7 +339,8 @@ void RadioBackendPlaybackTest::manual_station_accepts_http_and_https()
 void RadioBackendPlaybackTest::playback_rejects_unsafe_url_from_station_list()
 {
     const QString topEndpoint = QStringLiteral("/stations/topvote/100");
-    writeStationCache(topEndpoint, QStringLiteral("Bad File"), QStringLiteral("file:///tmp/x"),
+    writeStationCache(topEndpoint, QStringLiteral("Bad File"),
+                      QStringLiteral("file:///tmp/x"),
                       QStringLiteral("uuid-file"));
 
     RadioBackend backend;
@@ -348,7 +355,8 @@ void RadioBackendPlaybackTest::playback_rejects_unsafe_url_from_station_list()
 
 void RadioBackendPlaybackTest::favorites_and_state_skip_unsafe_urls()
 {
-    const QString configDir = QDir::homePath() + QStringLiteral("/.config/bearwave");
+    const QString configDir =
+        QDir::homePath() + QStringLiteral("/.config/bearwave");
     QDir().mkpath(configDir);
 
     QJsonArray favorites;
@@ -373,7 +381,8 @@ void RadioBackendPlaybackTest::favorites_and_state_skip_unsafe_urls()
 
     QJsonObject state;
     state.insert(QStringLiteral("lastStationName"), QStringLiteral("Evil"));
-    state.insert(QStringLiteral("lastStationUrl"), QStringLiteral("file:///tmp/evil"));
+    state.insert(QStringLiteral("lastStationUrl"),
+                 QStringLiteral("file:///tmp/evil"));
     state.insert(QStringLiteral("volume"), 0.4);
     QJsonArray recent;
     recent.append(QJsonObject{
@@ -394,11 +403,101 @@ void RadioBackendPlaybackTest::favorites_and_state_skip_unsafe_urls()
 
     RadioBackend backend;
     QCOMPARE(backend.favoriteStations().size(), 1);
-    QCOMPARE(backend.favoriteStations().first()->property("name").toString(), QStringLiteral("Safe"));
+    QCOMPARE(backend.favoriteStations().first()->property("name").toString(),
+             QStringLiteral("Safe"));
     QVERIFY(!backend.canResumeLastStation());
     QCOMPARE(backend.recentStations().size(), 1);
-    QCOMPARE(backend.recentStations().first().toMap().value(QStringLiteral("uuid")).toString(),
+    QCOMPARE(backend.recentStations().first()
+                 .toMap()
+                 .value(QStringLiteral("uuid"))
+                 .toString(),
              QStringLiteral("good-r"));
+}
+
+void RadioBackendPlaybackTest::selected_station_tracks_visible_list_selection()
+{
+    RadioBackend backend;
+
+    backend.addManualStation(QStringLiteral("Station One"), QStringLiteral("http://example.com/one"), QStringLiteral("DE"));
+    backend.addManualStation(QStringLiteral("Station Two"), QStringLiteral("http://example.com/two"), QStringLiteral("DE"));
+
+    QCOMPARE(backend.selectedStation().value(QStringLiteral("name")).toString(), QStringLiteral("Station Two"));
+
+    backend.selectStation(1);
+    QCOMPARE(backend.selectedStation().value(QStringLiteral("name")).toString(), QStringLiteral("Station One"));
+    QCOMPARE(backend.currentStationUrl(), QString());
+}
+
+void RadioBackendPlaybackTest::play_selected_station_uses_selection_without_prior_playback()
+{
+    RadioBackend backend;
+
+    backend.addManualStation(QStringLiteral("Station One"), QStringLiteral("http://example.com/one"), QStringLiteral("DE"));
+    backend.addManualStation(QStringLiteral("Station Two"), QStringLiteral("http://example.com/two"), QStringLiteral("DE"));
+    backend.selectStation(1);
+
+    QVERIFY(backend.playSelectedStation());
+    QCOMPARE(backend.currentStationUrl(), QStringLiteral("http://example.com/one"));
+}
+
+void RadioBackendPlaybackTest::source_change_clears_cover_and_rejects_stale_results()
+{
+    NowPlayingState state;
+    const quint64 firstGeneration = state.resetSource();
+
+    QVERIFY(state.updateCover(firstGeneration, QStringLiteral("https://example.com/old-cover.jpg")));
+    QCOMPARE(state.coverUrl(), QStringLiteral("https://example.com/old-cover.jpg"));
+    QCOMPARE(state.title(), QString());
+
+    const quint64 secondGeneration = state.resetSource();
+    QCOMPARE(state.coverUrl(), QString());
+    QCOMPARE(state.artist(), QString());
+    QCOMPARE(state.title(), QString());
+
+    QVERIFY(!state.updateCover(firstGeneration, QStringLiteral("https://example.com/stale-cover.jpg")));
+    QVERIFY(!state.updateMetadata(firstGeneration, QStringLiteral("Old Artist"), QStringLiteral("Old Title")));
+    QCOMPARE(state.coverUrl(), QString());
+    QCOMPARE(state.artist(), QString());
+    QCOMPARE(state.title(), QString());
+
+    QVERIFY(state.updateMetadata(secondGeneration, QStringLiteral("New Artist"), QStringLiteral("New Title")));
+    QCOMPARE(state.artist(), QStringLiteral("New Artist"));
+    QCOMPARE(state.title(), QStringLiteral("New Title"));
+}
+
+void RadioBackendPlaybackTest::player_exposes_connection_and_retry_states()
+{
+    BearPlayer player;
+    QCOMPARE(player.connectionState(), QStringLiteral("idle"));
+
+    player.playUrl(QStringLiteral("http://127.0.0.1:9/stream"),
+                   QStringLiteral("Test Station"));
+    QCOMPARE(player.connectionState(), QStringLiteral("connecting"));
+
+    QVERIFY(QMetaObject::invokeMethod(
+        &player, "onMediaStatusChanged", Qt::DirectConnection,
+        Q_ARG(QMediaPlayer::MediaStatus, QMediaPlayer::BufferingMedia)));
+    QCOMPARE(player.connectionState(), QStringLiteral("buffering"));
+
+    QVERIFY(QMetaObject::invokeMethod(
+        &player, "onPlaybackStateChanged", Qt::DirectConnection,
+        Q_ARG(QMediaPlayer::PlaybackState, QMediaPlayer::PlayingState)));
+    QCOMPARE(player.connectionState(), QStringLiteral("playing"));
+
+    QVERIFY(QMetaObject::invokeMethod(
+        &player, "onPlaybackStateChanged", Qt::DirectConnection,
+        Q_ARG(QMediaPlayer::PlaybackState, QMediaPlayer::PausedState)));
+    QCOMPARE(player.connectionState(), QStringLiteral("paused"));
+
+    QVERIFY(QMetaObject::invokeMethod(
+        &player, "onMediaStatusChanged", Qt::DirectConnection,
+        Q_ARG(QMediaPlayer::MediaStatus, QMediaPlayer::InvalidMedia)));
+    QCOMPARE(player.connectionState(), QStringLiteral("retrying"));
+
+    player.stop();
+    QCOMPARE(player.connectionState(), QStringLiteral("idle"));
+    player.togglePlayPause();
+    QCOMPARE(player.connectionState(), QStringLiteral("idle"));
 }
 
 int main(int argc, char *argv[])

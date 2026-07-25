@@ -3,10 +3,16 @@
 # Core application
 set(SOURCES
     main.cpp
+    appsettings.cpp
+    stationimagecache.cpp
+    stationartworkservice.cpp
+    stationlogostyle.cpp
     radiostation.cpp
+    countrynames.cpp
     radiobrowser.cpp
     radiobackend.cpp
     bearplayer.cpp
+    nowplayingstate.cpp
     coverartfetcher.cpp
     mprisadaptor.cpp
     bearwavecontroladaptor.cpp
@@ -46,6 +52,7 @@ target_sources(bearwave PRIVATE qml.qrc)
 qt_add_lrelease(bearwave
     TS_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/../translations/bearwave_de.ts
+        ${CMAKE_CURRENT_SOURCE_DIR}/../translations/bearwave_nl.ts
         ${CMAKE_CURRENT_SOURCE_DIR}/../translations/bearwave_ru.ts
     QM_FILES_OUTPUT_VARIABLE bearwave_qm_files
 )

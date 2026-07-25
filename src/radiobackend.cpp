@@ -2,15 +2,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "radiobackend.h"
+#include "countrynames.h"
+#include "stationartworkservice.h"
+#include "stationimagecache.h"
+#include "stationlogostyle.h"
 #include "streamurl.h"
 
 #include <QDebug>
 #include <algorithm>
 #include <QDir>
 #include <QFile>
+#include <QGuiApplication>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QClipboard>
 #include <QStandardPaths>
 #include <QLocale>
 #include <QUrl>
@@ -23,26 +29,53 @@ QString appConfigDir()
     return QDir::homePath() + QStringLiteral("/.config/bearwave");
 }
 
-QString preferredStreamUrl(const RadioStation *station)
-{
-    if (!station) {
-        return {};
-    }
-    if (!station->urlResolved().isEmpty()) {
-        return station->urlResolved();
-    }
-    return station->url();
-}
 }
 
 RadioBackend::RadioBackend(QObject *parent)
     : QObject(parent)
 {
     m_radioBrowser = new RadioBrowser(this);
+    m_stationImageCache = new StationImageCache(this);
+    m_stationArtworkService =
+        new StationArtworkService(m_stationImageCache, this);
     m_player = new BearPlayer(this);
     setupConnections();
     loadFavorites();
     loadState();
+}
+
+int RadioBackend::stationImageRevision() const
+{
+    return (m_stationImageCache ? m_stationImageCache->revision() : 0)
+           + (m_stationArtworkService ? m_stationArtworkService->revision() : 0);
+}
+
+QString RadioBackend::stationImageSource(const QString &remoteUrl)
+{
+    return m_stationImageCache
+               ? m_stationImageCache->sourceForUrl(remoteUrl)
+               : QStringLiteral("qrc:/assets/app/bearwave.svg");
+}
+
+QString RadioBackend::stationLogoSource(const QString &stationKey,
+                                        const QString &faviconUrl,
+                                        const QString &homepageUrl)
+{
+    return m_stationArtworkService
+               ? m_stationArtworkService->sourceForStation(
+                     stationKey, faviconUrl, homepageUrl)
+               : QString();
+}
+
+QString RadioBackend::stationInitials(const QString &stationName) const
+{
+    return StationLogoStyle::initials(stationName);
+}
+
+int RadioBackend::stationLogoPaletteIndex(const QString &stationKey,
+                                          int paletteSize) const
+{
+    return StationLogoStyle::paletteIndex(stationKey, paletteSize);
 }
 
 QList<QObject*> RadioBackend::stations() const
@@ -79,6 +112,10 @@ void RadioBackend::setupConnections()
             setLastError(QString());
         }
     });
+    connect(m_stationImageCache, &StationImageCache::revisionChanged,
+            this, &RadioBackend::stationImageRevisionChanged);
+    connect(m_stationArtworkService, &StationArtworkService::revisionChanged,
+            this, &RadioBackend::stationImageRevisionChanged);
 
     connect(m_player, &BearPlayer::currentStationChanged, this, [this](const QString &name) {
         if (!name.isEmpty()) {
@@ -119,6 +156,11 @@ void RadioBackend::onStationsLoaded(const QList<RadioStation*> &stations)
     });
 
     rebuildFilteredStations(false);
+    if (!m_filteredStations.isEmpty()) {
+        setSelectedStation(toVariantMap(m_filteredStations.first()));
+    } else {
+        setSelectedStation(QVariantMap());
+    }
     syncStationListIndex();
     m_currentLoadSatisfied = true;
     setLastError(QString());
@@ -162,6 +204,14 @@ void RadioBackend::loadCountries()
     m_radioBrowser->getCountries();
 }
 
+bool RadioBackend::countryMatches(const QVariantMap &country, const QString &query) const
+{
+    return CountryNames::matches(country.value(QStringLiteral("code")).toString(),
+                                 country.value(QStringLiteral("englishName")).toString(),
+                                 country.value(QStringLiteral("name")).toString(),
+                                 query);
+}
+
 void RadioBackend::onCountriesLoaded(const QVariantList &countries)
 {
     m_countries.clear();
@@ -169,7 +219,8 @@ void RadioBackend::onCountriesLoaded(const QVariantList &countries)
         QVariantMap map = item.toMap();
         QString code = map["code"].toString();
         QString englishName = map["name"].toString();
-        map["name"] = localizeCountry(code, englishName);
+        map["englishName"] = englishName;
+        map["name"] = CountryNames::displayName(code, englishName);
         m_countries.append(map);
     }
 
@@ -236,6 +287,59 @@ void RadioBackend::playFavoriteStation(int index)
     m_currentIndex = index;
 
     playCurrentSelection();
+}
+
+void RadioBackend::selectStation(int index)
+{
+    RadioStation *station = stationForVisibleIndex(index);
+    if (!station) {
+        return;
+    }
+    setSelectedStation(toVariantMap(station));
+}
+
+void RadioBackend::selectFavoriteStation(int index)
+{
+    if (index < 0 || index >= m_favorites.size()) {
+        return;
+    }
+    setSelectedStation(toVariantMap(m_favorites[index]));
+}
+
+bool RadioBackend::selectRecentByUuid(const QString &uuid, const QString &urlResolved)
+{
+    const QVariantList recent = recentStations();
+    const int recentIndex = recentStationIndex(recent, uuid, urlResolved);
+    if (recentIndex < 0) {
+        return false;
+    }
+    setSelectedStation(recent.at(recentIndex).toMap());
+    return true;
+}
+
+bool RadioBackend::playSelectedStation()
+{
+    const QString uuid = m_selectedStation.value(QStringLiteral("uuid")).toString();
+    const QString urlResolved = m_selectedStation.value(QStringLiteral("urlResolved")).toString();
+    if (uuid.isEmpty() && urlResolved.isEmpty()) {
+        return false;
+    }
+
+    for (int i = 0; i < m_filteredStations.size(); ++i) {
+        if (matchesStation(m_filteredStations[i], uuid, urlResolved)) {
+            playStation(i);
+            return true;
+        }
+    }
+
+    for (int i = 0; i < m_favorites.size(); ++i) {
+        if (matchesStation(m_favorites[i], uuid, urlResolved)) {
+            playFavoriteStation(i);
+            return true;
+        }
+    }
+
+    return playRecentByUuid(uuid, urlResolved);
 }
 
 void RadioBackend::playNextStation()
@@ -349,9 +453,11 @@ void RadioBackend::toggleFavorite(int index)
             (station->uuid().isEmpty() && m_favorites[i]->urlResolved() == station->urlResolved())) {
             m_favorites.removeAt(i);
             station->setIsFavorite(false);
+            setSelectedStation(toVariantMap(station));
             saveFavorites();
             emit favoritesChanged();
             emit stationsChanged();
+            emit listsChanged();
             return;
         }
     }
@@ -375,6 +481,7 @@ void RadioBackend::toggleFavorite(int index)
         return QString::localeAwareCompare(a->name(), b->name()) < 0;
     });
     station->setIsFavorite(true);
+    setSelectedStation(toVariantMap(station));
 
     saveFavorites();
     emit favoritesChanged();
@@ -406,7 +513,14 @@ void RadioBackend::toggleFavoriteById(const QString &uuid, const QString &urlRes
                 if ((!uuid.isEmpty() && s->uuid() == uuid) ||
                     (uuid.isEmpty() && !urlResolved.isEmpty() && s->urlResolved() == urlResolved)) {
                     s->setIsFavorite(false);
+                    setSelectedStation(toVariantMap(s));
                 }
+            }
+            if (m_selectedStation.value(QStringLiteral("uuid")).toString() == uuid ||
+                (uuid.isEmpty() && m_selectedStation.value(QStringLiteral("urlResolved")).toString() == urlResolved)) {
+                QVariantMap station = m_selectedStation;
+                station.insert(QStringLiteral("isFavorite"), false);
+                setSelectedStation(station);
             }
             saveFavorites();
             emit favoritesChanged();
@@ -440,6 +554,7 @@ void RadioBackend::addManualStation(const QString &name, const QString &url, con
 
     m_stations.prepend(station);
     rebuildFilteredStations(false);
+    setSelectedStation(toVariantMap(station));
 }
 
 void RadioBackend::sortStations(const QString &mode)
@@ -564,7 +679,8 @@ void RadioBackend::resumeLastStation()
     emit currentStationChanged();
 
     if (!startPlayback(m_lastStationUrl,
-                       m_lastStationName.isEmpty() ? tr("Last played") : m_lastStationName)) {
+                       m_lastStationName.isEmpty() ? tr("Last played")
+                                                   : m_lastStationName)) {
         m_lastStationUrl.clear();
         m_lastStationName.clear();
         m_currentStationUrl.clear();
@@ -572,6 +688,14 @@ void RadioBackend::resumeLastStation()
         emit resumeStateChanged();
         emit currentStationChanged();
     }
+}
+
+void RadioBackend::copyToClipboard(const QString &text) const
+{
+    if (text.isEmpty() || !QGuiApplication::clipboard()) {
+        return;
+    }
+    QGuiApplication::clipboard()->setText(text);
 }
 
 void RadioBackend::loadFavorites()
@@ -596,24 +720,17 @@ void RadioBackend::loadFavorites()
         const QString url = o.value("url").toString();
         const QString urlResolved = o.value("urlResolved").toString();
         const QString streamUrl = !urlResolved.isEmpty() ? urlResolved : url;
-        if (!isAllowedStreamUrl(streamUrl)) {
+        if (!isAllowedStreamUrl(streamUrl)
+            || (!url.isEmpty() && !isAllowedStreamUrl(url))
+            || (!urlResolved.isEmpty() && !isAllowedStreamUrl(urlResolved))) {
             qWarning() << "Skipping favorite with disallowed stream URL scheme";
             continue;
         }
-        if (!url.isEmpty() && !isAllowedStreamUrl(url)) {
-            qWarning() << "Skipping favorite with disallowed raw URL scheme";
-            continue;
-        }
-        if (!urlResolved.isEmpty() && !isAllowedStreamUrl(urlResolved)) {
-            qWarning() << "Skipping favorite with disallowed resolved URL scheme";
-            continue;
-        }
-
         RadioStation *s = new RadioStation(this);
         s->setUuid(o.value("uuid").toString());
         s->setName(o.value("name").toString());
         s->setUrl(url);
-        s->setUrlResolved(urlResolved.isEmpty() ? url : urlResolved);
+        s->setUrlResolved(urlResolved);
         s->setCountry(o.value("country").toString());
         s->setIsFavorite(true);
         m_favorites.append(s);
@@ -675,7 +792,8 @@ void RadioBackend::loadState()
             continue;
         }
         const QVariantMap recentStation = value.toObject().toVariantMap();
-        const QString recentUrl = recentStation.value(QStringLiteral("urlResolved")).toString();
+        const QString recentUrl =
+            recentStation.value(QStringLiteral("urlResolved")).toString();
         if (recentUrl.isEmpty() || !isAllowedStreamUrl(recentUrl)) {
             continue;
         }
@@ -769,6 +887,23 @@ void RadioBackend::rebuildFilteredStations(bool emitFilterSignal)
     emit stationsChanged();
     emit listsChanged();
     syncStationListIndex();
+
+    if (!m_selectedStation.isEmpty()) {
+        const QString selectedUuid = m_selectedStation.value(QStringLiteral("uuid")).toString();
+        const QString selectedUrl = m_selectedStation.value(QStringLiteral("urlResolved")).toString();
+        bool stillVisible = false;
+        for (RadioStation *station : m_filteredStations) {
+            if (matchesStation(station, selectedUuid, selectedUrl)) {
+                stillVisible = true;
+                break;
+            }
+        }
+        if (!stillVisible) {
+            setSelectedStation(m_filteredStations.isEmpty() ? QVariantMap() : toVariantMap(m_filteredStations.first()));
+        }
+    } else if (!m_filteredStations.isEmpty()) {
+        setSelectedStation(toVariantMap(m_filteredStations.first()));
+    }
 }
 
 void RadioBackend::recordRecentStation(const QVariantMap &stationData)
@@ -810,7 +945,7 @@ void RadioBackend::playHistoryAtIndex(int index, bool updateRecent)
 
     const QVariantMap station = m_recentStations.at(index).toMap();
     const QString url = station.value(QStringLiteral("urlResolved")).toString();
-    if (url.isEmpty()) {
+    if (url.isEmpty() || !isAllowedStreamUrl(url)) {
         return;
     }
 
@@ -828,11 +963,13 @@ void RadioBackend::playHistoryAtIndex(int index, bool updateRecent)
         m_currentIndex = 0;
     }
 
+    setSelectedStation(station);
     saveState();
     m_currentStationUuid = station.value(QStringLiteral("uuid")).toString();
     m_currentStationUrl = url;
     emit currentStationChanged();
-    if (!startPlayback(url, m_lastStationName.isEmpty() ? tr("Last played") : m_lastStationName)) {
+    if (!startPlayback(url, m_lastStationName.isEmpty() ? tr("Last played")
+                                                        : m_lastStationName)) {
         m_lastStationUrl.clear();
         m_currentStationUrl.clear();
         emit resumeStateChanged();
@@ -878,13 +1015,15 @@ void RadioBackend::playCurrentSelection()
     m_standalonePlayback = false;
 
     RadioStation *station = list[m_currentIndex];
-    const QString url = preferredStreamUrl(station);
+    setSelectedStation(toVariantMap(station));
+    QString url = station->urlResolved().isEmpty()
+                  ? station->url()
+                  : station->urlResolved();
     if (!isAllowedStreamUrl(url)) {
         setLastError(tr("Stream URL must use http:// or https://"));
         qWarning() << "Rejected station list playback for disallowed URL scheme";
         return;
     }
-
     m_lastStationName = station->name();
     m_lastStationUrl = url;
     emit resumeStateChanged();
@@ -909,6 +1048,16 @@ QObject* RadioBackend::currentStation() const
         }
     }
     return nullptr;
+}
+
+void RadioBackend::setSelectedStation(const QVariantMap &station)
+{
+    if (m_selectedStation == station) {
+        return;
+    }
+
+    m_selectedStation = station;
+    emit selectedStationChanged();
 }
 
 void RadioBackend::editManualStation(QObject *stationObj, const QString &name, const QString &url, const QString &country)
@@ -964,6 +1113,11 @@ void RadioBackend::editManualStation(QObject *stationObj, const QString &name, c
         emit currentStationChanged();
     }
 
+    const QString selectedUrl = m_selectedStation.value(QStringLiteral("urlResolved")).toString();
+    if (selectedUrl == oldUrl || selectedUrl == oldUrlResolved) {
+        setSelectedStation(toVariantMap(station));
+    }
+
     emit stationsChanged();
     emit favoritesChanged();
     emit listsChanged();
@@ -979,10 +1133,15 @@ QVariantMap RadioBackend::toVariantMap(const RadioStation *station)
     map.insert(QStringLiteral("name"), station->name());
     map.insert(QStringLiteral("country"), station->country());
     map.insert(QStringLiteral("bitrate"), station->bitrate());
+    map.insert(QStringLiteral("votes"), station->votes());
     map.insert(QStringLiteral("isFavorite"), station->isFavorite());
     map.insert(QStringLiteral("favicon"), station->favicon());
+    map.insert(QStringLiteral("homepage"), station->homepage());
+    map.insert(QStringLiteral("url"), station->url());
     map.insert(QStringLiteral("urlResolved"), station->urlResolved());
     map.insert(QStringLiteral("codec"), station->codec());
+    map.insert(QStringLiteral("tags"), station->tags());
+    map.insert(QStringLiteral("isOnline"), station->isOnline());
     return map;
 }
 
@@ -1021,101 +1180,4 @@ int RadioBackend::recentStationIndex(const QVariantList &recent, const QString &
         }
     }
     return -1;
-}
-
-QString RadioBackend::localizeCountry(const QString &code, const QString &englishName)
-{
-    QLocale locale;
-    if (locale.language() != QLocale::German) {
-        return englishName;
-    }
-
-    static const QHash<QString, QString> germanCountries = {
-        {"AD", "Andorra"}, {"AE", "Vereinigte Arabische Emirate"}, {"AF", "Afghanistan"},
-        {"AG", "Antigua und Barbuda"}, {"AI", "Anguilla"}, {"AL", "Albanien"},
-        {"AM", "Armenien"}, {"AO", "Angola"}, {"AQ", "Antarktis"}, {"AR", "Argentinien"},
-        {"AS", "Amerikanisch-Samoa"}, {"AT", "Österreich"}, {"AU", "Australien"},
-        {"AW", "Aruba"}, {"AX", "Åland-Inseln"}, {"AZ", "Aserbaidschan"},
-        {"BA", "Bosnien und Herzegowina"}, {"BB", "Barbados"}, {"BD", "Bangladesch"},
-        {"BE", "Belgien"}, {"BF", "Burkina Faso"}, {"BG", "Bulgarien"},
-        {"BH", "Bahrain"}, {"BI", "Burundi"}, {"BJ", "Benin"},
-        {"BL", "St. Bartholomäus"}, {"BM", "Bermuda"}, {"BN", "Brunei"},
-        {"BO", "Bolivien"}, {"BQ", "Bonaire"}, {"BR", "Brasilien"},
-        {"BS", "Bahamas"}, {"BT", "Bhutan"}, {"BV", "Bouvetinsel"},
-        {"BW", "Botswana"}, {"BY", "Belarus"}, {"BZ", "Belize"},
-        {"CA", "Kanada"}, {"CC", "Kokosinseln"}, {"CD", "Kongo-Kinshasa"},
-        {"CF", "Zentralafrikanische Republik"}, {"CG", "Kongo-Brazzaville"}, {"CH", "Schweiz"},
-        {"CI", "Elfenbeinküste"}, {"CK", "Cookinseln"}, {"CL", "Chile"},
-        {"CM", "Kamerun"}, {"CN", "China"}, {"CO", "Kolumbien"},
-        {"CR", "Costa Rica"}, {"CU", "Kuba"}, {"CV", "Cabo Verde"},
-        {"CW", "Curaçao"}, {"CX", "Weihnachtsinsel"}, {"CY", "Zypern"},
-        {"CZ", "Tschechien"}, {"DE", "Deutschland"}, {"DJ", "Dschibuti"},
-        {"DK", "Dänemark"}, {"DM", "Dominica"}, {"DO", "Dominikanische Republik"},
-        {"DZ", "Algerien"}, {"EC", "Ecuador"}, {"EE", "Estland"},
-        {"EG", "Ägypten"}, {"EH", "Westsahara"}, {"ER", "Eritrea"},
-        {"ES", "Spanien"}, {"ET", "Äthiopien"}, {"FI", "Finnland"},
-        {"FJ", "Fidschi"}, {"FK", "Falklandinseln"}, {"FM", "Mikronesien"},
-        {"FO", "Färöer"}, {"FR", "Frankreich"}, {"GA", "Gabun"},
-        {"GB", "Großbritannien"}, {"GD", "Grenada"}, {"GE", "Georgien"},
-        {"GF", "Französisch-Guayana"}, {"GG", "Guernsey"}, {"GH", "Ghana"},
-        {"GI", "Gibraltar"}, {"GL", "Grönland"}, {"GM", "Gambia"},
-        {"GN", "Guinea"}, {"GP", "Guadeloupe"}, {"GQ", "Äquatorialguinea"},
-        {"GR", "Griechenland"}, {"GS", "Südgeorgien"}, {"GT", "Guatemala"},
-        {"GU", "Guam"}, {"GW", "Guinea-Bissau"}, {"GY", "Guyana"},
-        {"HK", "Hongkong"}, {"HM", "Heard und McDonaldinseln"}, {"HN", "Honduras"},
-        {"HR", "Kroatien"}, {"HT", "Haiti"}, {"HU", "Ungarn"},
-        {"ID", "Indonesien"}, {"IE", "Irland"}, {"IL", "Israel"},
-        {"IM", "Isle of Man"}, {"IN", "Indien"}, {"IO", "Britisches Territorium im Indischen Ozean"},
-        {"IQ", "Irak"}, {"IR", "Iran"}, {"IS", "Island"},
-        {"IT", "Italien"}, {"JE", "Jersey"}, {"JM", "Jamaika"},
-        {"JO", "Jordanien"}, {"JP", "Japan"}, {"KE", "Kenia"},
-        {"KG", "Kirgisistan"}, {"KH", "Kambodscha"}, {"KI", "Kiribati"},
-        {"KM", "Komoren"}, {"KN", "St. Kitts und Nevis"}, {"KP", "Nordkorea"},
-        {"KR", "Südkorea"}, {"KW", "Kuwait"}, {"KY", "Kaimaninseln"},
-        {"KZ", "Kasachstan"}, {"LA", "Laos"}, {"LB", "Libanon"},
-        {"LC", "St. Lucia"}, {"LI", "Liechtenstein"}, {"LK", "Sri Lanka"},
-        {"LR", "Liberia"}, {"LS", "Lesotho"}, {"LT", "Litauen"},
-        {"LU", "Luxemburg"}, {"LV", "Lettland"}, {"LY", "Libyen"},
-        {"MA", "Marokko"}, {"MC", "Monaco"}, {"MD", "Moldawien"},
-        {"ME", "Montenegro"}, {"MF", "St. Martin"}, {"MG", "Madagaskar"},
-        {"MH", "Marshallinseln"}, {"MK", "Nordmazedonien"}, {"ML", "Mali"},
-        {"MM", "Myanmar"}, {"MN", "Mongolei"}, {"MO", "Macau"},
-        {"MP", "Nördliche Marianen"}, {"MQ", "Martinique"}, {"MR", "Mauretanien"},
-        {"MS", "Montserrat"}, {"MT", "Malta"}, {"MU", "Mauritius"},
-        {"MV", "Malediven"}, {"MW", "Malawi"}, {"MX", "Mexiko"},
-        {"MY", "Malaysia"}, {"MZ", "Mosambik"}, {"NA", "Namibia"},
-        {"NC", "Neukaledonien"}, {"NE", "Niger"}, {"NF", "Norfolkinsel"},
-        {"NG", "Nigeria"}, {"NI", "Nicaragua"}, {"NL", "Niederlande"},
-        {"NO", "Norwegen"}, {"NP", "Nepal"}, {"NR", "Nauru"},
-        {"NU", "Niue"}, {"NZ", "Neuseeland"}, {"OM", "Oman"},
-        {"PA", "Panama"}, {"PE", "Peru"}, {"PF", "Französisch-Polynesien"},
-        {"PG", "Papua-Neuguinea"}, {"PH", "Philippinen"}, {"PK", "Pakistan"},
-        {"PL", "Polen"}, {"PM", "St. Pierre und Miquelon"}, {"PN", "Pitcairninseln"},
-        {"PR", "Puerto Rico"}, {"PS", "Palästina"}, {"PT", "Portugal"},
-        {"PW", "Palau"}, {"PY", "Paraguay"}, {"QA", "Katar"},
-        {"RE", "Réunion"}, {"RO", "Rumänien"}, {"RS", "Serbien"},
-        {"RU", "Russland"}, {"RW", "Ruanda"}, {"SA", "Saudi-Arabien"},
-        {"SB", "Salomonen"}, {"SC", "Seychellen"}, {"SD", "Sudan"},
-        {"SE", "Schweden"}, {"SG", "Singapur"}, {"SH", "St. Helena"},
-        {"SI", "Slowenien"}, {"SJ", "Svalbard und Jan Mayen"}, {"SK", "Slowakei"},
-        {"SL", "Sierra Leone"}, {"SM", "San Marino"}, {"SN", "Senegal"},
-        {"SO", "Somalia"}, {"SR", "Suriname"}, {"SS", "Südsudan"},
-        {"ST", "São Tomé und Príncipe"}, {"SV", "El Salvador"}, {"SX", "Sint Maarten"},
-        {"SY", "Syrien"}, {"SZ", "Eswatini"}, {"TC", "Turks- und Caicosinseln"},
-        {"TD", "Tschad"}, {"TF", "Französische Süd- und Antarktisgebiete"}, {"TG", "Togo"},
-        {"TH", "Thailand"}, {"TJ", "Tadschikistan"}, {"TK", "Tokelau"},
-        {"TL", "Osttimor"}, {"TM", "Turkmenistan"}, {"TN", "Tunesien"},
-        {"TO", "Tonga"}, {"TR", "Türkei"}, {"TT", "Trinidad und Tobago"},
-        {"TV", "Tuvalu"}, {"TW", "Taiwan"}, {"TZ", "Tansania"},
-        {"UA", "Ukraine"}, {"UG", "Uganda"}, {"UM", "Amerikanische Überseeinseln"},
-        {"US", "Vereinigte Staaten"}, {"UY", "Uruguay"}, {"UZ", "Usbekistan"},
-        {"VA", "Vatikanstadt"}, {"VC", "St. Vincent und die Grenadinen"}, {"VE", "Venezuela"},
-        {"VG", "Britische Jungferninseln"}, {"VI", "Amerikanische Jungferninseln"}, {"VN", "Vietnam"},
-        {"VU", "Vanuatu"}, {"WF", "Wallis und Futuna"}, {"WS", "Samoa"},
-        {"YE", "Jemen"}, {"YT", "Mayotte"}, {"ZA", "Südafrika"},
-        {"ZM", "Sambia"}, {"ZW", "Simbabwe"}
-    };
-
-    QString result = germanCountries.value(code.toUpper());
-    return result.isEmpty() ? englishName : result;
 }

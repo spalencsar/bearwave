@@ -16,18 +16,18 @@ public:
     explicit IcyReader(QObject *parent = nullptr);
     ~IcyReader();
 
-    void start(const QString &url);
+    void start(const QString &url, quint64 sourceGeneration);
     void stop();
 
 signals:
-    void metaDataReceived(const QString &artist, const QString &title);
+    void metaDataReceived(const QString &artist, const QString &title, quint64 sourceGeneration);
 
 private slots:
     void onReadyRead();
     void onFinished();
 
 private:
-    void parseMetaData(const QByteArray &metaData);
+    void parseMetaData(const QByteArray &metaData, quint64 sourceGeneration);
 
     QNetworkAccessManager *m_nam = nullptr;
     QNetworkReply *m_reply = nullptr;

@@ -13,7 +13,7 @@ ColumnLayout {
     required property var app
     required property bool compactMode
 
-    spacing: 8
+    spacing: 0
 
     function loadTag(tag, page) {
         if (!app.backend) return
@@ -22,7 +22,6 @@ ColumnLayout {
         app.backend.loadByTag(tag)
     }
 
-    // Load country by country code
     function loadCountry(code, page) {
         if (!app.backend) return
         app.currentPage = page
@@ -41,92 +40,74 @@ ColumnLayout {
         }
     }
 
-    Flow {
+    RowLayout {
         visible: !root.compactMode
         Layout.fillWidth: true
-        Layout.preferredHeight: childrenRect.height
-        width: parent.width
         spacing: 8
 
-        // Left: Schnellzugriff filters
         Label {
-            text: qsTr("Quick access")
+            text: qsTr("Quick")
             color: BearTheme.textMuted
-            font.bold: true
             font.pixelSize: 11
-            width: 86
-            height: 30
-            verticalAlignment: Text.AlignVCenter
+            font.bold: true
+            rightPadding: 8
         }
 
-        Button {
-            width: 72
-            height: 30
+        AppButton {
             text: qsTr("Rock")
             highlighted: app.activeQuickFilter === "tag:rock"
             onClicked: loadTag("rock", "genre-rock")
         }
 
-        Button {
-            width: 72
-            height: 30
+        AppButton {
             text: qsTr("News")
             highlighted: app.activeQuickFilter === "tag:news"
             onClicked: loadTag("news", "genre-news")
         }
 
-        Button {
-            width: 72
-            height: 30
+        AppButton {
             text: qsTr("Jazz")
             highlighted: app.activeQuickFilter === "tag:jazz"
             onClicked: loadTag("jazz", "genre-jazz")
         }
 
-        Rectangle {
-            width: 1
-            height: 18
-            color: BearTheme.cardBorder
-            opacity: 0.6
-        }
+        Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 20; color: BearTheme.cardBorder }
 
-        Button {
-            width: 62
-            height: 30
+        AppButton {
             text: qsTr("US")
             highlighted: app.activeQuickFilter === "cc:US"
             onClicked: loadCountry("US", "country-us")
         }
 
-        Button {
-            width: 62
-            height: 30
+        AppButton {
             text: qsTr("GB")
             highlighted: app.activeQuickFilter === "cc:GB"
             onClicked: loadCountry("GB", "country-gb")
         }
 
-        Button {
-            width: 62
-            height: 30
+        AppButton {
             text: qsTr("FR")
             highlighted: app.activeQuickFilter === "cc:FR"
             onClicked: loadCountry("FR", "country-fr")
         }
 
+        AppButton {
+            text: qsTr("World")
+            highlighted: app.activeQuickFilter === "world"
+            onClicked: openWorld()
+        }
+
+        Item { Layout.fillWidth: true }
+
         Label {
             text: qsTr("Sort")
             color: BearTheme.textMuted
-            font.bold: true
             font.pixelSize: 11
-            width: 76
-            height: 30
-            verticalAlignment: Text.AlignVCenter
+            font.bold: true
+            rightPadding: 4
         }
 
-        Button {
-            width: 78
-            height: 30
+        AppButton {
             text: qsTr("Name")
             onClicked: {
                 if (app.backend && app.currentPage !== "favorites") {
@@ -135,9 +116,7 @@ ColumnLayout {
             }
         }
 
-        Button {
-            width: 78
-            height: 30
+        AppButton {
             text: qsTr("Bitrate")
             onClicked: {
                 if (app.backend && app.currentPage !== "favorites") {
@@ -146,9 +125,7 @@ ColumnLayout {
             }
         }
 
-        Button {
-            width: 78
-            height: 30
+        AppButton {
             text: qsTr("Votes")
             onClicked: {
                 if (app.backend && app.currentPage !== "favorites") {
@@ -158,7 +135,6 @@ ColumnLayout {
         }
     }
 
-    // Compact Mode (Mobile/Narrow) layout
     ColumnLayout {
         visible: root.compactMode
         Layout.fillWidth: true
@@ -180,19 +156,19 @@ ColumnLayout {
                 bottomPadding: 8
             }
 
-            Button {
+            AppButton {
                 text: qsTr("Rock")
                 highlighted: app.activeQuickFilter === "tag:rock"
                 onClicked: loadTag("rock", "genre-rock")
             }
 
-            Button {
+            AppButton {
                 text: qsTr("News")
                 highlighted: app.activeQuickFilter === "tag:news"
                 onClicked: loadTag("news", "genre-news")
             }
 
-            Button {
+            AppButton {
                 text: qsTr("Jazz")
                 highlighted: app.activeQuickFilter === "tag:jazz"
                 onClicked: loadTag("jazz", "genre-jazz")
@@ -215,25 +191,25 @@ ColumnLayout {
                 bottomPadding: 8
             }
 
-            Button {
+            AppButton {
                 text: qsTr("US")
                 highlighted: app.activeQuickFilter === "cc:US"
                 onClicked: loadCountry("US", "country-us")
             }
 
-            Button {
+            AppButton {
                 text: qsTr("UK")
                 highlighted: app.activeQuickFilter === "cc:GB"
                 onClicked: loadCountry("GB", "country-gb")
             }
 
-            Button {
+            AppButton {
                 text: qsTr("FR")
                 highlighted: app.activeQuickFilter === "cc:FR"
                 onClicked: loadCountry("FR", "country-fr")
             }
 
-            Button {
+            AppButton {
                 text: qsTr("WORLD")
                 highlighted: app.activeQuickFilter === "world"
                 onClicked: openWorld()

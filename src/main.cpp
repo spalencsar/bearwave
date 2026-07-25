@@ -2,11 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <QApplication>
+#include <QCommandLineOption>
+#include <QCommandLineParser>
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
 #include <QDBusMessage>
 #include <QDebug>
 #include <QFile>
+#include <QHash>
 #include <QIcon>
 #include <QLocale>
 #include <QQmlApplicationEngine>
@@ -14,7 +17,7 @@
 #include <QQuickWindow>
 #include <QTranslator>
 
-#include "appicon.h"
+#include "appsettings.h"
 #include "radiobackend.h"
 #include "mprisadaptor.h"
 #include "bearwavecontroladaptor.h"
@@ -31,6 +34,41 @@ int main(int argc, char *argv[])
     QApplication::setOrganizationName(QStringLiteral("BearWave"));
     QApplication::setApplicationVersion(QStringLiteral(BEARWAVE_VERSION));
 
+    QCommandLineParser commandLine;
+    commandLine.setApplicationDescription(QStringLiteral("KDE-focused internet radio player"));
+    commandLine.addHelpOption();
+    commandLine.addVersionOption();
+    const QCommandLineOption languageOption(
+        {QStringLiteral("l"), QStringLiteral("language")},
+        QStringLiteral("Temporarily override UI and country-name language: system, de, en, nl, or ru"),
+        QStringLiteral("language"));
+    commandLine.addOption(languageOption);
+    commandLine.process(app);
+
+    AppSettings appSettings;
+    QLocale appLocale = QLocale::system();
+    const QString requestedLanguage =
+        commandLine.isSet(languageOption)
+        ? commandLine.value(languageOption).trimmed().toLower()
+        : appSettings.language();
+    if (requestedLanguage != QStringLiteral("system")) {
+        static const QHash<QString, QString> localeNames = {
+            {QStringLiteral("de"), QStringLiteral("de_DE")},
+            {QStringLiteral("en"), QStringLiteral("en_US")},
+            {QStringLiteral("nl"), QStringLiteral("nl_NL")},
+            {QStringLiteral("ru"), QStringLiteral("ru_RU")},
+        };
+        const auto localeName = localeNames.constFind(requestedLanguage);
+        if (localeName != localeNames.constEnd()) {
+            appLocale = QLocale(*localeName);
+        } else {
+            qWarning().noquote()
+                << QStringLiteral("Unsupported language '%1'; using system locale %2.")
+                       .arg(requestedLanguage, appLocale.name());
+        }
+    }
+    QLocale::setDefault(appLocale);
+
     QDBusConnection sessionBus = QDBusConnection::sessionBus();
     if (sessionBus.isConnected() && sessionBus.interface() && sessionBus.interface()->isServiceRegistered(QStringLiteral("org.mpris.MediaPlayer2.bearwave"))) {
         QDBusMessage call = QDBusMessage::createMethodCall(
@@ -43,12 +81,20 @@ int main(int argc, char *argv[])
         qInfo() << "BearWave is already running; raised the existing window.";
         return 0;
     }
-    app.setWindowIcon(bearwaveAppIcon());
+    app.setWindowIcon(QIcon(QStringLiteral(":/assets/app/bearwave.svg")));
     app.setQuitOnLastWindowClosed(false);
 
     QTranslator appTranslator;
-    if (appTranslator.load(QLocale::system(), QStringLiteral("bearwave"), QStringLiteral("_"), QStringLiteral(":/i18n"))) {
+    const QString uiLanguage = appLocale.name().section(QLatin1Char('_'), 0, 0);
+    const QString translationPath =
+        QStringLiteral(":/i18n/bearwave_%1.qm").arg(uiLanguage);
+    if (appTranslator.load(translationPath)) {
         app.installTranslator(&appTranslator);
+        qInfo().noquote() << QStringLiteral("Application locale: %1 (translation loaded)")
+                                .arg(appLocale.name());
+    } else {
+        qInfo().noquote() << QStringLiteral("Application locale: %1 (English UI fallback)")
+                                .arg(appLocale.name());
     }
 
     // QML disk cache can retain stale bytecode across app updates (same qrc paths).
@@ -58,17 +104,16 @@ int main(int argc, char *argv[])
     engine.addImportPath(QStringLiteral("qrc:/qml"));
 
     RadioBackend backend;
-    QFile licenseFile(QStringLiteral(":/assets/legal/gpl-3.0.txt"));
-    QString licenseText;
-    if (licenseFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        licenseText = QString::fromUtf8(licenseFile.readAll());
-    } else {
-        qWarning() << "Failed to load embedded GPLv3 license text";
+    QFile changelogFile(QStringLiteral(":/CHANGELOG.md"));
+    QString changelogText;
+    if (changelogFile.open(QIODevice::ReadOnly)) {
+        changelogText = QString::fromUtf8(changelogFile.readAll());
     }
     engine.rootContext()->setContextProperty("radioBackend", &backend);
+    engine.rootContext()->setContextProperty("appLanguageSettings", &appSettings);
     engine.rootContext()->setContextProperty("bearwaveVersion", QStringLiteral(BEARWAVE_VERSION));
     engine.rootContext()->setContextProperty("bearwaveBuildId", QStringLiteral(BEARWAVE_GIT_HASH));
-    engine.rootContext()->setContextProperty("bearwaveLicenseText", licenseText);
+    engine.rootContext()->setContextProperty("bearwaveChangelog", changelogText);
 
     auto *mprisRoot = new MprisRootAdaptor(&backend, &app);
     auto *mprisPlayer = new MprisPlayerAdaptor(&backend);

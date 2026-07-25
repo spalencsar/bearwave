@@ -1,6 +1,8 @@
 ## Local agent/contributor notes (not for GitHub)
 AGENTS.md
 build.md
+MEMORY.md
+codex.txt
 
 ## Build directories
 build/
@@ -61,3 +63,11 @@ org.kde.bearwave.desktop
 
 ## Local Flatpak backup
 flatpak_backup/
+
+## Generated Flatpak build state
+.flatpak-builder-manifest.json
+.flatpak-builder/
+flatpak_build/
+flatpak_repo/
+scratch/
+spalencsar-README.md

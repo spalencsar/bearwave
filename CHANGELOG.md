@@ -7,63 +7,118 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## Version notes (1.1.0 → 1.1.1)
+## [1.2.0] - 2026-07-25
+
+### Added
+
+- Add Dutch UI translation.
+- Add a persistent language selector for system default, German, English, Dutch, and Russian.
+- Localize World country names and country search in German, Dutch, and Russian using bundled Unicode CLDR data.
+- Add a validated asynchronous cache for station favicons and cover art.
+- Add shared station-logo rendering with deterministic initials and homepage,
+  manifest, touch-icon, favicon, and Open Graph discovery.
+- Show connecting, buffering, retrying, paused, and unavailable stream states
+  in the player bar and station details.
+- Add an in-app changelog with bundled release notes in the About dialog.
+
+### Changed
+
+- Resolve and validate Radio Browser nodes dynamically while retaining
+  `all.api.radio-browser.info` as the canonical fallback, with bounded retries
+  and failed-node cooldown.
+- Limit the cover cache to 50 MiB and remove entries unused for more than 30 days.
+- Restructure the About dialog into clearer information, settings, actions,
+  and license sections, using the illustrated BearWave PNG logo.
+- Use one consistent BearWave button style across the main interface and
+  dialogs while preserving keyboard focus.
+
+### Fixed
+
+- Complete Russian translations for the redesigned navigation and station details.
+- Complete German translations for the redesigned interface.
+- Restore spacing and fallback artwork in the right station detail panel.
+- Make station detail bindings null-safe when station or player data is not available yet.
+- Start with an adaptive wider window and switch to compact layout before translated controls can be clipped.
+- Fall back cleanly when station images are oversized, mislabeled, or cannot be decoded.
+- Fix the clipped player bar and remove a leftover layout marker.
+- Prevent stale network replies from producing repeated closed-`QIODevice`
+  warnings during metadata and cover requests.
+- Clear stale metadata and artwork safely when switching stations.
+- Keep release notes inside the About dialog instead of opening a second popup.
+- Avoid persistent mouse-click focus outlines while retaining visible keyboard
+  focus.
+- Correct desktop menu categories and migrate AppStream developer metadata to
+  the current schema.
+- Remove the unsupported Flatpak manifest `version` property; Flatpak receives
+  the release version from AppStream metadata.
+
+## Version notes (1.1.0 → 1.2.0)
 
 - **1.1.0** — desktop UI redesign release.
-- **1.1.1** — current recommended patch: SVG app/tray icon, button style fixes, and stronger stream URL validation.
+- **1.1.1** — published patch with SVG app/tray icons, button style fixes, and
+  stronger stream URL validation.
+- **1.2.0** — prepared feature release with expanded localization, resilient
+  networking, validated station artwork, visible connection states, and an
+  in-app changelog.
 
 ## [1.1.1] - 2026-07-21
 
 ### Security
 
-- Validate stream URLs (`http`/`https` only) before every playback attempt and when loading favorites/history/resume state from disk (shared `isAllowedStreamUrl` gate in backend, player, and ICY reader).
+- Validate stream URLs (`http`/`https` only) before every playback attempt and
+  when loading favorites/history/resume state from disk.
 
 ### Added
 
-- Use `bearwave.svg` as the primary app and tray icon; install as hicolor scalable theme icon (`de.nerdbear.bearwave.svg`). PNG remains as raster fallback for MPRIS and older desktops.
+- Use `bearwave.svg` as the primary app and tray icon; install it as the hicolor
+  scalable theme icon (`de.nerdbear.bearwave.svg`). PNG remains as a raster
+  fallback for MPRIS and older desktops.
 
 ### Changed
 
-- Flatpak app version set to **1.1.1** (`de.nerdbear.bearwave.json`).
-- Refresh README/AppStream screenshots and demo video assets for the 1.1 desktop layout.
+- Set the Flatpak app version to `1.1.1`.
+- Refresh README/AppStream screenshots and demo video assets for the 1.1
+  desktop layout.
 
 ### Fixed
 
-- Remove light/white borders on search and dialog buttons on dark UI (`ThemedButton` + dark window palette).
-- Keep the About page header consistent with the main app and improve return navigation (sidebar logo / search / filters).
-- Flatpak deploy rsync no longer fails on remote permission attributes (`--no-perms` / `--no-times`).
+- Remove light borders on search and dialog buttons on the dark UI.
+- Keep the About page header consistent with the main app and improve return
+  navigation.
+- Prevent Flatpak deployment from failing on remote permission attributes.
 
 ## [1.1.0] - 2026-06-27
 
 ### Added
 
 - Add Russian language support and translation (thanks to [@aaly11](https://github.com/aaly11)).
-- Add a Mac-inspired desktop layout with persistent sidebar navigation, flat station rows, right-side station details, and a compact now-playing bar.
-- Add an embedded About page with full GPLv3 license text loaded from the bundled `LICENSE` resource and a third-party technologies section.
+- Add a Mac-inspired desktop layout with persistent sidebar navigation, flat
+  station rows, right-side station details, and a compact now-playing bar.
+- Add an embedded About page with full GPLv3 license text loaded from the
+  bundled `LICENSE` resource and a third-party technologies section.
 
 ### Changed
 
-- Flatpak repository signing key replaced with `Bearwave App <dev@bearwave.app>` (`5BAA384577671E45`).
-- Replace the modal About dialog with an in-app About page reachable from sidebar and compact navigation.
-- Refresh the QML visual theme toward a neutral dark palette and align the main layout more closely with the macOS BearWave structure.
-- Use the BearWave line logo asset in the sidebar and remove duplicate branding from the top search toolbar.
-- Make the top search/filter area and bottom player bar more responsive to narrower desktop window sizes.
+- Replace the Flatpak repository signing key with
+  `Bearwave App <dev@bearwave.app>` (`5BAA384577671E45`).
+- Replace the modal About dialog with an in-app About page reachable from
+  sidebar and compact navigation.
+- Refresh the QML visual theme toward a neutral dark palette.
+- Use the BearWave line logo asset in the sidebar and remove duplicate branding
+  from the top search toolbar.
+- Make the top search/filter area and bottom player bar more responsive to
+  narrower desktop window sizes.
 
 ### Fixed
 
 - Fix German translation contexts broken after the QML refactor (thanks to [@aaly11](https://github.com/aaly11)).
-- Fix the embedded GPL text failing to load in QML by loading the resource in C++ and exposing it to QML as context data.
-- Fix the About license view formatting so the text uses the available width without an oversized empty box.
-- Fix right-side station details and top toolbar clipping in the Mac-style layout.
-- Fix About-page navigation: sidebar logo returns home, header stays consistent with the main app, and search/filter actions leave About again.
-- Reduce Denglish in the German UI while keeping common tech terms such as Votes and Bitrate.
-- Restore German and Russian translations for tray, backend error, and notification strings.
-
-## Version notes (1.0.3 → 1.0.5)
-
-- **1.0.3** — last GitHub release before the security/refactor batch.
-- **1.0.4** — git tag with security hardening, playback/tray/MPRIS fixes, and QML refactor; tagged before CI was green, so it was not published as a GitHub release at first.
-- **1.0.5** — patch release: everything in 1.0.4 plus CI, packaging, and post-release bugfixes (AUR/Flatpak rebuilds use `pkgrel` bumps, not a new app version).
+- Fix the embedded GPL text failing to load in QML.
+- Fix the About license view formatting.
+- Fix right-side station details and top toolbar clipping.
+- Fix About-page navigation.
+- Reduce Denglish in the German UI while keeping common technical terms.
+- Restore German and Russian translations for tray, backend error, and
+  notification strings.
 
 ## [1.0.5] - 2026-06-22
 

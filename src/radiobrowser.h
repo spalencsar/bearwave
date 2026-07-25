@@ -8,6 +8,8 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QList>
+#include <QSet>
+#include <QStringList>
 #include <QVariantList>
 
 #include "radiostation.h"
@@ -18,6 +20,7 @@ class RadioBrowser : public QObject
 
 public:
     explicit RadioBrowser(QObject *parent = nullptr);
+    explicit RadioBrowser(const QStringList &apiBaseUrls, QObject *parent = nullptr);
 
     void search(const QString &query);
     void getTopStations(int count = 50);
@@ -37,14 +40,30 @@ private slots:
     void onReplyFinished();
 
 private:
+    friend class RadioBrowserRaceTest;
+
     QNetworkAccessManager *m_networkManager = nullptr;
     QNetworkReply *m_activeReply = nullptr;
-    QString m_baseUrl = "https://all.api.radio-browser.info/json";
+    QStringList m_apiBaseUrls;
+    QSet<QString> m_attemptedBaseUrls;
+    QString m_currentEndpoint;
+    QString m_currentCachePath;
+    QString m_lastRequestError;
     int m_requestGeneration = 0;
+    int m_attemptCount = 0;
+    bool m_cacheDelivered = false;
 
     void makeRequest(const QString &endpoint);
-    void emitCachedResponse(const QString &endpoint, const QString &cachePath, int requestGeneration);
+    void startAttempt(int requestGeneration);
+    void scheduleRetry(int requestGeneration);
+    void finishWithError(const QString &message, int requestGeneration);
+    QString nextBaseUrl() const;
+    void resolveApiServers();
+    bool emitCachedResponse(const QString &endpoint, const QString &cachePath, int requestGeneration);
     bool isCountriesEndpoint(const QString &endpoint) const;
+    static bool isAllowedApiHost(QString host);
+    static bool isTransientHttpStatus(int status);
+    static bool isTransientFailure(QNetworkReply *reply);
     QList<RadioStation*> parseJsonResponse(const QByteArray &jsonData);
     QVariantList parseCountriesJson(const QByteArray &jsonData);
 };

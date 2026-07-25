@@ -11,6 +11,7 @@
 #include <QAudioOutput>
 #include "coverartfetcher.h"
 #include "icyreader.h"
+#include "nowplayingstate.h"
 class BearPlayer : public QObject
 {
     Q_OBJECT
@@ -22,6 +23,7 @@ class BearPlayer : public QObject
     Q_PROPERTY(QString currentTrackArtist READ currentTrackArtist NOTIFY trackInfoChanged)
     Q_PROPERTY(QString currentNowPlaying READ currentNowPlaying NOTIFY trackInfoChanged)
     Q_PROPERTY(QString currentCoverArtUrl READ currentCoverArtUrl NOTIFY trackInfoChanged)
+    Q_PROPERTY(QString connectionState READ connectionState NOTIFY connectionStateChanged)
 
 public:
     explicit BearPlayer(QObject *parent = nullptr);
@@ -30,10 +32,11 @@ public:
     bool playing() const { return m_playing; }
     qreal volume() const { return m_audioOutput->volume(); }
     QString currentStationName() const { return m_currentStationName; }
-    QString currentTrackTitle() const { return m_currentTrackTitle; }
-    QString currentTrackArtist() const { return m_currentTrackArtist; }
-    QString currentCoverArtUrl() const { return m_currentCoverArtUrl; }
+    QString currentTrackTitle() const { return m_nowPlayingState.title(); }
+    QString currentTrackArtist() const { return m_nowPlayingState.artist(); }
+    QString currentCoverArtUrl() const { return m_nowPlayingState.coverUrl(); }
     QString currentNowPlaying() const;
+    QString connectionState() const { return m_connectionState; }
 
     Q_INVOKABLE void playUrl(const QString &url, const QString &name);
     Q_INVOKABLE void stop();
@@ -45,31 +48,35 @@ signals:
     void volumeChanged(qreal volume);
     void currentStationChanged(const QString &stationName);
     void trackInfoChanged();
+    void connectionStateChanged();
 
 private slots:
     void onPlaybackStateChanged(QMediaPlayer::PlaybackState state);
     void onMediaStatusChanged(QMediaPlayer::MediaStatus status);
     void onMetaDataChanged();
-    void onCoverUrlReady(const QString &url);
-    void onIcyMetaDataReceived(const QString &artist, const QString &title);
+    void onCoverUrlReady(const QString &url, quint64 sourceGeneration);
+    void onIcyMetaDataReceived(const QString &artist, const QString &title, quint64 sourceGeneration);
 
 private:
     void clearTrackInfo();
     void scheduleRetry();
+    void setConnectionState(const QString &state);
+    void setPlaying(bool playing);
 
     QMediaPlayer *m_mediaPlayer = nullptr;
     QAudioOutput *m_audioOutput = nullptr;
     QTimer m_retryTimer;
     QString m_currentStationName;
-    QString m_currentTrackTitle;
-    QString m_currentTrackArtist;
     QString m_lastUrl;
     QString m_lastName;
-    QString m_currentCoverArtUrl;
+    QString m_connectionState = QStringLiteral("idle");
     CoverArtFetcher *m_coverArtFetcher = nullptr;
     IcyReader *m_icyReader = nullptr;
+    NowPlayingState m_nowPlayingState;
     int m_retryAttempts = 0;
     bool m_playing = false;
+    bool m_hasActiveSource = false;
+    bool m_changingSource = false;
 };
 
 #endif

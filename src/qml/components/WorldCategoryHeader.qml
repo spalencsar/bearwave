@@ -14,7 +14,7 @@ RowLayout {
 
     spacing: 12
 
-    Button {
+    AppButton {
         text: qsTr("← Back to Categories")
         onClicked: {
             app.selectedWorldCategory = ""

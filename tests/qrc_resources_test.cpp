@@ -23,9 +23,17 @@ void QrcResourcesTest::qmlModulesAreEmbedded()
 {
     QVERIFY(QFile::exists(QStringLiteral(":/qml/theme/qmldir")));
     QVERIFY(QFile::exists(QStringLiteral(":/qml/components/qmldir")));
-    QVERIFY(QFile::exists(QStringLiteral(":/assets/app/bearwave.png")));
+    QVERIFY(QFile::exists(QStringLiteral(":/qml/components/AppButton.qml")));
+    QVERIFY(QFile::exists(QStringLiteral(":/qml/components/SidebarNavigation.qml")));
+    QVERIFY(QFile::exists(QStringLiteral(":/qml/components/StationDetailPanel.qml")));
     QVERIFY(QFile::exists(QStringLiteral(":/assets/app/bearwave.svg")));
-    QVERIFY(QFile::exists(QStringLiteral(":/assets/legal/gpl-3.0.txt")));
+    QVERIFY(QFile::exists(QStringLiteral(":/assets/app/bearwave.png")));
+    QFile changelog(QStringLiteral(":/CHANGELOG.md"));
+    QVERIFY(changelog.open(QIODevice::ReadOnly));
+    QVERIFY(changelog.readAll().startsWith(QByteArrayLiteral("# Changelog")));
+    QVERIFY(QFile::exists(QStringLiteral(":/l10n/territories_de.json")));
+    QVERIFY(QFile::exists(QStringLiteral(":/l10n/territories_nl.json")));
+    QVERIFY(QFile::exists(QStringLiteral(":/l10n/territories_ru.json")));
 }
 
 QTEST_APPLESS_MAIN(QrcResourcesTest)

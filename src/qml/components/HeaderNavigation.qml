@@ -13,8 +13,39 @@ Item {
     required property var app
     required property bool compactMode
 
-    implicitWidth: root.compactMode ? compactNav.implicitWidth : desktopNav.implicitWidth
-    implicitHeight: root.compactMode ? compactNav.implicitHeight : desktopNav.implicitHeight
+    implicitWidth: compactMode ? compactNav.implicitWidth : desktopNav.implicitWidth
+    implicitHeight: compactMode ? compactNav.implicitHeight : desktopNav.implicitHeight
+
+    function loadTop() {
+        if (!app.backend) return
+        app.currentPage = "top"
+        app.activeQuickFilter = ""
+        app.backend.loadTopStations()
+    }
+
+    function loadGerman() {
+        if (!app.backend) return
+        app.currentPage = "german"
+        app.activeQuickFilter = ""
+        app.backend.loadGermanStations()
+    }
+
+    function loadDutch() {
+        if (!app.backend) return
+        app.currentPage = "dutch"
+        app.activeQuickFilter = ""
+        app.backend.loadDutchStations()
+    }
+
+    function showFavorites() {
+        app.currentPage = "favorites"
+        app.activeQuickFilter = ""
+    }
+
+    function showHistory() {
+        app.currentPage = "history"
+        app.activeQuickFilter = ""
+    }
 
     RowLayout {
         id: desktopNav
@@ -23,40 +54,72 @@ Item {
         visible: !root.compactMode
         spacing: 8
 
-        Button {
+        Image {
+            Layout.preferredWidth: 112
+            Layout.preferredHeight: 40
+            source: "qrc:/assets/app/bearwave_line.png"
+            fillMode: Image.PreserveAspectFit
+            smooth: true
+            mipmap: true
+        }
+
+        Rectangle {
+            Layout.preferredWidth: 1
+            Layout.fillHeight: true
+            color: BearTheme.cardBorder
+            opacity: 0.6
+        }
+
+        AppButton {
             text: qsTr("Top")
             highlighted: app.currentPage === "top"
-            onClicked: app.navigateToTop()
+            onClicked: loadTop()
         }
 
-        Button {
+        AppButton {
             text: qsTr("DE")
             highlighted: app.currentPage === "german"
-            onClicked: app.navigateToGerman()
+            onClicked: loadGerman()
         }
 
-        Button {
+        AppButton {
             text: qsTr("NL")
             highlighted: app.currentPage === "dutch"
-            onClicked: app.navigateToDutch()
+            onClicked: loadDutch()
         }
 
-        Button {
-            text: qsTr("World")
-            highlighted: app.currentPage === "world"
-            onClicked: app.navigateToWorld()
-        }
-
-        Button {
+        AppButton {
             text: qsTr("Favorites")
             highlighted: app.currentPage === "favorites"
-            onClicked: app.navigateToFavorites()
+            onClicked: showFavorites()
         }
 
-        Button {
+        AppButton {
             text: qsTr("History")
             highlighted: app.currentPage === "history"
-            onClicked: app.navigateToHistory()
+            onClicked: showHistory()
+        }
+
+        Item { Layout.fillWidth: true }
+
+        AppButton {
+            text: qsTr("Manual +")
+            onClicked: app.addDialog.open()
+        }
+
+        AppButton {
+            text: qsTr("About")
+            onClicked: app.aboutDialog.open()
+        }
+
+        AppButton {
+            visible: app.backend && app.backend.canResumeLastStation
+            text: qsTr("Resume")
+            onClicked: {
+                if (app.backend) {
+                    app.backend.resumeLastStation()
+                }
+            }
         }
     }
 
@@ -82,18 +145,17 @@ Item {
 
             Item { Layout.fillWidth: true }
 
-            Button {
+            AppButton {
                 text: "+"
                 onClicked: app.addDialog.open()
             }
 
-            Button {
+            AppButton {
                 text: qsTr("About")
-                highlighted: app.currentPage === "about"
-                onClicked: app.navigateToAbout()
+                onClicked: app.aboutDialog.open()
             }
 
-            Button {
+            AppButton {
                 visible: app.backend && app.backend.canResumeLastStation
                 text: "↺"
                 onClicked: {
@@ -109,40 +171,34 @@ Item {
             width: parent.width
             spacing: 8
 
-            Button {
+            AppButton {
                 text: qsTr("Top")
                 highlighted: app.currentPage === "top"
-                onClicked: app.navigateToTop()
+                onClicked: loadTop()
             }
 
-            Button {
+            AppButton {
                 text: qsTr("DE")
                 highlighted: app.currentPage === "german"
-                onClicked: app.navigateToGerman()
+                onClicked: loadGerman()
             }
 
-            Button {
+            AppButton {
                 text: qsTr("NL")
                 highlighted: app.currentPage === "dutch"
-                onClicked: app.navigateToDutch()
+                onClicked: loadDutch()
             }
 
-            Button {
+            AppButton {
                 text: qsTr("Favorites")
                 highlighted: app.currentPage === "favorites"
-                onClicked: app.navigateToFavorites()
+                onClicked: showFavorites()
             }
 
-            Button {
+            AppButton {
                 text: qsTr("History")
                 highlighted: app.currentPage === "history"
-                onClicked: app.navigateToHistory()
-            }
-
-            Button {
-                text: qsTr("World")
-                highlighted: app.currentPage === "world"
-                onClicked: app.navigateToWorld()
+                onClicked: showHistory()
             }
         }
     }

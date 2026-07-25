@@ -15,10 +15,11 @@ class CoverArtFetcher : public QObject
 public:
     explicit CoverArtFetcher(QObject *parent = nullptr);
 
-    void fetch(const QString &artist, const QString &title);
+    void fetch(const QString &artist, const QString &title, quint64 sourceGeneration);
+    void cancel();
 
 signals:
-    void coverUrlReady(const QString &url);
+    void coverUrlReady(const QString &url, quint64 sourceGeneration);
 
 private slots:
     void onReplyFinished();

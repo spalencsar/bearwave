@@ -3,7 +3,6 @@
 
 #include "systemtraymanager.h"
 
-#include "appicon.h"
 #include "radiobackend.h"
 #include "bearplayer.h"
 
@@ -43,7 +42,12 @@ void SystemTrayManager::setupTrayIcon()
 {
     m_trayIcon = new QSystemTrayIcon(this);
 
-    m_trayIcon->setIcon(bearwaveAppIcon());
+    QIcon icon(QStringLiteral(":/assets/app/bearwave.svg"));
+    if (icon.isNull()) {
+        icon = QIcon::fromTheme(QStringLiteral("de.nerdbear.bearwave"),
+                                QIcon::fromTheme(QStringLiteral("multimedia-player")));
+    }
+    m_trayIcon->setIcon(icon);
     m_trayIcon->setToolTip(tr("BearWave"));
 
     m_menu = new QMenu();

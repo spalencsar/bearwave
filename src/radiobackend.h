@@ -13,6 +13,8 @@
 #include "bearplayer.h"
 
 class RadioStation;
+class StationArtworkService;
+class StationImageCache;
 
 class RadioBackend : public QObject
 {
@@ -27,10 +29,12 @@ class RadioBackend : public QObject
     Q_PROPERTY(QString lastStationName READ lastStationName NOTIFY resumeStateChanged)
     Q_PROPERTY(QString filterQuery READ filterQuery WRITE setFilterQuery NOTIFY filterQueryChanged)
     Q_PROPERTY(QVariantList recentStations READ recentStations NOTIFY listsChanged)
+    Q_PROPERTY(QVariantMap selectedStation READ selectedStation NOTIFY selectedStationChanged)
     Q_PROPERTY(QString currentStationUuid READ currentStationUuid NOTIFY currentStationChanged)
     Q_PROPERTY(QString currentStationUrl READ currentStationUrl NOTIFY currentStationChanged)
     Q_PROPERTY(QObject* currentStation READ currentStation NOTIFY currentStationChanged)
     Q_PROPERTY(QVariantList countries READ countries NOTIFY countriesChanged)
+    Q_PROPERTY(int stationImageRevision READ stationImageRevision NOTIFY stationImageRevisionChanged)
 
 public:
     explicit RadioBackend(QObject *parent = nullptr);
@@ -38,6 +42,7 @@ public:
     QList<QObject*> stations() const;
     QList<QObject*> favoriteStations() const;
     QVariantList recentStations() const;
+    QVariantMap selectedStation() const { return m_selectedStation; }
     QObject* currentStation() const;
     QString currentStationUuid() const { return m_currentStationUuid; }
     QString currentStationUrl() const { return m_currentStationUrl; }
@@ -47,6 +52,7 @@ public:
     bool canResumeLastStation() const { return !m_lastStationUrl.isEmpty(); }
     QString lastStationName() const { return m_lastStationName; }
     QString filterQuery() const { return m_filterQuery; }
+    int stationImageRevision() const;
 
     Q_INVOKABLE void setFilterQuery(const QString &query);
 
@@ -60,6 +66,10 @@ public:
     Q_INVOKABLE void searchStations(const QString &query);
     Q_INVOKABLE void playStation(int index);
     Q_INVOKABLE void playFavoriteStation(int index);
+    Q_INVOKABLE void selectStation(int index);
+    Q_INVOKABLE void selectFavoriteStation(int index);
+    Q_INVOKABLE bool selectRecentByUuid(const QString &uuid, const QString &urlResolved = QString());
+    Q_INVOKABLE bool playSelectedStation();
     Q_INVOKABLE void playNextStation();
     Q_INVOKABLE void playPreviousStation();
     Q_INVOKABLE bool hasNextStation() const;
@@ -74,6 +84,15 @@ public:
     Q_INVOKABLE bool playRecentByUuid(const QString &uuid, const QString &urlResolved = QString());
     Q_INVOKABLE bool playFavoriteByUuid(const QString &uuid, const QString &urlResolved = QString());
     Q_INVOKABLE void resumeLastStation();
+    Q_INVOKABLE void copyToClipboard(const QString &text) const;
+    Q_INVOKABLE bool countryMatches(const QVariantMap &country, const QString &query) const;
+    Q_INVOKABLE QString stationImageSource(const QString &remoteUrl);
+    Q_INVOKABLE QString stationLogoSource(const QString &stationKey,
+                                          const QString &faviconUrl,
+                                          const QString &homepageUrl);
+    Q_INVOKABLE QString stationInitials(const QString &stationName) const;
+    Q_INVOKABLE int stationLogoPaletteIndex(const QString &stationKey,
+                                            int paletteSize) const;
 
     QVariantList countries() const { return m_countries; }
 
@@ -86,8 +105,10 @@ signals:
     void resumeStateChanged();
     void filterQueryChanged();
     void currentStationChanged();
+    void selectedStationChanged();
     void raiseRequested();
     void countriesChanged();
+    void stationImageRevisionChanged();
 
 private slots:
     void onStationsLoaded(const QList<RadioStation*> &stations);
@@ -95,6 +116,8 @@ private slots:
 
 private:
     RadioBrowser *m_radioBrowser = nullptr;
+    StationImageCache *m_stationImageCache = nullptr;
+    StationArtworkService *m_stationArtworkService = nullptr;
     BearPlayer *m_player = nullptr;
     QList<RadioStation*> m_stations;
     QList<RadioStation*> m_filteredStations;
@@ -109,6 +132,7 @@ private:
     QString m_lastStationUrl;
     QString m_filterQuery;
     QVariantList m_recentStations;
+    QVariantMap m_selectedStation;
     QString m_currentStationUuid;
     QString m_currentStationUrl;
     QVariantList m_countries;
@@ -130,11 +154,11 @@ private:
     void playHistoryAtIndex(int index, bool updateRecent);
     bool startPlayback(const QString &url, const QString &name);
     void syncStationListIndex();
+    void setSelectedStation(const QVariantMap &station);
     static QVariantMap toVariantMap(const RadioStation *station);
     static bool matchesStation(const RadioStation *station, const QString &uuid, const QString &urlResolved);
     static bool matchesStationMap(const QVariantMap &station, const QString &uuid, const QString &urlResolved);
     static int recentStationIndex(const QVariantList &recent, const QString &uuid, const QString &urlResolved);
-    static QString localizeCountry(const QString &code, const QString &englishName);
 };
 
 #endif

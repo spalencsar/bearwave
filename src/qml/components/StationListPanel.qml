@@ -26,7 +26,7 @@ Item {
         ListView {
             id: stationList
             width: stationScrollView.availableWidth
-            spacing: 0
+            spacing: 2
             model: app.activeModel()
             visible: count > 0
 

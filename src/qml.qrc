@@ -5,31 +5,34 @@
         <file>qml/theme/BearTheme.qml</file>
         <file>qml/components/qmldir</file>
         <file>qml/components/HeaderNavigation.qml</file>
+        <file>qml/components/AppButton.qml</file>
+        <file>qml/components/SidebarNavigation.qml</file>
         <file>qml/components/SearchToolbar.qml</file>
         <file>qml/components/QuickFilters.qml</file>
         <file>qml/components/StationCard.qml</file>
+        <file>qml/components/StationLogo.qml</file>
+        <file>qml/components/StationDetailPanel.qml</file>
         <file>qml/components/WorldCategoryHeader.qml</file>
         <file>qml/components/WorldCategories.qml</file>
         <file>qml/components/PlayerBar.qml</file>
-        <file>qml/components/AboutPage.qml</file>
+        <file>qml/components/AboutDialog.qml</file>
         <file>qml/components/AddStationDialog.qml</file>
         <file>qml/components/EditStationDialog.qml</file>
         <file>qml/components/LoadingOverlay.qml</file>
         <file>qml/components/ToastPopup.qml</file>
         <file>qml/components/StationListPanel.qml</file>
-        <file>qml/components/SidebarNavigation.qml</file>
-        <file>qml/components/SidebarButton.qml</file>
-        <file>qml/components/StationDetailsPanel.qml</file>
-        <file>qml/components/ThemedButton.qml</file>
         <file>qml/utils/FlagUtils.js</file>
+        <file>l10n/territories_de.json</file>
+        <file>l10n/territories_nl.json</file>
+        <file>l10n/territories_ru.json</file>
     </qresource>
     <qresource prefix="/">
-        <file alias="assets/app/bearwave.png">../assets/app/bearwave.png</file>
         <file alias="assets/app/bearwave.svg">../assets/app/bearwave.svg</file>
+        <file alias="assets/app/bearwave.png">../assets/app/bearwave.png</file>
         <file alias="assets/app/bearwave_line.png">../assets/app/bearwave_line.png</file>
         <file alias="assets/ui/globe.svg">../assets/ui/globe.svg</file>
         <file alias="assets/ui/github.svg">../assets/ui/github.svg</file>
         <file alias="assets/ui/linkedin.svg">../assets/ui/linkedin.svg</file>
-        <file alias="assets/legal/gpl-3.0.txt">../LICENSE</file>
+        <file alias="CHANGELOG.md">../CHANGELOG.md</file>
     </qresource>
 </RCC>

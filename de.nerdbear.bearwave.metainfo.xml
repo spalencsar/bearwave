@@ -14,15 +14,18 @@
     <p>Features:</p>
     <ul>
       <li>Internet radio via the Radio Browser API with local JSON caching</li>
-      <li>Station pages for Top, Germany, Netherlands, and quick world/genre filters</li>
+      <li>Station pages for Top, Germany, Netherlands, and an interactive World view</li>
       <li>Local search and filtering by name, genre, and country</li>
       <li>Sorting by name, bitrate, and votes</li>
       <li>Favorites with persistent local storage</li>
       <li>Playback metadata display when streams provide it</li>
+      <li>Visible connection, buffering, retry, and playback states</li>
       <li>Resume support for last station and volume</li>
       <li>MPRIS integration for Plasma media controls and media keys</li>
       <li>System tray integration for background playback</li>
       <li>Desktop notifications for song/track changes with local cover art caching</li>
+      <li>German, Dutch, and Russian translations with localized country names</li>
+      <li>Validated station artwork with official-homepage discovery</li>
     </ul>
   </description>
   
@@ -31,34 +34,36 @@
   <screenshots>
     <screenshot type="default">
       <image>https://raw.githubusercontent.com/spalencsar/bearwave/main/screenshots/screen01.png</image>
-      <caption>Main window with sidebar navigation and station list</caption>
+      <caption>Main window with station list, details, and player controls</caption>
     </screenshot>
     <screenshot>
       <image>https://raw.githubusercontent.com/spalencsar/bearwave/main/screenshots/screen02.png</image>
-      <caption>Station browser with details panel and now-playing bar</caption>
+      <caption>World browser with localized country names</caption>
     </screenshot>
     <screenshot>
       <image>https://raw.githubusercontent.com/spalencsar/bearwave/main/screenshots/screen03.png</image>
-      <caption>Favorites view with station details</caption>
+      <caption>Search results with active playback</caption>
     </screenshot>
     <screenshot>
       <image>https://raw.githubusercontent.com/spalencsar/bearwave/main/screenshots/screen04.png</image>
-      <caption>Favorites with active playback and stream details</caption>
+      <caption>Favorites with station details</caption>
     </screenshot>
     <screenshot>
       <image>https://raw.githubusercontent.com/spalencsar/bearwave/main/screenshots/screen05.png</image>
-      <caption>Playback history with compact station rows</caption>
+      <caption>Manual station dialog</caption>
     </screenshot>
     <screenshot>
       <image>https://raw.githubusercontent.com/spalencsar/bearwave/main/screenshots/screen06.png</image>
-      <caption>About page with version, license, and third-party notes</caption>
+      <caption>About dialog with language selection and release notes</caption>
     </screenshot>
   </screenshots>
   
   <url type="homepage">https://github.com/spalencsar/bearwave</url>
   <url type="bugtracker">https://github.com/spalencsar/bearwave/issues</url>
   
-  <developer_name>Sebastian (spalencsar)</developer_name>
+  <developer id="de.nerdbear">
+    <name>Sebastian Palencsar</name>
+  </developer>
   
   <content_rating type="oars-1.1" />
 
@@ -67,23 +72,34 @@
   </provides>
   
   <releases>
+    <release version="1.2.0" date="2026-07-25">
+      <description>
+        <ul>
+          <li>Added Dutch localization, persistent language selection, and CLDR country names for German, Dutch, and Russian</li>
+          <li>Improved Radio Browser availability with validated DNS failover, bounded retries, and cached responses</li>
+          <li>Added validated station artwork, homepage icon discovery, safe fallbacks, and bounded cache cleanup</li>
+          <li>Added visible connection and retry states plus safer metadata and cover handling</li>
+          <li>Added an in-app changelog and a consistent BearWave button style</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.1.1" date="2026-07-21">
       <description>
         <ul>
-          <li>Security: enforce http/https stream URLs on every play path and when loading favorites/history/resume state</li>
-          <li>Use SVG app and tray icon (PNG fallback retained)</li>
-          <li>Fix light borders on search and dialog buttons in dark theme</li>
+          <li>Security: enforce http/https stream URLs on every playback and persisted-state path</li>
+          <li>Use the SVG app and tray icon while retaining the PNG fallback</li>
+          <li>Fix light borders on search and dialog buttons in the dark theme</li>
+          <li>Fix Flatpak deployment on hosts that reject permission attributes</li>
         </ul>
       </description>
     </release>
     <release version="1.1.0" date="2026-06-27">
       <description>
         <ul>
-          <li>Mac-inspired desktop redesign with sidebar navigation, station details panel, and compact player bar</li>
-          <li>Embedded About page with full GPLv3 license text and third-party technology notes</li>
-          <li>Added Russian UI translation; improved German translations and reduced Denglish</li>
-          <li>Refreshed dark theme and responsive search/filter/player layout</li>
-          <li>Fixed About navigation, GPL text loading, and post-redesign layout clipping</li>
+          <li>Desktop redesign with sidebar navigation, station details, and a compact player bar</li>
+          <li>Embedded About page with full GPLv3 license text</li>
+          <li>Added Russian translation and improved German translations</li>
+          <li>Refreshed the dark theme and responsive search, filter, and player layouts</li>
         </ul>
       </description>
     </release>

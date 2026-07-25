@@ -12,19 +12,49 @@
 #include <QDir>
 #include <QFile>
 #include <QCryptographicHash>
+#include <QDateTime>
 #include <QDebug>
+#include <QHash>
+#include <QHostInfo>
+#include <QTimer>
 
 namespace {
+const QString kDefaultApiBaseUrl = QStringLiteral("https://all.api.radio-browser.info/json");
+constexpr int kMaxAttempts = 3;
+constexpr int kRetryDelayMs = 150;
+constexpr qint64 kFailedNodeCooldownMs = 60 * 1000;
+
+QHash<QString, qint64> s_failedNodeUntil;
+
 QString apiCacheDir()
 {
     return QDir::homePath() + QStringLiteral("/.cache/bearwave/api_cache");
 }
+
+QString httpErrorMessage(QNetworkReply *reply)
+{
+    const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if (status > 0) {
+        return RadioBrowser::tr("HTTP response %1").arg(status);
+    }
+    return reply->errorString();
+}
 }
 
 RadioBrowser::RadioBrowser(QObject *parent)
+    : RadioBrowser(QStringList{kDefaultApiBaseUrl}, parent)
+{
+    resolveApiServers();
+}
+
+RadioBrowser::RadioBrowser(const QStringList &apiBaseUrls, QObject *parent)
     : QObject(parent)
 {
     m_networkManager = new QNetworkAccessManager(this);
+    m_apiBaseUrls = apiBaseUrls;
+    if (m_apiBaseUrls.isEmpty()) {
+        m_apiBaseUrls.append(kDefaultApiBaseUrl);
+    }
 }
 
 void RadioBrowser::search(const QString &query)
@@ -87,15 +117,15 @@ bool RadioBrowser::isCountriesEndpoint(const QString &endpoint) const
     return endpoint == QStringLiteral("/countries");
 }
 
-void RadioBrowser::emitCachedResponse(const QString &endpoint, const QString &cachePath, int requestGeneration)
+bool RadioBrowser::emitCachedResponse(const QString &endpoint, const QString &cachePath, int requestGeneration)
 {
     if (requestGeneration != m_requestGeneration) {
-        return;
+        return false;
     }
 
     QFile cacheFile(cachePath);
     if (!cacheFile.exists() || !cacheFile.open(QIODevice::ReadOnly)) {
-        return;
+        return false;
     }
 
     const QByteArray cachedData = cacheFile.readAll();
@@ -105,14 +135,17 @@ void RadioBrowser::emitCachedResponse(const QString &endpoint, const QString &ca
         const QVariantList list = parseCountriesJson(cachedData);
         if (!list.isEmpty()) {
             emit countriesLoaded(list);
+            return true;
         }
-        return;
+        return false;
     }
 
     const QList<RadioStation*> stations = parseJsonResponse(cachedData);
     if (!stations.isEmpty()) {
         emit stationsLoaded(stations);
+        return true;
     }
+    return false;
 }
 
 void RadioBrowser::makeRequest(const QString &endpoint)
@@ -132,21 +165,159 @@ void RadioBrowser::makeRequest(const QString &endpoint)
     const QString hash = QString(QCryptographicHash::hash(endpoint.toUtf8(), QCryptographicHash::Md5).toHex());
     const QString cachePath = cacheDir + "/" + hash + ".json";
 
-    emitCachedResponse(endpoint, cachePath, requestGeneration);
+    m_currentEndpoint = endpoint;
+    m_currentCachePath = cachePath;
+    m_lastRequestError.clear();
+    m_attemptedBaseUrls.clear();
+    m_attemptCount = 0;
+    m_cacheDelivered = emitCachedResponse(endpoint, cachePath, requestGeneration);
 
-    QUrl url(m_baseUrl + endpoint);
+    startAttempt(requestGeneration);
+}
+
+void RadioBrowser::startAttempt(int requestGeneration)
+{
+    if (requestGeneration != m_requestGeneration) {
+        return;
+    }
+    if (m_attemptCount >= kMaxAttempts) {
+        finishWithError(m_lastRequestError, requestGeneration);
+        return;
+    }
+
+    const QString baseUrl = nextBaseUrl();
+    if (baseUrl.isEmpty()) {
+        finishWithError(m_lastRequestError.isEmpty() ? tr("No Radio Browser server available")
+                                                     : m_lastRequestError,
+                        requestGeneration);
+        return;
+    }
+
+    ++m_attemptCount;
+    m_attemptedBaseUrls.insert(baseUrl);
+
+    QUrl url(baseUrl + m_currentEndpoint);
     QNetworkRequest request;
     request.setUrl(url);
     request.setHeader(QNetworkRequest::UserAgentHeader, "BearWave/1.0");
     request.setTransferTimeout(10000);
 
     QNetworkReply *reply = m_networkManager->get(request);
-    reply->setProperty("cachePath", cachePath);
     reply->setProperty("requestGeneration", requestGeneration);
-    reply->setProperty("endpoint", endpoint);
+    reply->setProperty("baseUrl", baseUrl);
 
     m_activeReply = reply;
     connect(reply, &QNetworkReply::finished, this, &RadioBrowser::onReplyFinished);
+}
+
+void RadioBrowser::scheduleRetry(int requestGeneration)
+{
+    QTimer::singleShot(kRetryDelayMs, this, [this, requestGeneration]() {
+        startAttempt(requestGeneration);
+    });
+}
+
+void RadioBrowser::finishWithError(const QString &message, int requestGeneration)
+{
+    if (requestGeneration != m_requestGeneration || m_cacheDelivered) {
+        return;
+    }
+    emit error(message.isEmpty() ? tr("Network error") : message);
+}
+
+QString RadioBrowser::nextBaseUrl() const
+{
+    const qint64 now = QDateTime::currentMSecsSinceEpoch();
+
+    for (const QString &baseUrl : m_apiBaseUrls) {
+        if (!m_attemptedBaseUrls.contains(baseUrl)
+            && s_failedNodeUntil.value(baseUrl, 0) <= now) {
+            return baseUrl;
+        }
+    }
+
+    for (const QString &baseUrl : m_apiBaseUrls) {
+        if (s_failedNodeUntil.value(baseUrl, 0) <= now) {
+            return baseUrl;
+        }
+    }
+
+    if (m_apiBaseUrls.size() == 1) {
+        return m_apiBaseUrls.first();
+    }
+    return QString();
+}
+
+void RadioBrowser::resolveApiServers()
+{
+    QHostInfo::lookupHost(QStringLiteral("all.api.radio-browser.info"), this,
+                          [this](const QHostInfo &forwardInfo) {
+        if (forwardInfo.error() != QHostInfo::NoError) {
+            return;
+        }
+
+        for (const QHostAddress &address : forwardInfo.addresses()) {
+            QHostInfo::lookupHost(address.toString(), this, [this](const QHostInfo &reverseInfo) {
+                if (reverseInfo.error() != QHostInfo::NoError) {
+                    return;
+                }
+
+                QString host = reverseInfo.hostName().trimmed().toLower();
+                if (host.endsWith(QLatin1Char('.'))) {
+                    host.chop(1);
+                }
+                if (!isAllowedApiHost(host)) {
+                    return;
+                }
+
+                const QString baseUrl = QStringLiteral("https://") + host + QStringLiteral("/json");
+                if (!m_apiBaseUrls.contains(baseUrl)) {
+                    m_apiBaseUrls.prepend(baseUrl);
+                }
+            });
+        }
+    });
+}
+
+bool RadioBrowser::isAllowedApiHost(QString host)
+{
+    host = host.trimmed().toLower();
+    if (host.endsWith(QLatin1Char('.'))) {
+        host.chop(1);
+    }
+    return host == QStringLiteral("all.api.radio-browser.info")
+           || (host.endsWith(QStringLiteral(".api.radio-browser.info"))
+               && host.size() > QStringLiteral(".api.radio-browser.info").size());
+}
+
+bool RadioBrowser::isTransientFailure(QNetworkReply *reply)
+{
+    const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if (isTransientHttpStatus(status)) {
+        return true;
+    }
+
+    switch (reply->error()) {
+    case QNetworkReply::ConnectionRefusedError:
+    case QNetworkReply::RemoteHostClosedError:
+    case QNetworkReply::HostNotFoundError:
+    case QNetworkReply::TimeoutError:
+    case QNetworkReply::TemporaryNetworkFailureError:
+    case QNetworkReply::NetworkSessionFailedError:
+    case QNetworkReply::ProxyConnectionRefusedError:
+    case QNetworkReply::ProxyConnectionClosedError:
+    case QNetworkReply::ProxyNotFoundError:
+    case QNetworkReply::ProxyTimeoutError:
+    case QNetworkReply::ServiceUnavailableError:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool RadioBrowser::isTransientHttpStatus(int status)
+{
+    return status == 429 || status == 502 || status == 503 || status == 504;
 }
 
 void RadioBrowser::onReplyFinished()
@@ -173,20 +344,28 @@ void RadioBrowser::onReplyFinished()
         return;
     }
 
+    const QString baseUrl = reply->property("baseUrl").toString();
+    if (isTransientFailure(reply)) {
+        m_lastRequestError = httpErrorMessage(reply);
+        s_failedNodeUntil.insert(baseUrl, QDateTime::currentMSecsSinceEpoch() + kFailedNodeCooldownMs);
+        reply->deleteLater();
+        scheduleRetry(requestGeneration);
+        return;
+    }
+
     if (reply->error() != QNetworkReply::NoError) {
-        emit error(reply->errorString());
+        finishWithError(httpErrorMessage(reply), requestGeneration);
         reply->deleteLater();
         return;
     }
 
+    s_failedNodeUntil.remove(baseUrl);
     const QByteArray data = reply->readAll();
-    const QString cachePath = reply->property("cachePath").toString();
-    const QString endpoint = reply->property("endpoint").toString();
 
-    if (isCountriesEndpoint(endpoint)) {
+    if (isCountriesEndpoint(m_currentEndpoint)) {
         const QVariantList list = parseCountriesJson(data);
-        if (!cachePath.isEmpty() && !list.isEmpty()) {
-            QFile file(cachePath);
+        if (!m_currentCachePath.isEmpty() && !list.isEmpty()) {
+            QFile file(m_currentCachePath);
             if (file.open(QIODevice::WriteOnly)) {
                 file.write(data);
                 file.close();
@@ -195,8 +374,8 @@ void RadioBrowser::onReplyFinished()
         emit countriesLoaded(list);
     } else {
         const QList<RadioStation*> stations = parseJsonResponse(data);
-        if (!cachePath.isEmpty() && !stations.isEmpty()) {
-            QFile file(cachePath);
+        if (!m_currentCachePath.isEmpty() && !stations.isEmpty()) {
+            QFile file(m_currentCachePath);
             if (file.open(QIODevice::WriteOnly)) {
                 file.write(data);
                 file.close();

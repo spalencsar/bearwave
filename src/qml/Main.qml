@@ -4,6 +4,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import QtQuick.Window 2.15
 
 import theme 1.0
 import components 1.0
@@ -11,32 +12,17 @@ import components 1.0
 ApplicationWindow {
     id: root
     title: qsTr("BearWave")
-    width: 1400
+    readonly property int preferredWindowWidth: 1440
+    readonly property int expandedLayoutThreshold: 1320
+    width: Math.max(minimumWidth,
+                    Math.min(preferredWindowWidth,
+                             Screen.desktopAvailableWidth > 0
+                             ? Screen.desktopAvailableWidth - 80
+                             : preferredWindowWidth))
     height: 720
     minimumWidth: 900
-    minimumHeight: 460
+    minimumHeight: 600
     visible: true
-
-    // Dark control palette so default Buttons/Dialogs do not draw light Fusion borders.
-    palette {
-        window: BearTheme.panel
-        windowText: BearTheme.textMain
-        base: BearTheme.card
-        alternateBase: BearTheme.cardHover
-        text: BearTheme.textMain
-        button: BearTheme.card
-        buttonText: BearTheme.textMain
-        brightText: "#ffffff"
-        highlight: BearTheme.playingAccent
-        highlightedText: "#ffffff"
-        mid: BearTheme.cardBorder
-        midlight: BearTheme.cardHover
-        dark: BearTheme.bgA
-        light: BearTheme.cardHover
-        shadow: "#000000"
-        link: BearTheme.playingAccent
-        placeholderText: BearTheme.textMuted
-    }
 
     onClosing: function(close) {
         close.accepted = false
@@ -47,9 +33,8 @@ ApplicationWindow {
     property var backend: (typeof radioBackend !== "undefined" ? radioBackend : null)
     readonly property string appVersion: (typeof bearwaveVersion !== "undefined" ? ("" + bearwaveVersion) : Qt.application.version)
     readonly property string appBuildId: (typeof bearwaveBuildId !== "undefined" ? ("" + bearwaveBuildId) : "?")
-    readonly property string appLicenseText: (typeof bearwaveLicenseText !== "undefined" ? ("" + bearwaveLicenseText) : "")
-    property bool compactMode: width < 900
-    property var selectedStation: null
+    readonly property string appChangelog: (typeof bearwaveChangelog !== "undefined" ? ("" + bearwaveChangelog) : "")
+    property bool compactMode: width < expandedLayoutThreshold
     property real contentOpacity: 1.0
     property string activeQuickFilter: ""
     property string selectedWorldCategory: ""
@@ -59,60 +44,29 @@ ApplicationWindow {
     property alias stationList: stationPanel.stationList
     property alias addDialog: addDialogPane
     property alias editDialog: editDialogPane
+    property alias aboutDialog: aboutDialogPane
 
     function toast(message) {
         toastPopup.show(message)
-    }
-
-    function navigateToTop() {
-        if (!backend) return
-        currentPage = "top"
-        activeQuickFilter = ""
-        backend.loadTopStations()
-    }
-
-    function navigateToGerman() {
-        if (!backend) return
-        currentPage = "german"
-        activeQuickFilter = ""
-        backend.loadGermanStations()
-    }
-
-    function navigateToDutch() {
-        if (!backend) return
-        currentPage = "dutch"
-        activeQuickFilter = ""
-        backend.loadDutchStations()
-    }
-
-    function navigateToWorld() {
-        currentPage = "world"
-        activeQuickFilter = ""
-        selectedWorldCategory = ""
-        selectedWorldType = ""
-    }
-
-    function navigateToFavorites() {
-        currentPage = "favorites"
-        activeQuickFilter = ""
-    }
-
-    function navigateToHistory() {
-        currentPage = "history"
-        activeQuickFilter = ""
-    }
-
-    function navigateToAbout() {
-        currentPage = "about"
-        activeQuickFilter = ""
     }
 
     function resetSearchFilter() {
         searchTimer.stop()
         if (searchField.text !== "") {
             searchField.text = ""
+        }
+        if (compactSearchToolbar.searchField.text !== "") {
+            compactSearchToolbar.searchField.text = ""
         } else if (backend && backend.filterQuery !== "") {
             backend.filterQuery = ""
+        }
+    }
+
+    function focusSearch() {
+        if (compactMode) {
+            compactSearchToolbar.searchField.forceActiveFocus()
+        } else {
+            searchField.forceActiveFocus()
         }
     }
 
@@ -125,7 +79,7 @@ ApplicationWindow {
         }
         for (var i = 0; i < backend.countries.length; i++) {
             var c = backend.countries[i];
-            if (query === "" || c.name.toLowerCase().indexOf(query) !== -1 || c.code.toLowerCase().indexOf(query) !== -1) {
+            if (backend.countryMatches(c, query)) {
                 list.push(c);
             }
         }
@@ -150,9 +104,6 @@ ApplicationWindow {
     onCurrentPageChanged: {
         contentOpacity = 0.85
         contentFadeRestart.restart()
-        if (currentPage !== "about") {
-            selectedStation = null
-        }
         if (currentPage !== "search") {
             resetSearchFilter()
         }
@@ -174,80 +125,112 @@ ApplicationWindow {
 
     Shortcut {
         sequence: "Ctrl+F"
-        onActivated: searchField.forceActiveFocus()
+        onActivated: focusSearch()
     }
 
     Rectangle {
         anchors.fill: parent
-        color: BearTheme.bgA
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: BearTheme.bgA }
+            GradientStop { position: 1.0; color: BearTheme.bgB }
+        }
     }
 
     SidebarNavigation {
-        id: sidebarNav
+        id: sidebar
+        width: root.compactMode ? 0 : 205
         visible: !root.compactMode
-        width: root.compactMode ? 0 : 200
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        anchors.margins: 0
         app: root
-        compactMode: root.compactMode
     }
 
     Item {
         id: workspace
-        anchors.left: root.compactMode ? parent.left : sidebarNav.right
+        anchors.left: root.compactMode ? parent.left : sidebar.right
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        anchors.margins: 0
-        anchors.leftMargin: root.compactMode ? 0 : 0
 
         Rectangle {
-            id: headerPanel
-            height: headerContent.implicitHeight + 18
+            id: topToolbar
+            height: root.compactMode ? 150 : 104
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: parent.top
-            radius: 0
             color: BearTheme.panel
-            border.color: "transparent"
+            border.color: BearTheme.cardBorder
             clip: true
-
-            Rectangle {
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.bottom: parent.bottom
-                height: 1
-                color: BearTheme.cardBorder
-            }
 
             ColumnLayout {
                 id: headerContent
                 anchors.fill: parent
-                anchors.margins: 9
+                anchors.leftMargin: 14
+                anchors.rightMargin: 14
+                anchors.topMargin: 10
+                anchors.bottomMargin: 8
                 spacing: 8
 
                 HeaderNavigation {
                     Layout.fillWidth: true
+                    visible: root.compactMode
                     app: root
                     compactMode: root.compactMode
-                    visible: root.compactMode
                 }
 
-                Rectangle {
+                RowLayout {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 1
-                    color: BearTheme.cardBorder
-                    opacity: 0.6
-                    visible: root.compactMode
+                    visible: !root.compactMode
+                    spacing: 12
+
+                    Image {
+                        Layout.preferredWidth: 100
+                        Layout.preferredHeight: 28
+                        source: "qrc:/assets/app/bearwave_line.png"
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                        mipmap: true
+                    }
+
+                    ColumnLayout {
+                        Layout.preferredWidth: 96
+                        spacing: 0
+                        Label {
+                            text: qsTr("BearWave")
+                            color: BearTheme.textMain
+                            font.bold: true
+                            font.pixelSize: 13
+                        }
+                        Label {
+                            text: qsTr("Internet Radio")
+                            color: BearTheme.textMuted
+                            font.pixelSize: 11
+                        }
+                    }
+
+                    Rectangle {
+                        Layout.preferredWidth: 1
+                        Layout.preferredHeight: 32
+                        color: BearTheme.cardBorder
+                    }
+
+                    SearchToolbar {
+                        id: searchToolbar
+                        Layout.fillWidth: true
+                        app: root
+                        compactMode: false
+                        searchTimer: searchTimer
+                    }
+
                 }
 
                 SearchToolbar {
-                    id: searchToolbar
+                    id: compactSearchToolbar
                     Layout.fillWidth: true
+                    visible: root.compactMode
                     app: root
-                    compactMode: root.compactMode
+                    compactMode: true
                     searchTimer: searchTimer
                 }
 
@@ -269,7 +252,7 @@ ApplicationWindow {
         }
 
         PlayerBar {
-            id: playerPanel
+            id: playerBar
             height: implicitHeight
             anchors.left: parent.left
             anchors.right: parent.right
@@ -281,10 +264,8 @@ ApplicationWindow {
             id: contentArea
             anchors.left: parent.left
             anchors.right: parent.right
-            anchors.top: headerPanel.bottom
-            anchors.bottom: playerPanel.top
-            anchors.topMargin: 0
-            anchors.bottomMargin: 0
+            anchors.top: topToolbar.bottom
+            anchors.bottom: playerBar.top
             clip: true
             opacity: contentOpacity
 
@@ -293,31 +274,19 @@ ApplicationWindow {
             }
 
             Rectangle {
-                id: stationPanelFrame
-                visible: currentPage !== "about"
+                id: stationArea
                 anchors.left: parent.left
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
-                anchors.right: root.compactMode ? parent.right : stationDetails.left
-                anchors.rightMargin: root.compactMode ? 0 : 0
-                radius: 0
+                anchors.right: root.compactMode ? parent.right : detailPanel.left
                 color: BearTheme.panel
-                border.color: "transparent"
+                border.color: BearTheme.cardBorder
                 clip: true
-
-                Rectangle {
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-                    width: 1
-                    color: BearTheme.cardBorder
-                    visible: !root.compactMode
-                }
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 10
-                    spacing: 0
+                    anchors.margins: 8
+                    spacing: 8
 
                     WorldCategoryHeader {
                         Layout.fillWidth: true
@@ -342,23 +311,14 @@ ApplicationWindow {
                 }
             }
 
-            StationDetailsPanel {
-                id: stationDetails
-                visible: !root.compactMode && currentPage !== "about"
-                width: 350
+            StationDetailPanel {
+                id: detailPanel
+                width: 320
                 anchors.right: parent.right
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
+                visible: !root.compactMode
                 app: root
-            }
-
-            AboutPage {
-                visible: currentPage === "about"
-                anchors.fill: parent
-                compactMode: root.compactMode
-                appVersion: root.appVersion
-                buildId: root.appBuildId
-                licenseText: root.appLicenseText
             }
         }
     }
@@ -385,6 +345,15 @@ ApplicationWindow {
         compactMode: root.compactMode
     }
 
+    AboutDialog {
+        id: aboutDialogPane
+        compactMode: root.compactMode
+        appVersion: root.appVersion
+        buildId: root.appBuildId
+        changelogDocument: root.appChangelog
+        languageSettings: (typeof appLanguageSettings !== "undefined" ? appLanguageSettings : null)
+    }
+
     ToastPopup {
         id: toastPopup
         window: root
@@ -395,7 +364,7 @@ ApplicationWindow {
         interval: 600
         repeat: false
         onTriggered: {
-            var text = searchField.text.trim()
+            var text = (compactMode ? compactSearchToolbar.searchField.text : searchField.text).trim()
             if (text.length < 2 || !backend) return
 
             if (currentPage === "search" || stationList.count === 0) {

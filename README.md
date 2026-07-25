@@ -9,27 +9,30 @@ BearWave is designed for fast station browsing, simple playback controls, favori
 ![KDE Plasma](https://img.shields.io/badge/desktop-KDE%20Plasma-1f6feb)
 ![Qt 6](https://img.shields.io/badge/Qt-6-41cd52)
 ![License: GPL--3.0--or--later](https://img.shields.io/badge/license-GPL--3.0--or--later-lightgrey)
-![Version](https://img.shields.io/badge/version-1.1.1-blue)
+![Version](https://img.shields.io/badge/version-1.2.0-blue)
 
-**Current release:** [1.1.1](CHANGELOG.md#111---2026-07-21) (2026-07-21)
+**Current release:** [1.2.0](CHANGELOG.md#120---2026-07-25) (2026-07-25)
 
-**1.1.1** is the current patch over the [1.1.0](CHANGELOG.md#110---2026-06-27) desktop redesign (SVG icon, button polish, stronger stream URL checks). See [version notes](CHANGELOG.md#version-notes-110--111) in the changelog.
+BearWave 1.2.0 follows the
+[1.1.1](CHANGELOG.md#111---2026-07-21) patch and adds Dutch localization,
+persistent language selection, resilient Radio Browser access, validated
+station artwork, visible playback connection states, and an in-app changelog.
+See the [version notes](CHANGELOG.md#version-notes-110--120) for release
+history.
 
 ## Screenshots
 
-| Main window (Top Global)                  | Station browser with details panel           |
-| ----------------------------------------- | -------------------------------------------- |
-| ![Main Window](screenshots/screen01.png)  | ![Station Browser](screenshots/screen02.png) |
-| Favorites                                 | History                                      |
-| ![Favorites](screenshots/screen03.png)    | ![History](screenshots/screen05.png)         |
-| Favorites with now playing                | About page                                   |
-| ![Now Playing](screenshots/screen04.png)  | ![About Page](screenshots/screen06.png)      |
+| Main window                              | World browser                           |
+| ---------------------------------------- | --------------------------------------- |
+| ![Main Window](screenshots/screen01.png) | ![World View](screenshots/screen02.png) |
+| Search and playback                      | Favorites                               |
+| ![Search](screenshots/screen03.png)      | ![Favorites](screenshots/screen04.png)  |
+| Add station                              | About and changelog                     |
+| ![Add Station](screenshots/screen05.png) | ![About](screenshots/screen06.png)      |
 
 Screenshots: KDE Plasma on Linux.
 
 ### Demo Video
-
-https://github.com/spalencsar/bearwave/raw/main/screens/bearwave_demo.mp4
 
 👉 [**Click here to watch the Demo Video**](https://github.com/spalencsar/bearwave/raw/main/screens/bearwave_demo.mp4)
 
@@ -163,12 +166,16 @@ BearWave intentionally does not aim to be:
 - favorites with persistent local storage
 - manual station add
 - playback metadata display when streams provide it
+- visible connecting, buffering, retrying, paused, and unavailable states
 - resume support for last station and volume
 - MPRIS integration for Plasma media controls and media keys
 - system tray integration for background playback
 - desktop notifications for song/track changes with local cover art caching
-- Mac-inspired three-pane desktop layout with sidebar navigation, station list, details panel, and compact now-playing bar
-- embedded About page with author links, full GNU GPLv3 license text, and third-party technology notes
+- quality-checked station logos with official-homepage discovery and
+  deterministic initials when no usable logo exists
+- persistent language selection with bundled German, Dutch, and Russian UI
+  translations
+- embedded About dialog with release notes, links, and GNU GPLv3 license text
 
 ## Project Status
 
@@ -221,14 +228,27 @@ Add distributions here only after explicit testing, not by assumption alone.
 
 ### Language Support
 
-BearWave currently supports English, German, and Russian.
+BearWave currently supports English, German, Dutch, and Russian UI text.
 
 - the application uses the system locale to select its UI language
 - English is the base UI language
-- German and Russian are provided as bundled translations
+- German, Dutch, and Russian are provided as bundled translations
+- World country names are localized from bundled Unicode CLDR data for German, Dutch, and Russian
+- country search accepts the localized name, the English API name, and the ISO country code
 - README, repository metadata, and development-facing material remain in English
 
-If the system language matches a bundled translation, BearWave uses that language. Otherwise it falls back to English.
+If no bundled UI translation matches the system language, BearWave falls back to English.
+The language can be selected in the About dialog. BearWave stores the choice and
+applies it on the next start.
+
+For temporary local testing, the stored language can be overridden at startup:
+
+```bash
+./build/src/bearwave --language=ru  # Russian UI and country names
+./build/src/bearwave --language=nl  # Dutch UI and country names
+```
+
+Close an already running BearWave instance first because the application otherwise raises that existing instance.
 
 ## Installation Status
 
@@ -279,12 +299,18 @@ update-desktop-database "$HOME/.local/share/applications"
 kbuildsycoca6
 ```
 
+When upgrading an older local installation, remove the obsolete PNG icon once
+before refreshing the desktop cache:
+
+```bash
+rm -f "$HOME/.local/share/icons/hicolor/256x256/apps/de.nerdbear.bearwave.png"
+```
+
 This installs:
 
 - binary: `~/.local/bin/bearwave`
 - desktop file: `~/.local/share/applications/de.nerdbear.bearwave.desktop`
-- icon (SVG): `~/.local/share/icons/hicolor/scalable/apps/de.nerdbear.bearwave.svg`
-- icon (PNG fallback): `~/.local/share/icons/hicolor/256x256/apps/de.nerdbear.bearwave.png`
+- icon: `~/.local/share/icons/hicolor/scalable/apps/de.nerdbear.bearwave.svg`
 
 Note: the generated desktop file uses the install prefix chosen during `cmake --install`.
 
@@ -294,16 +320,6 @@ If you want a clean rebuild:
 rm -rf build
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j"$(nproc)"
-```
-
-### UI layout development build
-
-For layout work that should not disturb the normal `build/` directory, a separate build tree can be used:
-
-```bash
-cmake -S . -B build-maclayout -DCMAKE_BUILD_TYPE=Release
-cmake --build build-maclayout -j"$(nproc)"
-./build-maclayout/src/bearwave
 ```
 
 ### Tests
@@ -353,7 +369,13 @@ BearWave stores user state under:
 - favorites: `~/.config/bearwave/favorites.json`
 - last station + volume: `~/.config/bearwave/state.json`
 - API cache: `~/.cache/bearwave/api_cache/`
-- cover art cache: `~/.cache/bearwave/covers/`
+- validated station-image and cover-art cache: `~/.cache/bearwave/covers/`
+
+The image cache is capped at 50 MiB. Entries that have not been used for more
+than 30 days are removed automatically. Station logos shorter than 64 pixels
+are replaced by a larger logo discovered from the station's official homepage,
+or by a stable initials tile if discovery yields no suitable image. Track cover
+art is handled separately and is not subject to the station-logo size limit.
 
 If these files are removed, app state resets to defaults or performs a fresh API sync.
 
@@ -441,14 +463,13 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for local build and review expectations.
 ## Development Notes
 
 - main UI shell: `src/qml/Main.qml`
-- QML components: `src/qml/components/` (navigation, search, station rows, detail panel, About page, player bar, dialogs)
+- QML components: `src/qml/components/` (navigation, search, station cards, player bar, dialogs)
 - theme singleton: `src/qml/theme/BearTheme.qml`
 - backend orchestration: `src/radiobackend.cpp`
 - stream playback: `src/bearplayer.cpp`
 - API layer: `src/radiobrowser.cpp`
 - MPRIS adapter: `src/mprisadaptor.cpp`
 - desktop notifications: `src/notificationmanager.cpp`
-- embedded GPL license resource: `qrc:/assets/legal/gpl-3.0.txt` from `LICENSE`
 - unit tests: `tests/`
 
 See [CHANGELOG.md](CHANGELOG.md) for release history. For contributor and agent guardrails, see `AGENTS.md`.

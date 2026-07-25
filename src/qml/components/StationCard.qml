@@ -16,9 +16,9 @@ Rectangle {
     required property bool compactMode
     required property real listWidth
 
-    height: 52
+    height: compactMode ? 58 : 52
     width: listWidth
-    radius: 0
+    radius: 6
 
     readonly property bool isCurrent: {
         if (!app.backend || !modelData) return false
@@ -32,26 +32,23 @@ Rectangle {
         return currentUrl !== "" && currentUrl === cardUrl
     }
     readonly property bool isPlaying: isCurrent && app.backend && app.backend.player && app.backend.player.playing
-
-    color: isCurrent
-        ? "#4a4a4d"
-        : (cardMouse.containsMouse ? "#2d2e34" : "transparent")
-
-    border.width: 0
-
-    readonly property string metadataText: {
-        if (!modelData) return ""
-        var parts = []
-        if (modelData.country) parts.push(modelData.country)
-        if (modelData.codec && modelData.codec !== "unknown" && modelData.codec !== "") parts.push(modelData.codec.toUpperCase())
-        if (modelData.bitrate > 0) parts.push(modelData.bitrate + " kbps")
-        if (modelData.votes > 0) {
-            parts.push(modelData.votes.toLocaleString(Qt.locale(), "f", 0) + " " + qsTr("votes"))
-        } else {
-            parts.push(qsTr("Stream"))
+    readonly property bool isSelected: {
+        if (!app.backend || !app.backend.selectedStation || !modelData) return false
+        var selectedUuid = app.backend.selectedStation.uuid || ""
+        var selectedUrl = app.backend.selectedStation.urlResolved || app.backend.selectedStation.url || ""
+        var cardUuid = modelData.uuid || ""
+        var cardUrl = modelData.urlResolved || modelData.url || ""
+        if (selectedUuid !== "" && cardUuid !== "") {
+            return selectedUuid === cardUuid
         }
-        return parts.join("  •  ")
+        return selectedUrl !== "" && selectedUrl === cardUrl
     }
+
+    color: isSelected
+        ? (cardMouse.containsMouse ? BearTheme.selectionHover : BearTheme.selection)
+        : (cardMouse.containsMouse ? BearTheme.cardHover : "transparent")
+    border.color: isCurrent ? BearTheme.accent : (isSelected ? BearTheme.selectionBorder : BearTheme.cardBorder)
+    border.width: isCurrent || isSelected ? 1 : 0
 
     function playStation() {
         if (!app.backend) return
@@ -64,73 +61,56 @@ Rectangle {
         }
     }
 
+    function selectStation() {
+        if (!app.backend) return
+        if (app.currentPage === "favorites") {
+            app.backend.selectFavoriteStation(index)
+        } else if (app.currentPage === "history") {
+            app.backend.selectRecentByUuid(modelData.uuid, modelData.urlResolved)
+        } else {
+            app.backend.selectStation(index)
+        }
+    }
+
     MouseArea {
         id: cardMouse
         anchors.fill: parent
         hoverEnabled: true
         acceptedButtons: Qt.LeftButton
         onClicked: {
-            app.selectedStation = root.modelData
-            if (!app.backend) return
-            if (root.isCurrent) {
-                app.backend.player.togglePlayPause()
-            } else {
-                playStation()
-            }
+            selectStation()
         }
-    }
-
-    Rectangle {
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        height: 1
-        color: BearTheme.cardBorder
-        opacity: 0.65
+        onDoubleClicked: {
+            playStation()
+        }
     }
 
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 8
+        anchors.leftMargin: 10
         anchors.rightMargin: 8
+        anchors.topMargin: 5
+        anchors.bottomMargin: 5
         spacing: 10
 
-        // Favicon Rect
-        Rectangle {
-            Layout.preferredWidth: 34
-            Layout.preferredHeight: 34
-            radius: 5
-            color: "#34353b"
-            clip: true
-
-            Image {
-                id: stationFavicon
-                anchors.fill: parent
-                anchors.margins: 2
-                source: (root.modelData.favicon && root.modelData.favicon.startsWith("https://"))
-                        ? root.modelData.favicon
-                        : ""
-                fillMode: Image.PreserveAspectFit
-                asynchronous: true
-                cache: true
-                visible: source !== "" && status === Image.Ready
-            }
-
-            Image {
-                anchors.fill: parent
-                anchors.margins: 6
-                source: "qrc:/assets/app/bearwave.png"
-                fillMode: Image.PreserveAspectFit
-                smooth: true
-                visible: !stationFavicon.visible
-            }
+        StationLogo {
+            Layout.preferredWidth: compactMode ? 38 : 34
+            Layout.preferredHeight: compactMode ? 38 : 34
+            app: root.app
+            stationName: root.modelData.name || ""
+            stationKey: root.modelData.uuid
+                        || root.modelData.urlResolved
+                        || root.modelData.url
+                        || root.modelData.name
+                        || ""
+            faviconUrl: root.modelData.favicon || ""
+            homepageUrl: root.modelData.homepage || ""
+            logoMargin: 3
         }
 
-        // Info Column
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 1
-            Layout.alignment: Qt.AlignVCenter
+            spacing: 2
 
             RowLayout {
                 Layout.fillWidth: true
@@ -141,11 +121,10 @@ Rectangle {
                     text: root.modelData.name
                     color: root.isCurrent ? BearTheme.accent : BearTheme.textMain
                     font.bold: true
-                    font.pixelSize: 13
+                    font.pixelSize: compactMode ? 13 : 13
                     elide: Text.ElideRight
                 }
 
-                // Tiny EQ Indicator
                 Row {
                     id: eqAnimation
                     spacing: 2
@@ -155,26 +134,32 @@ Rectangle {
                     Rectangle {
                         id: bar1
                         width: 2
-                        height: 10
-                        color: BearTheme.playingAccent
+                        height: 12
+                        color: BearTheme.accent
                         radius: 1
-                        Behavior on height { NumberAnimation { duration: 120 } }
+                        Behavior on height {
+                            NumberAnimation { duration: 120 }
+                        }
                     }
                     Rectangle {
                         id: bar2
                         width: 2
-                        height: 10
-                        color: BearTheme.playingAccent
+                        height: 12
+                        color: BearTheme.accent
                         radius: 1
-                        Behavior on height { NumberAnimation { duration: 120 } }
+                        Behavior on height {
+                            NumberAnimation { duration: 120 }
+                        }
                     }
                     Rectangle {
                         id: bar3
                         width: 2
-                        height: 10
-                        color: BearTheme.playingAccent
+                        height: 12
+                        color: BearTheme.accent
                         radius: 1
-                        Behavior on height { NumberAnimation { duration: 120 } }
+                        Behavior on height {
+                            NumberAnimation { duration: 120 }
+                        }
                     }
 
                     Timer {
@@ -182,17 +167,17 @@ Rectangle {
                         running: root.isPlaying
                         repeat: true
                         onTriggered: {
-                            bar1.height = Math.floor(Math.random() * 9) + 2
-                            bar2.height = Math.floor(Math.random() * 9) + 2
-                            bar3.height = Math.floor(Math.random() * 9) + 2
+                            bar1.height = Math.floor(Math.random() * 11) + 3
+                            bar2.height = Math.floor(Math.random() * 11) + 3
+                            bar3.height = Math.floor(Math.random() * 11) + 3
                         }
                     }
 
                     onVisibleChanged: {
                         if (!visible) {
-                            bar1.height = 10
-                            bar2.height = 10
-                            bar3.height = 10
+                            bar1.height = 12
+                            bar2.height = 12
+                            bar3.height = 12
                         }
                     }
                 }
@@ -200,20 +185,22 @@ Rectangle {
 
             Label {
                 Layout.fillWidth: true
-                text: root.metadataText
+                text: root.modelData.country + "  •  "
+                      + (root.modelData.codec && root.modelData.codec !== "unknown" && root.modelData.codec !== ""
+                         ? root.modelData.codec.toUpperCase() + "  •  " : "")
+                      + (root.modelData.bitrate > 0 ? root.modelData.bitrate + " kbps" : qsTr("Stream"))
                 color: BearTheme.textMuted
                 font.pixelSize: 11
                 elide: Text.ElideRight
             }
         }
 
-        // Edit Button (Custom User Stations Only)
-        Button {
+        AppButton {
             visible: !root.modelData.uuid
-            Layout.preferredWidth: 32
-            Layout.preferredHeight: 32
-            text: "✏"
+            Layout.preferredWidth: compactMode ? 32 : 34
+            Layout.preferredHeight: 28
             flat: true
+            text: "✎"
             ToolTip.visible: hovered
             ToolTip.text: qsTr("Edit Station")
             onClicked: {
@@ -222,13 +209,11 @@ Rectangle {
             }
         }
 
-        // Favorite Button
-        Button {
-            Layout.preferredWidth: 32
-            Layout.preferredHeight: 32
-            text: root.modelData.isFavorite ? "★" : "☆"
+        AppButton {
+            Layout.preferredWidth: compactMode ? 32 : 34
+            Layout.preferredHeight: 28
             flat: true
-            font.pixelSize: 14
+            text: root.modelData.isFavorite ? "★" : "☆"
             onClicked: {
                 if (!app.backend) return
                 app.backend.toggleFavoriteById(root.modelData.uuid, root.modelData.urlResolved)
@@ -236,13 +221,11 @@ Rectangle {
             }
         }
 
-        // Play/Pause Button
-        Button {
-            Layout.preferredWidth: 32
-            Layout.preferredHeight: 32
-            text: (root.isCurrent && app.backend && app.backend.player && app.backend.player.playing) ? "⏸" : "▶"
+        AppButton {
+            Layout.preferredWidth: compactMode ? 32 : 34
+            Layout.preferredHeight: 28
             flat: true
-            font.pixelSize: 13
+            text: (root.isCurrent && app.backend && app.backend.player && app.backend.player.playing) ? "⏸" : "▶"
             onClicked: {
                 if (!app.backend) return
                 if (root.isCurrent) {
