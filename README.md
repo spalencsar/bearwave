@@ -20,6 +20,11 @@ station artwork, visible playback connection states, and an in-app changelog.
 See the [version notes](CHANGELOG.md#version-notes-110--120) for release
 history.
 
+> **Android version:** BearWave is also available as a separate Android app
+> with Android Auto and Google Cast support. See BearWave Android on
+> [GitHub](https://github.com/spalencsar/bearwave-android) or
+> [GitLab](https://gitlab.com/spalencsar/bearwave-android).
+
 ## Screenshots
 
 | Main window                              | World browser                           |
