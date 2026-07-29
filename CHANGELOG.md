@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Declare `qt6-tools` as an Arch build dependency so clean AUR builds can find Qt6 LinguistTools.
+
 ## [1.2.0] - 2026-07-25
 
 ### Added
