@@ -171,17 +171,32 @@ void RadioBackendPlaybackTest::resume_disables_list_navigation()
 
 void RadioBackendPlaybackTest::station_list_next_uses_filtered_index()
 {
-    RadioBackend backend;
+    const QString topEndpoint = QStringLiteral("/stations/topvote/100");
+    QJsonArray stations;
+    stations.append(QJsonObject{
+        {QStringLiteral("name"), QStringLiteral("Station One")},
+        {QStringLiteral("url_resolved"), QStringLiteral("http://example.com/one")},
+        {QStringLiteral("country"), QStringLiteral("DE")},
+        {QStringLiteral("stationuuid"), QStringLiteral("uuid-one")}
+    });
+    stations.append(QJsonObject{
+        {QStringLiteral("name"), QStringLiteral("Station Two")},
+        {QStringLiteral("url_resolved"), QStringLiteral("http://example.com/two")},
+        {QStringLiteral("country"), QStringLiteral("DE")},
+        {QStringLiteral("stationuuid"), QStringLiteral("uuid-two")}
+    });
+    writeStationListCache(topEndpoint, stations);
 
-    backend.addManualStation(QStringLiteral("Station One"), QStringLiteral("http://example.com/one"), QStringLiteral("DE"));
-    backend.addManualStation(QStringLiteral("Station Two"), QStringLiteral("http://example.com/two"), QStringLiteral("DE"));
+    RadioBackend backend;
+    backend.loadTopStations();
+    QTRY_VERIFY_WITH_TIMEOUT(backend.stations().size() == 2, 2000);
 
     backend.playStation(0);
-    QCOMPARE(backend.currentStationUrl(), QStringLiteral("http://example.com/two"));
+    QCOMPARE(backend.currentStationUrl(), QStringLiteral("http://example.com/one"));
     QVERIFY(backend.hasNextStation());
 
     backend.playNextStation();
-    QCOMPARE(backend.currentStationUrl(), QStringLiteral("http://example.com/one"));
+    QCOMPARE(backend.currentStationUrl(), QStringLiteral("http://example.com/two"));
 }
 
 void RadioBackendPlaybackTest::history_next_does_not_jump_to_station_list()
@@ -317,11 +332,11 @@ void RadioBackendPlaybackTest::manual_station_rejects_unsafe_url_scheme()
     RadioBackend backend;
 
     backend.addManualStation(QStringLiteral("Unsafe"), QStringLiteral("file:///etc/passwd"), QStringLiteral("DE"));
-    QCOMPARE(backend.stations().size(), 0);
+    QCOMPARE(backend.manualStations().size(), 0);
     QVERIFY(!backend.lastError().isEmpty());
 
     backend.addManualStation(QStringLiteral("FTP"), QStringLiteral("ftp://example.com/stream"), QStringLiteral("DE"));
-    QCOMPARE(backend.stations().size(), 0);
+    QCOMPARE(backend.manualStations().size(), 0);
 }
 
 void RadioBackendPlaybackTest::manual_station_accepts_http_and_https()
@@ -329,11 +344,13 @@ void RadioBackendPlaybackTest::manual_station_accepts_http_and_https()
     RadioBackend backend;
 
     backend.addManualStation(QStringLiteral("HTTP"), QStringLiteral("http://example.com/stream"), QStringLiteral("DE"));
-    QCOMPARE(backend.stations().size(), 1);
+    QCOMPARE(backend.manualStations().size(), 1);
     QCOMPARE(backend.lastError(), QString());
 
     backend.addManualStation(QStringLiteral("HTTPS"), QStringLiteral("https://example.com/stream"), QStringLiteral("DE"));
-    QCOMPARE(backend.stations().size(), 2);
+    QCOMPARE(backend.manualStations().size(), 2);
+    // My stations stay out of the Radio Browser list model.
+    QCOMPARE(backend.stations().size(), 0);
 }
 
 void RadioBackendPlaybackTest::playback_rejects_unsafe_url_from_station_list()
@@ -420,10 +437,11 @@ void RadioBackendPlaybackTest::selected_station_tracks_visible_list_selection()
 
     backend.addManualStation(QStringLiteral("Station One"), QStringLiteral("http://example.com/one"), QStringLiteral("DE"));
     backend.addManualStation(QStringLiteral("Station Two"), QStringLiteral("http://example.com/two"), QStringLiteral("DE"));
-
+    QCOMPARE(backend.manualStations().size(), 2);
+    // Sorted by name: One = 0, Two = 1. Last add selects Station Two.
     QCOMPARE(backend.selectedStation().value(QStringLiteral("name")).toString(), QStringLiteral("Station Two"));
 
-    backend.selectStation(1);
+    backend.selectManualStation(0);
     QCOMPARE(backend.selectedStation().value(QStringLiteral("name")).toString(), QStringLiteral("Station One"));
     QCOMPARE(backend.currentStationUrl(), QString());
 }
@@ -434,7 +452,7 @@ void RadioBackendPlaybackTest::play_selected_station_uses_selection_without_prio
 
     backend.addManualStation(QStringLiteral("Station One"), QStringLiteral("http://example.com/one"), QStringLiteral("DE"));
     backend.addManualStation(QStringLiteral("Station Two"), QStringLiteral("http://example.com/two"), QStringLiteral("DE"));
-    backend.selectStation(1);
+    backend.selectManualStation(0);
 
     QVERIFY(backend.playSelectedStation());
     QCOMPARE(backend.currentStationUrl(), QStringLiteral("http://example.com/one"));
@@ -474,14 +492,15 @@ void RadioBackendPlaybackTest::player_exposes_connection_and_retry_states()
                    QStringLiteral("Test Station"));
     QCOMPARE(player.connectionState(), QStringLiteral("connecting"));
 
-    QVERIFY(QMetaObject::invokeMethod(
-        &player, "onMediaStatusChanged", Qt::DirectConnection,
-        Q_ARG(QMediaPlayer::MediaStatus, QMediaPlayer::BufferingMedia)));
-    QCOMPARE(player.connectionState(), QStringLiteral("buffering"));
-
+    // Playing takes priority over BufferingMedia (live streams re-buffer often).
     QVERIFY(QMetaObject::invokeMethod(
         &player, "onPlaybackStateChanged", Qt::DirectConnection,
         Q_ARG(QMediaPlayer::PlaybackState, QMediaPlayer::PlayingState)));
+    QCOMPARE(player.connectionState(), QStringLiteral("playing"));
+
+    QVERIFY(QMetaObject::invokeMethod(
+        &player, "onMediaStatusChanged", Qt::DirectConnection,
+        Q_ARG(QMediaPlayer::MediaStatus, QMediaPlayer::BufferingMedia)));
     QCOMPARE(player.connectionState(), QStringLiteral("playing"));
 
     QVERIFY(QMetaObject::invokeMethod(

@@ -128,7 +128,17 @@ void BearPlayer::onPlaybackStateChanged(QMediaPlayer::PlaybackState state) {
     setPlaying(false);
   }
 
-  refreshConnectionState();
+  // Use the signal argument (not a re-read of the player) so Playing/Paused win
+  // immediately and stay consistent with setPlaying() above.
+  if (!m_hasActiveSource) {
+    setConnectionState(QStringLiteral("idle"));
+  } else if (state == QMediaPlayer::PlayingState) {
+    setConnectionState(QStringLiteral("playing"));
+  } else if (state == QMediaPlayer::PausedState) {
+    setConnectionState(QStringLiteral("paused"));
+  } else {
+    refreshConnectionState();
+  }
 
   if (state == QMediaPlayer::StoppedState && !m_changingSource) {
     scheduleRetry();
@@ -140,8 +150,10 @@ void BearPlayer::onMediaStatusChanged(QMediaPlayer::MediaStatus status) {
   case QMediaPlayer::InvalidMedia:
   case QMediaPlayer::EndOfMedia:
     setPlaying(false);
+    // scheduleRetry sets "retrying"/"error"; do not let refreshConnectionState
+    // overwrite that from a stale or concurrent mediaStatus reading.
     scheduleRetry();
-    break;
+    return;
   case QMediaPlayer::NoMedia:
     if (!m_hasActiveSource) {
       setConnectionState(QStringLiteral("idle"));
@@ -165,7 +177,9 @@ void BearPlayer::refreshConnectionState() {
   }
 
   const auto playback = m_mediaPlayer->playbackState();
-  if (playback == QMediaPlayer::PlayingState) {
+  // Prefer Playing (and our m_playing mirror) over BufferingMedia so live radio
+  // does not stick on "Buffering…" while audio is already audible.
+  if (playback == QMediaPlayer::PlayingState || m_playing) {
     setConnectionState(QStringLiteral("playing"));
     return;
   }

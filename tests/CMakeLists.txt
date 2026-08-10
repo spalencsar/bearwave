@@ -27,6 +27,11 @@ target_include_directories(radiobackend_playback_test PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../src
 )
 
+# radiobrowser.cpp uses BEARWAVE_VERSION in the Radio Browser User-Agent.
+target_compile_definitions(radiobackend_playback_test PRIVATE
+    BEARWAVE_VERSION="${PROJECT_VERSION}"
+)
+
 target_link_libraries(radiobackend_playback_test PRIVATE
     Qt6::Core
     Qt6::Network
@@ -48,6 +53,10 @@ add_executable(radiobrowser_race_test ${RACE_TEST_SOURCES})
 
 target_include_directories(radiobrowser_race_test PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../src
+)
+
+target_compile_definitions(radiobrowser_race_test PRIVATE
+    BEARWAVE_VERSION="${PROJECT_VERSION}"
 )
 
 target_link_libraries(radiobrowser_race_test PRIVATE
