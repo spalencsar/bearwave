@@ -76,13 +76,6 @@
   </provides>
   
   <releases>
-    <release version="1.3.1" date="2026-08-10">
-      <description>
-        <ul>
-          <li>Fix Flatpak: save favorites, My stations, and app state via XDG config paths (issue #7)</li>
-        </ul>
-      </description>
-    </release>
     <release version="1.3.0" date="2026-08-10">
       <description>
         <ul>
@@ -90,6 +83,7 @@
           <li>My stations for manual streams (separate from Favorites), with edit, remove, and country picker</li>
           <li>Responsive transport: stage dock, transport-only bottom strip on short screens, full bar when stage is hidden</li>
           <li>System light/dark theme; ICY and live-stream connection status fixes</li>
+          <li>Flatpak: persist favorites and state via XDG config paths (issue #7)</li>
           <li>Universal Qt 6 product framing (not KDE-only); Flatpak remains on org.kde.Platform as the Qt runtime</li>
         </ul>
       </description>

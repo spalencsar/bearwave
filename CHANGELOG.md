@@ -7,17 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.3.1] - 2026-08-10
-
-### Fixed
-
-- **Flatpak:** persist favorites, My stations, and state via XDG config/cache
-  paths (`GenericConfigLocation` / `GenericCacheLocation`) instead of a hard-coded
-  `~/.config/bearwave` under `$HOME`, which the sandbox cannot write without
-  overrides ([#7](https://github.com/spalencsar/bearwave/issues/7)).
-- Migrate existing host `~/.config/bearwave` files into the XDG location when the
-  new directory is empty and the legacy path is readable.
-
 ## [1.3.0] - 2026-08-10
 
 Major multi-desktop UI release: universal Linux positioning, Now Playing stage,
@@ -69,6 +58,11 @@ responsive transport, My stations, and a redesigned station list.
   abort cleanly when a stream has no titles, broader StreamTitle parsing.
 - Light mode when the desktop prefers light but Qt alone stayed dark.
 - Arch packaging: `qt6-tools` makedepend; drop unused `extra-cmake-modules`.
+- **Flatpak:** persist favorites, My stations, and state via XDG config/cache
+  paths (`GenericConfigLocation` / `GenericCacheLocation`) instead of a hard-coded
+  `~/.config/bearwave` under `$HOME`, which the sandbox cannot write without
+  overrides ([#7](https://github.com/spalencsar/bearwave/issues/7)). Optional
+  one-shot migration from the legacy host path when the new dir is empty.
 
 ## [1.2.0] - 2026-07-25
 
