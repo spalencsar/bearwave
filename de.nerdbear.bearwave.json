@@ -6,14 +6,20 @@
     "command": "bearwave",
     "finish-args": [
         "--share=network",
+        "--share=ipc",
         "--device=dri",
         "--socket=wayland",
         "--socket=fallback-x11",
         "--socket=pulseaudio",
         "--own-name=org.mpris.MediaPlayer2.bearwave",
         "--talk-name=org.freedesktop.Notifications",
-        "--talk-name=org.kde.StatusNotifierWatcher",
-        "--share=ipc"
+        "--talk-name=org.kde.StatusNotifierWatcher"
+    ],
+    "cleanup": [
+        "/include",
+        "/lib/pkgconfig",
+        "/share/man",
+        "/share/doc"
     ],
     "modules": [
         {

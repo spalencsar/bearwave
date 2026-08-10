@@ -22,6 +22,8 @@ class RadioBackend : public QObject
 
     Q_PROPERTY(QList<QObject*> stations READ stations NOTIFY stationsChanged)
     Q_PROPERTY(QList<QObject*> favoriteStations READ favoriteStations NOTIFY favoritesChanged)
+    Q_PROPERTY(QList<QObject*> manualStations READ manualStations NOTIFY manualStationsChanged)
+    Q_PROPERTY(QVariantList countryPickerOptions READ countryPickerOptions CONSTANT)
     Q_PROPERTY(BearPlayer* player READ player CONSTANT)
     Q_PROPERTY(bool loading READ loading NOTIFY loadingChanged)
     Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
@@ -41,6 +43,8 @@ public:
 
     QList<QObject*> stations() const;
     QList<QObject*> favoriteStations() const;
+    QList<QObject*> manualStations() const;
+    QVariantList countryPickerOptions() const { return m_countryPickerOptions; }
     QVariantList recentStations() const;
     QVariantMap selectedStation() const { return m_selectedStation; }
     QObject* currentStation() const;
@@ -66,8 +70,10 @@ public:
     Q_INVOKABLE void searchStations(const QString &query);
     Q_INVOKABLE void playStation(int index);
     Q_INVOKABLE void playFavoriteStation(int index);
+    Q_INVOKABLE void playManualStation(int index);
     Q_INVOKABLE void selectStation(int index);
     Q_INVOKABLE void selectFavoriteStation(int index);
+    Q_INVOKABLE void selectManualStation(int index);
     Q_INVOKABLE bool selectRecentByUuid(const QString &uuid, const QString &urlResolved = QString());
     Q_INVOKABLE bool playSelectedStation();
     Q_INVOKABLE void playNextStation();
@@ -78,6 +84,7 @@ public:
     Q_INVOKABLE void toggleFavoriteById(const QString &uuid, const QString &urlResolved);
     Q_INVOKABLE void addManualStation(const QString &name, const QString &url, const QString &country);
     Q_INVOKABLE void editManualStation(QObject *stationObj, const QString &name, const QString &url, const QString &country);
+    Q_INVOKABLE void removeManualStation(const QString &uuid, const QString &urlResolved = QString());
     Q_INVOKABLE void sortStations(const QString &mode);
     Q_INVOKABLE QVariantList getRecentStations() const;
     Q_INVOKABLE QVariantList getFavoriteStations() const;
@@ -99,6 +106,7 @@ public:
 signals:
     void stationsChanged();
     void favoritesChanged();
+    void manualStationsChanged();
     void listsChanged();
     void loadingChanged();
     void lastErrorChanged();
@@ -122,8 +130,11 @@ private:
     QList<RadioStation*> m_stations;
     QList<RadioStation*> m_filteredStations;
     QList<RadioStation*> m_favorites;
+    QList<RadioStation*> m_manualStations;
+    QVariantList m_countryPickerOptions;
     int m_currentIndex = -1;
     bool m_currentFromFavorites = false;
+    bool m_currentFromManual = false;
     bool m_currentFromHistory = false;
     bool m_standalonePlayback = false;
     bool m_loading = false;
@@ -142,6 +153,9 @@ private:
     void beginLoad();
     void loadFavorites();
     void saveFavorites() const;
+    void loadManualStations();
+    void saveManualStations() const;
+    void buildCountryPickerOptions();
     void loadState();
     void saveState() const;
     void setLoading(bool loading);

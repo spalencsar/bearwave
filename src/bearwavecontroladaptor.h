@@ -12,7 +12,7 @@ class RadioBackend;
 class BearWaveControlAdaptor : public QDBusAbstractAdaptor
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "org.kde.BearWave.Control")
+    Q_CLASSINFO("D-Bus Interface", "de.nerdbear.BearWave.Control")
 
 public:
     explicit BearWaveControlAdaptor(RadioBackend *backend);

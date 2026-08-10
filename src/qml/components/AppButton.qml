@@ -6,41 +6,47 @@ import QtQuick.Controls 2.15
 
 import theme 1.0
 
+// Soft chip button — flatter than stock Fusion/KDE toolbuttons.
 Button {
     id: control
 
-    // Keep keyboard navigation without retaining focus after a mouse click.
     focusPolicy: Qt.TabFocus
-    leftPadding: 12
-    rightPadding: 12
-    topPadding: 6
-    bottomPadding: 6
+    leftPadding: 14
+    rightPadding: 14
+    topPadding: 7
+    bottomPadding: 7
+    font.pixelSize: 12
 
     contentItem: Label {
         text: control.text
-        color: control.enabled ? BearTheme.textMain : BearTheme.textMuted
-        font: control.font
+        color: {
+            if (!control.enabled)
+                return BearTheme.textMuted
+            if (control.highlighted || control.down)
+                return BearTheme.isLight ? BearTheme.accent : BearTheme.textMain
+            return BearTheme.textMain
+        }
+        font.pixelSize: control.font.pixelSize
+        font.family: control.font.family
+        font.bold: control.highlighted
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         elide: Text.ElideRight
     }
 
     background: Rectangle {
-        radius: 7
-        color: control.down || control.highlighted
-               ? BearTheme.selection
-               : (control.hovered
-                  ? BearTheme.cardHover
-                  : (control.flat ? "transparent" : BearTheme.imageWell))
-        border.color: control.visualFocus || control.hovered
-                      ? BearTheme.accent
-                      : (control.highlighted
-                         ? BearTheme.selectionBorder
-                         : BearTheme.cardBorder)
-        border.width: control.flat
-                      && !control.hovered
-                      && !control.highlighted
-                      && !control.visualFocus ? 0 : 1
-        opacity: control.enabled ? 1.0 : 0.55
+        radius: 16
+        color: {
+            if (control.flat && !control.hovered && !control.highlighted && !control.down)
+                return "transparent"
+            if (control.highlighted || control.down)
+                return BearTheme.isLight ? "#ffe4ee" : "#2a2430"
+            if (control.hovered)
+                return BearTheme.cardHover
+            return BearTheme.isLight ? "#ebebf0" : "#1a1a1e"
+        }
+        border.width: control.visualFocus ? 1.5 : (control.highlighted ? 1 : 0)
+        border.color: control.visualFocus || control.highlighted ? BearTheme.accent : "transparent"
+        opacity: control.enabled ? 1.0 : 0.5
     }
 }

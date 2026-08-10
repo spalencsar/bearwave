@@ -28,6 +28,7 @@ private slots:
 
 private:
     void parseMetaData(const QByteArray &metaData, quint64 sourceGeneration);
+    bool ensureMetaInt(QNetworkReply *reply);
 
     QNetworkAccessManager *m_nam = nullptr;
     QNetworkReply *m_reply = nullptr;
@@ -39,9 +40,10 @@ private:
     };
 
     State m_state = ReadingAudio;
-    int m_metaInt = 0;
+    int m_metaInt = 0; // 0 = unknown, >0 = interval, <0 = no ICY on this stream
     int m_audioBytesRead = 0;
     int m_metaLength = 0;
+    bool m_headersChecked = false;
 };
 
 #endif // ICYREADER_H

@@ -7,6 +7,7 @@ import QtQuick.Layouts 1.15
 
 import theme 1.0
 
+// Soft pill search bar, not stock Fusion/KDE TextField chrome.
 ColumnLayout {
     id: root
 
@@ -18,138 +19,122 @@ ColumnLayout {
 
     spacing: 0
 
+    function runSearch() {
+        if (searchField.text.length < 2 || !app.backend)
+            return
+        app.currentPage = "search"
+        app.backend.searchStations(searchField.text)
+    }
+
+    function clearSearch() {
+        searchField.text = ""
+        if (app.backend)
+            app.backend.filterQuery = ""
+        app.currentPage = "top"
+        if (app.backend)
+            app.backend.loadTopStations()
+    }
+
     RowLayout {
-        visible: !root.compactMode
         Layout.fillWidth: true
-        spacing: 8
+        spacing: 10
 
-        TextField {
-            id: searchField
+        // Pill field
+        Rectangle {
+            id: searchShell
             Layout.fillWidth: true
-            Layout.preferredHeight: 30
-            placeholderText: qsTr("Station, genre, country search")
-            onTextChanged: {
-                if (app.backend) {
-                    app.backend.filterQuery = text
+            Layout.preferredHeight: 42
+            radius: 21
+            color: BearTheme.isLight ? "#ebebf0" : "#1a1a1e"
+            border.width: searchField.activeFocus ? 1.5 : 1
+            border.color: searchField.activeFocus ? BearTheme.accent : BearTheme.cardBorder
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 14
+                anchors.rightMargin: 8
+                spacing: 8
+
+                Label {
+                    text: "🔍"
+                    font.pixelSize: 15
+                    font.family: "Noto Color Emoji, Noto Sans, sans-serif"
+                    opacity: 0.85
                 }
-                searchTimer.restart()
-            }
-            onAccepted: {
-                if (text.length < 2 || !app.backend) return
-                app.currentPage = "search"
-                app.backend.searchStations(text)
+
+                TextField {
+                    id: searchField
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    verticalAlignment: TextInput.AlignVCenter
+                    leftPadding: 0
+                    rightPadding: 0
+                    topPadding: 0
+                    bottomPadding: 0
+                    color: BearTheme.textMain
+                    placeholderTextColor: BearTheme.textMuted
+                    placeholderText: qsTr("Search stations, genre, country…")
+                    font.pixelSize: 14
+                    selectByMouse: true
+                    background: Item {}
+
+                    onTextChanged: {
+                        if (app.backend)
+                            app.backend.filterQuery = text
+                        searchTimer.restart()
+                    }
+                    onAccepted: root.runSearch()
+                    Keys.onEscapePressed: root.clearSearch()
+                }
+
+                // Inline clear
+                Rectangle {
+                    visible: searchField.text.length > 0
+                    Layout.preferredWidth: 28
+                    Layout.preferredHeight: 28
+                    radius: 14
+                    color: clearMa.containsMouse ? BearTheme.cardHover : "transparent"
+
+                    Label {
+                        anchors.centerIn: parent
+                        text: "✕"
+                        color: BearTheme.textMuted
+                        font.pixelSize: 12
+                        font.bold: true
+                    }
+                    MouseArea {
+                        id: clearMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.clearSearch()
+                    }
+                }
             }
         }
 
-        AppButton {
-            text: qsTr("Search")
-            Layout.preferredHeight: 30
-            onClicked: {
-                if (searchField.text.length < 2 || !app.backend) return
-                app.currentPage = "search"
-                app.backend.searchStations(searchField.text)
-            }
-        }
+        // Primary search action
+        Rectangle {
+            Layout.preferredHeight: 42
+            Layout.preferredWidth: Math.max(searchBtnLabel.implicitWidth + 28, 88)
+            radius: 21
+            color: searchMa.containsMouse || searchMa.pressed ? Qt.darker(BearTheme.accent, 1.1) : BearTheme.accent
 
-        AppButton {
-            text: qsTr("Clear")
-            Layout.preferredHeight: 30
-            enabled: searchField.text.length > 0
-            onClicked: {
-                searchField.text = ""
-                if (app.backend) {
-                    app.backend.filterQuery = ""
-                }
-                app.currentPage = "top"
-                if (app.backend) app.backend.loadTopStations()
-            }
-        }
-    }
-
-    ColumnLayout {
-        visible: root.compactMode
-        Layout.fillWidth: true
-        spacing: 8
-
-        TextField {
-            id: compactSearchField
-            Layout.fillWidth: true
-            placeholderText: qsTr("Search stations (name, genre, country)")
-            text: searchField.text
-            onTextChanged: {
-                if (searchField.text !== text) {
-                    searchField.text = text
-                }
-                if (app.backend) {
-                    app.backend.filterQuery = text
-                }
-                searchTimer.restart()
-            }
-            onAccepted: {
-                if (text.length < 2 || !app.backend) return
-                app.currentPage = "search"
-                app.backend.searchStations(text)
-            }
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 8
-
-            Item { Layout.fillWidth: true }
-
-            AppButton {
+            Label {
+                id: searchBtnLabel
+                anchors.centerIn: parent
                 text: qsTr("Search")
-                highlighted: true
-                onClicked: {
-                    if (compactSearchField.text.length < 2 || !app.backend) return
-                    app.currentPage = "search"
-                    app.backend.searchStations(compactSearchField.text)
-                }
+                color: "#ffffff"
+                font.pixelSize: 13
+                font.bold: true
+            }
+            MouseArea {
+                id: searchMa
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.runSearch()
             }
         }
-
-        Flow {
-            Layout.fillWidth: true
-            width: parent.width
-            spacing: 8
-
-            AppButton {
-                text: "A-Z"
-                onClicked: {
-                    if (app.backend && app.currentPage !== "favorites") {
-                        app.backend.sortStations("name")
-                    }
-                }
-            }
-
-            AppButton {
-                text: "kb"
-                onClicked: {
-                    if (app.backend && app.currentPage !== "favorites") {
-                        app.backend.sortStations("bitrate")
-                    }
-                }
-            }
-
-            AppButton {
-                text: "❤"
-                onClicked: {
-                    if (app.backend && app.currentPage !== "favorites") {
-                        app.backend.sortStations("votes")
-                    }
-                }
-            }
-        }
-    }
-
-    Label {
-        visible: false
-        Layout.fillWidth: true
-        text: ""
-        color: BearTheme.textMuted
-        font.pixelSize: 11
-        wrapMode: root.compactMode ? Text.WordWrap : Text.NoWrap
-        elide: root.compactMode ? Text.ElideNone : Text.ElideRight
     }
 }

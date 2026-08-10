@@ -1,13 +1,13 @@
 # Contributing to BearWave
 
-BearWave is a KDE-focused desktop internet radio app built with C++/Qt 6, QML, and QtMultimedia.
+BearWave is a Qt 6 desktop internet radio app for Linux, built with C++/QML and QtMultimedia.
 
 The project favors:
 
 - stability over feature churn
-- minimal dependencies
+- minimal dependencies (Qt only at runtime)
 - readable, conservative code
-- Plasma-friendly desktop behavior
+- solid desktop integration (MPRIS, tray) across environments
 
 ## Before You Contribute
 
@@ -37,12 +37,18 @@ If you changed QML:
 qmllint src/qml/Main.qml src/qml/components/*.qml src/qml/theme/BearTheme.qml
 ```
 
-For UI layout work that should be tested separately from the default build tree:
+### Layout modes to smoke-test after UI changes
+
+| Window | Expectation |
+|--------|-------------|
+| Wide + tall (`≥1240` × `≥960`) | Now Playing stage + transport **dock** in the stage |
+| Wide + short (e.g. `1440×900`) | Stage open, **compact cover**, bottom **transport-only** strip |
+| Narrow (`<1240`) | No stage; **full** bottom player bar |
 
 ```bash
-cmake -S . -B build-maclayout -DCMAKE_BUILD_TYPE=Release
-cmake --build build-maclayout -j"$(nproc)"
-./build-maclayout/src/bearwave
+# Example short-window check
+./build/src/bearwave
+# then resize to ~1440×900
 ```
 
 Run unit tests after backend changes:

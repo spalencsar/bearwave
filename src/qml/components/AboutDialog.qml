@@ -142,9 +142,18 @@ Dialog {
 
                         Label {
                             Layout.fillWidth: true
-                            text: qsTr("Internet Radio Player for KDE")
-                            color: BearTheme.textMuted
+                            text: qsTr("Desktop internet radio")
+                            color: BearTheme.accent
                             font.pixelSize: 14
+                            font.bold: true
+                        }
+
+                        Label {
+                            Layout.fillWidth: true
+                            text: qsTr("Qt 6 app for Linux — works across desktop environments.")
+                            color: BearTheme.textMuted
+                            font.pixelSize: 12
+                            wrapMode: Text.WordWrap
                         }
 
                         Label {
@@ -275,7 +284,7 @@ Dialog {
                     Layout.fillHeight: true
                     Layout.minimumHeight: 150
                     radius: 10
-                    color: "#101a26"
+                    color: BearTheme.panelAlt
                     border.color: BearTheme.cardBorder
 
                     ScrollView {
@@ -328,7 +337,7 @@ Dialog {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 radius: 10
-                color: "#101a26"
+                color: BearTheme.panelAlt
                 border.color: BearTheme.cardBorder
 
                 ScrollView {

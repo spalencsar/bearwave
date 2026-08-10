@@ -13,8 +13,17 @@ Rectangle {
     required property var app
 
     color: BearTheme.sidebar
-    border.color: "transparent"
+    border.width: 0
     radius: 0
+
+    Rectangle {
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        width: 1
+        color: BearTheme.cardBorder
+        opacity: 0.55
+    }
 
     function showTop() {
         if (!app.backend) return
@@ -48,6 +57,14 @@ Rectangle {
         }
     }
 
+    function showMyStations() {
+        app.currentPage = "mystations"
+        app.activeQuickFilter = ""
+        if (app.backend && app.backend.manualStations.length > 0) {
+            app.backend.selectManualStation(0)
+        }
+    }
+
     function showFavorites() {
         app.currentPage = "favorites"
         app.activeQuickFilter = ""
@@ -67,19 +84,23 @@ Rectangle {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.leftMargin: 12
-        anchors.rightMargin: 10
-        anchors.topMargin: 14
-        anchors.bottomMargin: 10
-        spacing: 9
+        anchors.leftMargin: 14
+        anchors.rightMargin: 12
+        anchors.topMargin: 16
+        anchors.bottomMargin: 14
+        spacing: 4
 
-        RowLayout {
+        // Brand
+        Item {
             Layout.fillWidth: true
-            spacing: 8
+            Layout.preferredHeight: 40
+            Layout.bottomMargin: 10
 
             Image {
-                Layout.preferredWidth: 120
-                Layout.preferredHeight: 34
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                width: 128
+                height: 36
                 source: "qrc:/assets/app/bearwave_line.png"
                 fillMode: Image.PreserveAspectFit
                 smooth: true
@@ -87,66 +108,114 @@ Rectangle {
             }
         }
 
-        SidebarSectionLabel { text: qsTr("Stations") }
-        SidebarRow { text: qsTr("Top"); iconText: "▮"; active: app.currentPage === "top"; onClicked: root.showTop() }
-        SidebarRow { text: qsTr("Germany"); iconText: "⚑"; active: app.currentPage === "german"; onClicked: root.showGerman() }
-        SidebarRow { text: qsTr("Netherlands"); iconText: "⚐"; active: app.currentPage === "dutch"; onClicked: root.showDutch() }
-        SidebarRow { text: qsTr("World"); iconText: "◎"; active: app.currentPage === "world"; onClicked: root.showWorld() }
-        SidebarRow { text: qsTr("Search Results"); iconText: "⌕"; active: app.currentPage === "search"; onClicked: app.currentPage = "search" }
+        SidebarSectionLabel { text: qsTr("Browse") }
 
-        SidebarSectionLabel { text: qsTr("Library"); Layout.topMargin: 10 }
+        SidebarRow {
+            text: qsTr("Top")
+            iconName: "top"
+            active: app.currentPage === "top"
+            onClicked: root.showTop()
+        }
+        SidebarRow {
+            text: qsTr("Germany")
+            code: "DE"
+            active: app.currentPage === "german"
+            onClicked: root.showGerman()
+        }
+        SidebarRow {
+            text: qsTr("Netherlands")
+            code: "NL"
+            active: app.currentPage === "dutch"
+            onClicked: root.showDutch()
+        }
+        SidebarRow {
+            text: qsTr("World")
+            iconName: "globe"
+            active: app.currentPage === "world"
+            onClicked: root.showWorld()
+        }
+        SidebarRow {
+            text: qsTr("Search Results")
+            iconName: "search"
+            active: app.currentPage === "search"
+            onClicked: app.currentPage = "search"
+        }
+
+        SidebarSectionLabel {
+            text: qsTr("Library")
+            Layout.topMargin: 14
+        }
+
+        SidebarRow {
+            text: qsTr("My stations")
+            iconName: "radio"
+            active: app.currentPage === "mystations"
+            badge: app.backend ? app.backend.manualStations.length : 0
+            onClicked: root.showMyStations()
+        }
         SidebarRow {
             text: qsTr("Favorites")
-            iconText: "★"
+            iconName: "heart"
             active: app.currentPage === "favorites"
             badge: app.backend ? app.backend.favoriteStations.length : 0
             onClicked: root.showFavorites()
         }
         SidebarRow {
             text: qsTr("Recent")
-            iconText: "◴"
+            iconName: "clock"
             active: app.currentPage === "history"
             badge: app.backend ? app.backend.recentStations.length : 0
             onClicked: root.showHistory()
         }
         SidebarRow {
-            text: qsTr("Manual")
-            iconText: "+"
+            text: qsTr("Add station")
+            iconName: "plus"
             active: false
             onClicked: app.addDialog.open()
         }
 
-        SidebarSectionLabel { text: qsTr("Folders"); Layout.topMargin: 10 }
-        Label {
-            Layout.fillWidth: true
-            text: qsTr("No folders yet")
-            color: BearTheme.textMuted
-            font.pixelSize: 11
-            wrapMode: Text.WordWrap
-        }
-
         Item { Layout.fillHeight: true }
+
+        // Footer tools
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 1
+            color: BearTheme.cardBorder
+            opacity: 0.6
+            Layout.bottomMargin: 8
+        }
 
         RowLayout {
             Layout.fillWidth: true
-            AppButton {
-                text: "+"
-                Layout.preferredWidth: 36
+            spacing: 8
+
+            IconButton {
+                iconName: "plus"
+                iconSize: 16
+                implicitWidth: 40
+                implicitHeight: 40
                 ToolTip.visible: hovered
                 ToolTip.text: qsTr("Add Station")
                 onClicked: app.addDialog.open()
             }
-            AppButton {
-                text: "?"
-                Layout.preferredWidth: 36
+            IconButton {
+                iconName: "info"
+                iconSize: 18
+                implicitWidth: 40
+                implicitHeight: 40
+                flat: true
                 ToolTip.visible: hovered
                 ToolTip.text: qsTr("About")
                 onClicked: app.aboutDialog.open()
             }
-            AppButton {
+            Item { Layout.fillWidth: true }
+            IconButton {
                 visible: app.backend && app.backend.canResumeLastStation
-                text: "↻"
-                Layout.preferredWidth: 36
+                iconName: "refresh"
+                iconSize: 16
+                implicitWidth: 40
+                implicitHeight: 40
+                highlighted: true
                 ToolTip.visible: hovered
                 ToolTip.text: qsTr("Resume")
                 onClicked: app.backend.resumeLastStation()
@@ -155,52 +224,135 @@ Rectangle {
     }
 
     component SidebarSectionLabel: Label {
+        id: sectionLabel
         Layout.fillWidth: true
+        Layout.topMargin: 2
+        Layout.bottomMargin: 4
         color: BearTheme.textMuted
-        font.pixelSize: 11
+        font.pixelSize: 10
         font.bold: true
-        leftPadding: 4
+        font.letterSpacing: 1.1
+        leftPadding: 10
+        // Visual style: section captions in small caps feel.
+        font.capitalization: Font.AllUppercase
     }
 
-    component SidebarRow: AppButton {
+    component SidebarRow: Item {
         id: row
-        property string iconText: ""
+        property string text: ""
+        property string iconName: ""
+        property string code: "" // e.g. DE / NL chip instead of icon
         property bool active: false
         property int badge: 0
+        signal clicked()
 
         Layout.fillWidth: true
-        height: 30
-        highlighted: false
-        flat: true
-        background: Rectangle {
-            radius: 6
-            color: row.active ? BearTheme.selection : (row.hovered ? BearTheme.cardHover : "transparent")
+        Layout.preferredHeight: 40
+        Accessible.role: Accessible.Button
+        Accessible.name: text
+        Accessible.onPressAction: row.clicked()
+
+        Rectangle {
+            id: bg
+            anchors.fill: parent
+            radius: 10
+            color: row.active
+                   ? BearTheme.selection
+                   : (rowMouse.containsMouse ? BearTheme.cardHover : "transparent")
             border.color: row.active ? BearTheme.selectionBorder : "transparent"
             border.width: row.active ? 1 : 0
+            Behavior on color { ColorAnimation { duration: 100 } }
         }
-        contentItem: RowLayout {
-            spacing: 8
-            Label {
-                text: row.iconText
-                color: row.active ? BearTheme.textMain : BearTheme.textMuted
-                font.pixelSize: 14
-                Layout.preferredWidth: 18
-                horizontalAlignment: Text.AlignHCenter
+
+        // Active accent bar
+        Rectangle {
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            width: 3
+            height: parent.height - 12
+            radius: 2
+            color: BearTheme.accent
+            visible: row.active
+        }
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 10
+            anchors.rightMargin: 10
+            spacing: 10
+
+            // Icon or country code chip
+            Item {
+                Layout.preferredWidth: 28
+                Layout.preferredHeight: 28
+
+                MediaIcon {
+                    anchors.centerIn: parent
+                    width: 18
+                    height: 18
+                    visible: row.iconName.length > 0
+                    name: row.iconName
+                    color: row.active ? BearTheme.accent : BearTheme.textMuted
+                }
+
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 26
+                    height: 20
+                    radius: 5
+                    visible: row.code.length > 0
+                    color: row.active
+                           ? (BearTheme.isLight ? "#ffe4ee" : "#2a2430")
+                           : (BearTheme.isLight ? "#e4e4ea" : "#1a1a1e")
+                    border.color: row.active ? BearTheme.accent : "transparent"
+                    border.width: row.active ? 1 : 0
+
+                    Label {
+                        anchors.centerIn: parent
+                        text: row.code
+                        color: row.active ? BearTheme.accent : BearTheme.textMuted
+                        font.pixelSize: 9
+                        font.bold: true
+                    }
+                }
             }
+
             Label {
+                Layout.fillWidth: true
                 text: row.text
                 color: row.active ? BearTheme.textMain : BearTheme.textMuted
                 font.pixelSize: 13
                 font.bold: row.active
                 elide: Text.ElideRight
-                Layout.fillWidth: true
             }
-            Label {
+
+            // Badge pill
+            Rectangle {
                 visible: row.badge > 0
-                text: row.badge
-                color: BearTheme.textMuted
-                font.pixelSize: 11
+                height: 20
+                width: Math.max(20, badgeLabel.implicitWidth + 10)
+                radius: 10
+                color: row.active
+                       ? (BearTheme.isLight ? "#ffd6e6" : "#32323a")
+                       : (BearTheme.isLight ? "#e4e4ea" : "#1c1c20")
+
+                Label {
+                    id: badgeLabel
+                    anchors.centerIn: parent
+                    text: row.badge > 99 ? "99+" : String(row.badge)
+                    color: row.active ? BearTheme.accent : BearTheme.textMuted
+                    font.pixelSize: 10
+                    font.bold: true
+                }
             }
+        }
+
+        MouseArea {
+            id: rowMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: row.clicked()
         }
     }
 }

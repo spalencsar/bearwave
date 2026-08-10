@@ -6,6 +6,7 @@
 
 #include <QObject>
 #include <QTimer>
+#include <QVariantList>
 
 #include <QMediaPlayer>
 #include <QAudioOutput>
@@ -24,6 +25,8 @@ class BearPlayer : public QObject
     Q_PROPERTY(QString currentNowPlaying READ currentNowPlaying NOTIFY trackInfoChanged)
     Q_PROPERTY(QString currentCoverArtUrl READ currentCoverArtUrl NOTIFY trackInfoChanged)
     Q_PROPERTY(QString connectionState READ connectionState NOTIFY connectionStateChanged)
+    // Session history of previous ICY/Qt metadata tracks (newest first; excludes current).
+    Q_PROPERTY(QVariantList trackHistory READ trackHistory NOTIFY trackHistoryChanged)
 
 public:
     explicit BearPlayer(QObject *parent = nullptr);
@@ -37,6 +40,7 @@ public:
     QString currentCoverArtUrl() const { return m_nowPlayingState.coverUrl(); }
     QString currentNowPlaying() const;
     QString connectionState() const { return m_connectionState; }
+    QVariantList trackHistory() const { return m_trackHistory; }
 
     Q_INVOKABLE void playUrl(const QString &url, const QString &name);
     Q_INVOKABLE void stop();
@@ -49,6 +53,7 @@ signals:
     void currentStationChanged(const QString &stationName);
     void trackInfoChanged();
     void connectionStateChanged();
+    void trackHistoryChanged();
 
 private slots:
     void onPlaybackStateChanged(QMediaPlayer::PlaybackState state);
@@ -59,9 +64,17 @@ private slots:
 
 private:
     void clearTrackInfo();
+    void clearTrackHistory();
+    void recordTrackHistoryTransition(const QString &previousArtist, const QString &previousTitle);
+    bool applyTrackMetadata(quint64 sourceGeneration, const QString &artist, const QString &title);
     void scheduleRetry();
+    void refreshConnectionState();
     void setConnectionState(const QString &state);
     void setPlaying(bool playing);
+
+    static QString formatTrackLine(const QString &artist, const QString &title);
+
+    static constexpr int kMaxTrackHistory = 30;
 
     QMediaPlayer *m_mediaPlayer = nullptr;
     QAudioOutput *m_audioOutput = nullptr;
@@ -73,6 +86,7 @@ private:
     CoverArtFetcher *m_coverArtFetcher = nullptr;
     IcyReader *m_icyReader = nullptr;
     NowPlayingState m_nowPlayingState;
+    QVariantList m_trackHistory;
     int m_retryAttempts = 0;
     bool m_playing = false;
     bool m_hasActiveSource = false;

@@ -9,6 +9,9 @@ StationDetailPanel 1.0 StationDetailPanel.qml
 WorldCategoryHeader 1.0 WorldCategoryHeader.qml
 WorldCategories 1.0 WorldCategories.qml
 PlayerBar 1.0 PlayerBar.qml
+PlayerTransport 1.0 PlayerTransport.qml
+MediaIcon 1.0 MediaIcon.qml
+IconButton 1.0 IconButton.qml
 AboutDialog 1.0 AboutDialog.qml
 AddStationDialog 1.0 AddStationDialog.qml
 EditStationDialog 1.0 EditStationDialog.qml

@@ -50,7 +50,8 @@ ColumnLayout {
             color: BearTheme.textMuted
             font.pixelSize: 11
             font.bold: true
-            rightPadding: 8
+            rightPadding: 4
+            opacity: 0.9
         }
 
         AppButton {
@@ -142,16 +143,17 @@ ColumnLayout {
 
         Flow {
             Layout.fillWidth: true
-            width: parent.width
+            width: parent ? parent.width : 400
             spacing: 8
 
             Label {
-                text: qsTr("Genre:")
+                text: qsTr("Quick")
                 color: BearTheme.textMuted
                 font.pixelSize: 11
+                font.bold: true
                 verticalAlignment: Text.AlignVCenter
-                leftPadding: 8
-                rightPadding: 16
+                leftPadding: 4
+                rightPadding: 8
                 topPadding: 8
                 bottomPadding: 8
             }
@@ -173,23 +175,6 @@ ColumnLayout {
                 highlighted: app.activeQuickFilter === "tag:jazz"
                 onClicked: loadTag("jazz", "genre-jazz")
             }
-        }
-
-        Flow {
-            Layout.fillWidth: true
-            width: parent.width
-            spacing: 8
-
-            Label {
-                text: qsTr("Country:")
-                color: BearTheme.textMuted
-                font.pixelSize: 11
-                verticalAlignment: Text.AlignVCenter
-                leftPadding: 8
-                rightPadding: 16
-                topPadding: 8
-                bottomPadding: 8
-            }
 
             AppButton {
                 text: qsTr("US")
@@ -198,7 +183,7 @@ ColumnLayout {
             }
 
             AppButton {
-                text: qsTr("UK")
+                text: qsTr("GB")
                 highlighted: app.activeQuickFilter === "cc:GB"
                 onClicked: loadCountry("GB", "country-gb")
             }
@@ -210,9 +195,54 @@ ColumnLayout {
             }
 
             AppButton {
-                text: qsTr("WORLD")
+                text: qsTr("World")
                 highlighted: app.activeQuickFilter === "world"
                 onClicked: openWorld()
+            }
+        }
+
+        Flow {
+            Layout.fillWidth: true
+            width: parent ? parent.width : 400
+            spacing: 8
+
+            Label {
+                text: qsTr("Sort")
+                color: BearTheme.textMuted
+                font.pixelSize: 11
+                font.bold: true
+                verticalAlignment: Text.AlignVCenter
+                leftPadding: 4
+                rightPadding: 8
+                topPadding: 8
+                bottomPadding: 8
+            }
+
+            AppButton {
+                text: qsTr("Name")
+                onClicked: {
+                    if (app.backend && app.currentPage !== "favorites") {
+                        app.backend.sortStations("name")
+                    }
+                }
+            }
+
+            AppButton {
+                text: qsTr("Bitrate")
+                onClicked: {
+                    if (app.backend && app.currentPage !== "favorites") {
+                        app.backend.sortStations("bitrate")
+                    }
+                }
+            }
+
+            AppButton {
+                text: qsTr("Votes")
+                onClicked: {
+                    if (app.backend && app.currentPage !== "favorites") {
+                        app.backend.sortStations("votes")
+                    }
+                }
             }
         }
     }

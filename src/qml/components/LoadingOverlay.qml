@@ -13,7 +13,7 @@ Rectangle {
 
     visible: app.backend && app.backend.loading
     anchors.fill: parent
-    color: "#7f0b121a"
+    color: BearTheme.isLight ? "#99f4f4f6" : "#990a0a0b"
     z: 20
 
     Rectangle {

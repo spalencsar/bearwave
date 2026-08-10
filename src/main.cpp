@@ -14,7 +14,9 @@
 #include <QLocale>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQuickStyle>
 #include <QQuickWindow>
+#include <QStyleHints>
 #include <QTranslator>
 
 #include "appsettings.h"
@@ -23,11 +25,44 @@
 #include "bearwavecontroladaptor.h"
 #include "notificationmanager.h"
 #include "systemtraymanager.h"
+#include "colorschemecontroller.h"
 
+namespace {
+bool isPlasmaDesktopSession()
+{
+    const QString desktop = QString::fromLocal8Bit(qgetenv("XDG_CURRENT_DESKTOP")).toLower();
+    return desktop.contains(QLatin1String("kde")) || desktop.contains(QLatin1String("plasma"));
+}
+
+// On non-KDE desktops avoid inheriting a KDE/Breeze platform theme so the app
+// does not look like a "KDE guest".
+void configureNonPlasmaChrome()
+{
+    if (isPlasmaDesktopSession()) {
+        return;
+    }
+    if (qEnvironmentVariableIsEmpty("QT_QUICK_CONTROLS_STYLE")) {
+        qputenv("QT_QUICK_CONTROLS_STYLE", "Fusion");
+    }
+    const QByteArray platformTheme = qgetenv("QT_QPA_PLATFORMTHEME").toLower();
+    if (platformTheme.contains("kde") || platformTheme.contains("plasma")) {
+        qunsetenv("QT_QPA_PLATFORMTHEME");
+    }
+}
+} // namespace
 
 int main(int argc, char *argv[])
 {
+    configureNonPlasmaChrome();
+
     QApplication app(argc, argv);
+
+    // Must run before any QML is loaded (non-Plasma only).
+    if (!isPlasmaDesktopSession()
+        && (qEnvironmentVariableIsEmpty("QT_QUICK_CONTROLS_STYLE")
+            || qEnvironmentVariable("QT_QUICK_CONTROLS_STYLE") == QLatin1String("Fusion"))) {
+        QQuickStyle::setStyle(QStringLiteral("Fusion"));
+    }
 
     QApplication::setApplicationName(QStringLiteral("BearWave"));
     QApplication::setDesktopFileName(QStringLiteral("de.nerdbear.bearwave"));
@@ -35,7 +70,7 @@ int main(int argc, char *argv[])
     QApplication::setApplicationVersion(QStringLiteral(BEARWAVE_VERSION));
 
     QCommandLineParser commandLine;
-    commandLine.setApplicationDescription(QStringLiteral("KDE-focused internet radio player"));
+    commandLine.setApplicationDescription(QStringLiteral("Desktop internet radio player"));
     commandLine.addHelpOption();
     commandLine.addVersionOption();
     const QCommandLineOption languageOption(
@@ -104,6 +139,7 @@ int main(int argc, char *argv[])
     engine.addImportPath(QStringLiteral("qrc:/qml"));
 
     RadioBackend backend;
+    ColorSchemeController colorScheme;
     QFile changelogFile(QStringLiteral(":/CHANGELOG.md"));
     QString changelogText;
     if (changelogFile.open(QIODevice::ReadOnly)) {
@@ -114,6 +150,12 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("bearwaveVersion", QStringLiteral(BEARWAVE_VERSION));
     engine.rootContext()->setContextProperty("bearwaveBuildId", QStringLiteral(BEARWAVE_GIT_HASH));
     engine.rootContext()->setContextProperty("bearwaveChangelog", changelogText);
+    // Light/dark: portal / gsettings / optional shell session (ColorSchemeController).
+    engine.rootContext()->setContextProperty(QStringLiteral("bearwaveColorScheme"), &colorScheme);
+    // Frameless client chrome outside KDE sessions (own BearTheme bar).
+    engine.rootContext()->setContextProperty(
+        QStringLiteral("bearwaveClientChrome"),
+        QVariant(!isPlasmaDesktopSession()));
 
     auto *mprisRoot = new MprisRootAdaptor(&backend, &app);
     auto *mprisPlayer = new MprisPlayerAdaptor(&backend);

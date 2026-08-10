@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QMediaMetaData>
 #include <QUrl>
+#include <QVariantMap>
 
 BearPlayer::BearPlayer(QObject *parent) : QObject(parent) {
   m_audioOutput = new QAudioOutput(this);
@@ -69,6 +70,7 @@ void BearPlayer::playUrl(const QString &url, const QString &name) {
   m_retryAttempts = 0;
   m_hasActiveSource = true;
   emit currentStationChanged(m_currentStationName);
+  clearTrackHistory();
   clearTrackInfo();
 
   setConnectionState(QStringLiteral("connecting"));
@@ -93,6 +95,7 @@ void BearPlayer::stop() {
   setPlaying(false);
   setConnectionState(QStringLiteral("idle"));
   emit currentStationChanged(QString());
+  clearTrackHistory();
   clearTrackInfo();
 }
 
@@ -119,13 +122,13 @@ void BearPlayer::setVolume(qreal vol) {
 void BearPlayer::onPlaybackStateChanged(QMediaPlayer::PlaybackState state) {
   if (state == QMediaPlayer::PlayingState) {
     setPlaying(true);
-    setConnectionState(QStringLiteral("playing"));
   } else if (state == QMediaPlayer::PausedState) {
     setPlaying(false);
-    setConnectionState(QStringLiteral("paused"));
   } else {
     setPlaying(false);
   }
+
+  refreshConnectionState();
 
   if (state == QMediaPlayer::StoppedState && !m_changingSource) {
     scheduleRetry();
@@ -134,32 +137,6 @@ void BearPlayer::onPlaybackStateChanged(QMediaPlayer::PlaybackState state) {
 
 void BearPlayer::onMediaStatusChanged(QMediaPlayer::MediaStatus status) {
   switch (status) {
-  case QMediaPlayer::LoadingMedia:
-    if (m_hasActiveSource) {
-      setConnectionState(QStringLiteral("connecting"));
-    }
-    break;
-  case QMediaPlayer::BufferingMedia:
-  case QMediaPlayer::StalledMedia:
-    if (m_hasActiveSource) {
-      setConnectionState(
-          m_mediaPlayer->playbackState() == QMediaPlayer::PausedState
-              ? QStringLiteral("paused")
-              : QStringLiteral("buffering"));
-    }
-    break;
-  case QMediaPlayer::LoadedMedia:
-  case QMediaPlayer::BufferedMedia:
-    if (m_hasActiveSource) {
-      if (m_mediaPlayer->playbackState() == QMediaPlayer::PlayingState) {
-        setConnectionState(QStringLiteral("playing"));
-      } else if (m_mediaPlayer->playbackState() == QMediaPlayer::PausedState) {
-        setConnectionState(QStringLiteral("paused"));
-      } else {
-        setConnectionState(QStringLiteral("connecting"));
-      }
-    }
-    break;
   case QMediaPlayer::InvalidMedia:
   case QMediaPlayer::EndOfMedia:
     setPlaying(false);
@@ -168,9 +145,53 @@ void BearPlayer::onMediaStatusChanged(QMediaPlayer::MediaStatus status) {
   case QMediaPlayer::NoMedia:
     if (!m_hasActiveSource) {
       setConnectionState(QStringLiteral("idle"));
+      return;
     }
     break;
   default:
+    break;
+  }
+  // Live radio re-enters BufferingMedia often while audio already plays —
+  // never let that stick as "Buffering…" when playbackState is Playing.
+  refreshConnectionState();
+}
+
+void BearPlayer::refreshConnectionState() {
+  if (!m_hasActiveSource) {
+    if (m_connectionState != QLatin1String("idle")) {
+      setConnectionState(QStringLiteral("idle"));
+    }
+    return;
+  }
+
+  const auto playback = m_mediaPlayer->playbackState();
+  if (playback == QMediaPlayer::PlayingState) {
+    setConnectionState(QStringLiteral("playing"));
+    return;
+  }
+  if (playback == QMediaPlayer::PausedState) {
+    setConnectionState(QStringLiteral("paused"));
+    return;
+  }
+
+  // Not playing yet (or stopped between retries).
+  switch (m_mediaPlayer->mediaStatus()) {
+  case QMediaPlayer::LoadingMedia:
+  case QMediaPlayer::LoadedMedia:
+    setConnectionState(QStringLiteral("connecting"));
+    break;
+  case QMediaPlayer::BufferingMedia:
+  case QMediaPlayer::StalledMedia:
+    setConnectionState(QStringLiteral("buffering"));
+    break;
+  case QMediaPlayer::InvalidMedia:
+    setConnectionState(QStringLiteral("error"));
+    break;
+  default:
+    if (m_connectionState != QLatin1String("retrying")
+        && m_connectionState != QLatin1String("error")) {
+      setConnectionState(QStringLiteral("connecting"));
+    }
     break;
   }
 }
@@ -222,12 +243,11 @@ void BearPlayer::onMetaDataChanged() {
   }
 
   const quint64 sourceGeneration = m_nowPlayingState.sourceGeneration();
-  if (!m_nowPlayingState.updateMetadata(sourceGeneration, artist, title)) {
+  if (!applyTrackMetadata(sourceGeneration, artist, title)) {
     return;
   }
 
   m_coverArtFetcher->fetch(artist, title, sourceGeneration);
-  emit trackInfoChanged();
 }
 
 void BearPlayer::onCoverUrlReady(const QString &url, quint64 sourceGeneration) {
@@ -239,27 +259,82 @@ void BearPlayer::onCoverUrlReady(const QString &url, quint64 sourceGeneration) {
 void BearPlayer::onIcyMetaDataReceived(const QString &artist,
                                        const QString &title,
                                        quint64 sourceGeneration) {
-  if (!m_nowPlayingState.updateMetadata(sourceGeneration, artist, title)) {
+  if (!applyTrackMetadata(sourceGeneration, artist, title)) {
     return;
   }
 
   m_coverArtFetcher->fetch(artist, title, sourceGeneration);
-  emit trackInfoChanged();
 }
 
-QString BearPlayer::currentNowPlaying() const {
-  const QString artist = m_nowPlayingState.artist();
-  const QString title = m_nowPlayingState.title();
+QString BearPlayer::formatTrackLine(const QString &artist, const QString &title)
+{
   if (!artist.isEmpty() && !title.isEmpty()) {
     return artist + QStringLiteral(" - ") + title;
   }
   if (!title.isEmpty()) {
     return title;
   }
-  if (!artist.isEmpty()) {
-    return artist;
+  return artist;
+}
+
+QString BearPlayer::currentNowPlaying() const {
+  return formatTrackLine(m_nowPlayingState.artist(), m_nowPlayingState.title());
+}
+
+bool BearPlayer::applyTrackMetadata(quint64 sourceGeneration,
+                                    const QString &artist,
+                                    const QString &title)
+{
+  const QString previousArtist = m_nowPlayingState.artist();
+  const QString previousTitle = m_nowPlayingState.title();
+  if (!m_nowPlayingState.updateMetadata(sourceGeneration, artist, title)) {
+    return false;
   }
-  return QString();
+
+  recordTrackHistoryTransition(previousArtist, previousTitle);
+  emit trackInfoChanged();
+  return true;
+}
+
+void BearPlayer::recordTrackHistoryTransition(const QString &previousArtist,
+                                              const QString &previousTitle)
+{
+  if (previousArtist.trimmed().isEmpty() && previousTitle.trimmed().isEmpty()) {
+    return;
+  }
+
+  const QString line = formatTrackLine(previousArtist, previousTitle).trimmed();
+  if (line.isEmpty()) {
+    return;
+  }
+
+  // Dedup: same as the newest history entry (stations often resend titles).
+  if (!m_trackHistory.isEmpty()) {
+    const QVariantMap head = m_trackHistory.constFirst().toMap();
+    if (head.value(QStringLiteral("line")).toString() == line) {
+      return;
+    }
+  }
+
+  QVariantMap entry;
+  entry.insert(QStringLiteral("artist"), previousArtist.trimmed());
+  entry.insert(QStringLiteral("title"), previousTitle.trimmed());
+  entry.insert(QStringLiteral("line"), line);
+  m_trackHistory.prepend(entry);
+
+  while (m_trackHistory.size() > kMaxTrackHistory) {
+    m_trackHistory.removeLast();
+  }
+  emit trackHistoryChanged();
+}
+
+void BearPlayer::clearTrackHistory()
+{
+  if (m_trackHistory.isEmpty()) {
+    return;
+  }
+  m_trackHistory.clear();
+  emit trackHistoryChanged();
 }
 
 void BearPlayer::clearTrackInfo() {

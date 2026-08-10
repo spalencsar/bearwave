@@ -35,8 +35,13 @@
     </message>
     <message>
         <location filename="../src/qml/components/AboutDialog.qml" line="145"/>
-        <source>Internet Radio Player for KDE</source>
-        <translation>Интернет радиоплеер для KDE</translation>
+        <source>Desktop internet radio</source>
+        <translation>Настольное интернет-радио</translation>
+    </message>
+    <message>
+        <location filename="../src/qml/components/AboutDialog.qml" line="153"/>
+        <source>Qt 6 app for Linux — works across desktop environments.</source>
+        <translation>Приложение Qt 6 для Linux — работает в разных рабочих средах.</translation>
     </message>
     <message>
         <location filename="../src/qml/components/AboutDialog.qml" line="160"/>
@@ -537,77 +542,58 @@
 <context>
     <name>SidebarNavigation</name>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="90"/>
-        <source>Stations</source>
-        <translation>Станции</translation>
+        <source>Browse</source>
+        <translation>Обзор</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="91"/>
         <source>Top</source>
         <translation>Топ</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="92"/>
         <source>Germany</source>
         <translation>Германия</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="93"/>
         <source>Netherlands</source>
         <translation>Нидерланды</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="94"/>
         <source>World</source>
         <translation>Мир</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="95"/>
         <source>Search Results</source>
         <translation>Результаты поиска</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="97"/>
         <source>Library</source>
         <translation>Библиотека</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="99"/>
+        <source>My stations</source>
+        <translation>Мои станции</translation>
+    </message>
+    <message>
         <source>Favorites</source>
         <translation>Избранное</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="106"/>
         <source>Recent</source>
         <translation>Недавние</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="113"/>
-        <source>Manual</source>
-        <translation>Вручную</translation>
+        <source>Add station</source>
+        <translation>Добавить станцию</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="119"/>
-        <source>Folders</source>
-        <translation>Папки</translation>
-    </message>
-    <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="122"/>
-        <source>No folders yet</source>
-        <translation>Папок пока нет</translation>
-    </message>
-    <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="136"/>
         <source>Add Station</source>
         <translation>Добавить станцию</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="143"/>
         <source>About</source>
         <translation>О BearWave</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/SidebarNavigation.qml" line="151"/>
         <source>Resume</source>
         <translation>Продолжить</translation>
     </message>
@@ -653,130 +639,152 @@
         <translation>☆ В избранное</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="154"/>
         <source>Removed from favorites</source>
         <translation>Удалено из избранного</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="155"/>
         <source>Added to favorites</source>
         <translation>Добавлено в избранное</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="161"/>
         <source>Now Playing</source>
         <translation>Сейчас играет</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="164"/>
-        <source>Status</source>
-        <translation>Статус</translation>
+        <source>Live</source>
+        <translation>В эфире</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="55"/>
-        <source>Playing</source>
-        <translation>Воспроизводится</translation>
-    </message>
-    <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="50"/>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="58"/>
         <source>Inactive</source>
         <translation>Неактивно</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="52"/>
         <source>Connecting…</source>
         <translation>Подключение…</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="53"/>
         <source>Buffering…</source>
         <translation>Буферизация…</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="54"/>
         <source>Reconnecting…</source>
         <translation>Повторное подключение…</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="56"/>
         <source>Paused</source>
         <translation>Пауза</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="57"/>
         <source>Stream unavailable</source>
         <translation>Поток недоступен</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="171"/>
-        <source>Artist</source>
-        <translation>Исполнитель</translation>
+        <source>Play</source>
+        <translation>Играть</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="178"/>
-        <source>Title</source>
-        <translation>Название</translation>
+        <source>Pause</source>
+        <translation>Пауза</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="186"/>
-        <source>No stream metadata yet</source>
-        <translation>Метаданные потока пока отсутствуют</translation>
+        <source>Homepage</source>
+        <translation>Сайт</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="193"/>
-        <source>Details</source>
-        <translation>Подробности</translation>
+        <source>Station</source>
+        <translation>Станция</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="194"/>
-        <source>Codec</source>
-        <translation>Кодек</translation>
+        <source>Website</source>
+        <translation>Сайт</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="195"/>
-        <source>Bitrate</source>
-        <translation>Битрейт</translation>
+        <source>Open</source>
+        <translation>Открыть</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="196"/>
-        <source>Votes</source>
-        <translation>Голоса</translation>
+        <source>Open station website</source>
+        <translation>Открыть сайт станции</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="197"/>
-        <source>Tags</source>
-        <translation>Теги</translation>
+        <source>Stream</source>
+        <translation>Поток</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="201"/>
-        <source>Links</source>
-        <translation>Ссылки</translation>
+        <source>Copy</source>
+        <translation>Копировать</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="204"/>
-        <source>Open Homepage</source>
-        <translation>Открыть сайт</translation>
+        <source>Playback</source>
+        <translation>Воспроизведение</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="209"/>
-        <source>Copy Stream URL</source>
+        <source>Stop</source>
+        <translation>Стоп</translation>
+    </message>
+    <message>
+        <source>Volume</source>
+        <translation>Громкость</translation>
+    </message>
+    <message>
+        <source>Add to favorites</source>
+        <translation>В избранное</translation>
+    </message>
+    <message>
+        <source>Remove from favorites</source>
+        <translation>Убрать из избранного</translation>
+    </message>
+    <message>
+        <source>No track info yet</source>
+        <translation>Пока нет данных о треке</translation>
+    </message>
+    <message>
+        <source>No track titles from this stream yet. Many stations never send them.</source>
+        <translation>Пока нет названий треков. Многие станции их не передают.</translation>
+    </message>
+    <message>
+        <source>Waiting for titles…\nNot every station sends track metadata.</source>
+        <translation>Ожидание названий…\nНе каждая станция передаёт метаданные треков.</translation>
+    </message>
+    <message>
+        <source>Current track</source>
+        <translation>Текущий трек</translation>
+    </message>
+    <message>
+        <source>Previous track</source>
+        <translation>Предыдущий трек</translation>
+    </message>
+    <message>
+        <source>Earlier on this stream</source>
+        <translation>Ранее в этом потоке</translation>
+    </message>
+    <message>
+        <source>Track</source>
+        <translation>Трек</translation>
+    </message>
+    <message>
+        <source>Unknown station</source>
+        <translation>Неизвестная станция</translation>
+    </message>
+    <message>
+        <source>Recently on this stream</source>
+        <translation>Недавно в этом потоке</translation>
+    </message>
+    <message>
+        <source>Copy stream URL</source>
         <translation>Копировать URL потока</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="213"/>
         <source>Stream URL copied</source>
         <translation>URL потока скопирован</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="230"/>
-        <source>No station selected</source>
-        <translation>Нет выбранной станции</translation>
+        <source>Nothing playing</source>
+        <translation>Ничего не играет</translation>
     </message>
     <message>
-        <location filename="../src/qml/components/StationDetailPanel.qml" line="235"/>
-        <source>Select a station from the list</source>
-        <translation>Выберите станцию из списка</translation>
+        <source>Pick a station from the list to start listening.</source>
+        <translation>Выберите станцию из списка, чтобы слушать.</translation>
     </message>
 </context>
 <context>

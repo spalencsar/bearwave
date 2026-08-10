@@ -12,9 +12,15 @@ We **do not verify, support, or guarantee** the security of any other third-part
 
 ## Supported Versions
 
-During the beta phase, security fixes target the latest code on `main` and the most recent published release when practical.
+| Version | Supported |
+|---------|-----------|
+| **1.3.x** (latest) | Yes |
+| 1.2.x | Security fixes only if practical; prefer upgrade to 1.3.x |
+| &lt; 1.2 | No |
 
-Older releases are not guaranteed to receive backported fixes. Users should update to the latest available release after a security fix is published.
+During the public beta phase, fixes primarily target the latest code on `main`
+and the most recent published release. Users should update after a security fix
+is published.
 
 ## Reporting a Vulnerability
 

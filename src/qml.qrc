@@ -15,6 +15,9 @@
         <file>qml/components/WorldCategoryHeader.qml</file>
         <file>qml/components/WorldCategories.qml</file>
         <file>qml/components/PlayerBar.qml</file>
+        <file>qml/components/PlayerTransport.qml</file>
+        <file>qml/components/MediaIcon.qml</file>
+        <file>qml/components/IconButton.qml</file>
         <file>qml/components/AboutDialog.qml</file>
         <file>qml/components/AddStationDialog.qml</file>
         <file>qml/components/EditStationDialog.qml</file>

@@ -19,6 +19,7 @@ set(SOURCES
     notificationmanager.cpp
     icyreader.cpp
     systemtraymanager.cpp
+    colorschemecontroller.cpp
 )
 
 # Create executable

@@ -12,15 +12,31 @@ import components 1.0
 ApplicationWindow {
     id: root
     title: qsTr("BearWave")
+    // Outside KDE: own chrome. KDE sessions keep system window decorations.
+    readonly property bool clientChrome: (typeof bearwaveClientChrome !== "undefined")
+                                         ? !!bearwaveClientChrome
+                                         : false
+    flags: clientChrome ? (Qt.Window | Qt.FramelessWindowHint) : Qt.Window
+    color: BearTheme.bgA
     readonly property int preferredWindowWidth: 1440
-    readonly property int expandedLayoutThreshold: 1320
+    // Sidebar hides only when very narrow.
+    readonly property int sidebarLayoutThreshold: 760
+    // Detail stage needs ~420px width; hide below this so list stays usable.
+    readonly property int detailLayoutThreshold: 1240
+    // Transport dock in the stage needs vertical room (cover + track + dock).
+    // At ~900px height (e.g. MacBook Air 2015) keep a bottom player bar instead.
+    readonly property int stageDockHeightThreshold: 960
     width: Math.max(minimumWidth,
                     Math.min(preferredWindowWidth,
                              Screen.desktopAvailableWidth > 0
                              ? Screen.desktopAvailableWidth - 80
                              : preferredWindowWidth))
-    height: 720
-    minimumWidth: 900
+    height: Math.max(minimumHeight,
+                     Math.min(820,
+                              Screen.desktopAvailableHeight > 0
+                              ? Screen.desktopAvailableHeight - 80
+                              : 720))
+    minimumWidth: 640
     minimumHeight: 600
     visible: true
 
@@ -34,7 +50,14 @@ ApplicationWindow {
     readonly property string appVersion: (typeof bearwaveVersion !== "undefined" ? ("" + bearwaveVersion) : Qt.application.version)
     readonly property string appBuildId: (typeof bearwaveBuildId !== "undefined" ? ("" + bearwaveBuildId) : "?")
     readonly property string appChangelog: (typeof bearwaveChangelog !== "undefined" ? ("" + bearwaveChangelog) : "")
-    property bool compactMode: width < expandedLayoutThreshold
+    // No sidebar (very narrow).
+    property bool compactMode: width < sidebarLayoutThreshold
+    // Full three-column layout (sidebar + list + detail).
+    readonly property bool showDetailPanel: width >= detailLayoutThreshold
+    // Dock transport in the right stage only when wide enough *and* tall enough.
+    readonly property bool stageTransportDock: showDetailPanel && height >= stageDockHeightThreshold
+    // Wrapped/flow filters when the one-line filter row would clip.
+    readonly property bool useFlowFilters: !showDetailPanel
     property real contentOpacity: 1.0
     property string activeQuickFilter: ""
     property string selectedWorldCategory: ""
@@ -92,6 +115,8 @@ ApplicationWindow {
         }
         if (currentPage === "favorites") {
             return backend.favoriteStations
+        } else if (currentPage === "mystations") {
+            return backend.manualStations
         } else if (currentPage === "history") {
             return backend.recentStations
         } else if (currentPage === "world" && selectedWorldCategory === "") {
@@ -138,7 +163,7 @@ ApplicationWindow {
 
     SidebarNavigation {
         id: sidebar
-        width: root.compactMode ? 0 : 205
+        width: root.compactMode ? 0 : 228
         visible: !root.compactMode
         anchors.left: parent.left
         anchors.top: parent.top
@@ -155,21 +180,42 @@ ApplicationWindow {
 
         Rectangle {
             id: topToolbar
-            height: root.compactMode ? 150 : 104
+            // Size to header content so Flow filters are never clipped.
+            height: headerContent.implicitHeight + 22
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: parent.top
-            color: BearTheme.panel
-            border.color: BearTheme.cardBorder
+            // Seamless with workspace — no heavy KDE toolwindow frame.
+            color: BearTheme.bgA
+            border.width: 0
             clip: true
+
+            // Soft separator under header
+            Rectangle {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                height: 1
+                color: BearTheme.cardBorder
+                opacity: 0.55
+            }
+
+            // Drag the frameless window from the toolbar (Wayland: startSystemMove).
+            DragHandler {
+                enabled: root.clientChrome
+                target: null
+                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                onActiveChanged: if (active) root.startSystemMove()
+            }
 
             ColumnLayout {
                 id: headerContent
-                anchors.fill: parent
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
                 anchors.leftMargin: 14
                 anchors.rightMargin: 14
                 anchors.topMargin: 10
-                anchors.bottomMargin: 8
                 spacing: 8
 
                 HeaderNavigation {
@@ -179,41 +225,11 @@ ApplicationWindow {
                     compactMode: root.compactMode
                 }
 
+                // Branding only lives in the sidebar wordmark — not repeated here.
                 RowLayout {
                     Layout.fillWidth: true
                     visible: !root.compactMode
                     spacing: 12
-
-                    Image {
-                        Layout.preferredWidth: 100
-                        Layout.preferredHeight: 28
-                        source: "qrc:/assets/app/bearwave_line.png"
-                        fillMode: Image.PreserveAspectFit
-                        smooth: true
-                        mipmap: true
-                    }
-
-                    ColumnLayout {
-                        Layout.preferredWidth: 96
-                        spacing: 0
-                        Label {
-                            text: qsTr("BearWave")
-                            color: BearTheme.textMain
-                            font.bold: true
-                            font.pixelSize: 13
-                        }
-                        Label {
-                            text: qsTr("Internet Radio")
-                            color: BearTheme.textMuted
-                            font.pixelSize: 11
-                        }
-                    }
-
-                    Rectangle {
-                        Layout.preferredWidth: 1
-                        Layout.preferredHeight: 32
-                        color: BearTheme.cardBorder
-                    }
 
                     SearchToolbar {
                         id: searchToolbar
@@ -222,7 +238,6 @@ ApplicationWindow {
                         compactMode: false
                         searchTimer: searchTimer
                     }
-
                 }
 
                 SearchToolbar {
@@ -237,7 +252,8 @@ ApplicationWindow {
                 QuickFilters {
                     Layout.fillWidth: true
                     app: root
-                    compactMode: root.compactMode
+                    // Flow layout whenever the one-line filter row would clip.
+                    compactMode: root.useFlowFilters
                 }
 
                 Label {
@@ -251,13 +267,19 @@ ApplicationWindow {
             }
         }
 
+        // Bottom bar when stage dock is off:
+        // - no stage (narrow): full bar with station meta
+        // - stage open but short: transport-only strip
+        // Tall+wide: transport docks inside StationDetailPanel (no bottom bar).
         PlayerBar {
             id: playerBar
-            height: implicitHeight
+            height: visible ? implicitHeight : 0
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.bottom: parent.bottom
             app: root
+            visible: !root.stageTransportDock
+            transportOnly: root.showDetailPanel && !root.stageTransportDock
         }
 
         Item {
@@ -265,7 +287,7 @@ ApplicationWindow {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: topToolbar.bottom
-            anchors.bottom: playerBar.top
+            anchors.bottom: root.stageTransportDock ? parent.bottom : playerBar.top
             clip: true
             opacity: contentOpacity
 
@@ -278,15 +300,32 @@ ApplicationWindow {
                 anchors.left: parent.left
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
-                anchors.right: root.compactMode ? parent.right : detailPanel.left
-                color: BearTheme.panel
-                border.color: BearTheme.cardBorder
+                // Gap before the stage so list chrome never abuts the right panel.
+                anchors.right: root.showDetailPanel ? detailPanel.left : parent.right
+                anchors.rightMargin: root.showDetailPanel ? 0 : 0
+                color: BearTheme.bgA
+                border.width: 0
                 clip: true
+
+                // Soft divider owned by the list column (not by card borders).
+                Rectangle {
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    anchors.right: parent.right
+                    width: 1
+                    visible: root.showDetailPanel
+                    color: BearTheme.cardBorder
+                    opacity: 0.45
+                    z: 2
+                }
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 8
-                    spacing: 8
+                    anchors.leftMargin: 10
+                    anchors.rightMargin: root.showDetailPanel ? 20 : 10
+                    anchors.topMargin: 10
+                    anchors.bottomMargin: 10
+                    spacing: 10
 
                     WorldCategoryHeader {
                         Layout.fillWidth: true
@@ -306,19 +345,20 @@ ApplicationWindow {
                         Layout.fillHeight: true
                         visible: currentPage === "world" && selectedWorldCategory === ""
                         app: root
-                        compactMode: root.compactMode
+                        compactMode: root.useFlowFilters
                     }
                 }
             }
 
             StationDetailPanel {
                 id: detailPanel
-                width: 320
+                width: 420
                 anchors.right: parent.right
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
-                visible: !root.compactMode
+                visible: root.showDetailPanel
                 app: root
+                showTransportDock: root.stageTransportDock
             }
         }
     }

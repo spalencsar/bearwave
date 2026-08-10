@@ -1,11 +1,14 @@
 [Desktop Entry]
 Type=Application
 Name=BearWave
-Comment=Internet Radio Player for KDE
+Name[de]=BearWave
+Comment=Internet radio player
+Comment[de]=Internetradio-Player
 Exec=@CMAKE_INSTALL_PREFIX@/bin/bearwave
 Icon=de.nerdbear.bearwave
 Terminal=false
-Categories=AudioVideo;Audio;Music;Player;KDE;Qt;
+Categories=AudioVideo;Audio;Music;Player;Qt;
 Keywords=radio;stream;internet;audio;music;
+Keywords[de]=Radio;Stream;Internet;Audio;Musik;
 StartupNotify=true
 StartupWMClass=de.nerdbear.bearwave

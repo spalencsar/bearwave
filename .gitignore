@@ -71,3 +71,6 @@ flatpak_build/
 flatpak_repo/
 scratch/
 spalencsar-README.md
+
+## Local debug screenshots
+screenshots/debug_*.png

@@ -199,7 +199,9 @@ void RadioBrowser::startAttempt(int requestGeneration)
     QUrl url(baseUrl + m_currentEndpoint);
     QNetworkRequest request;
     request.setUrl(url);
-    request.setHeader(QNetworkRequest::UserAgentHeader, "BearWave/1.0");
+    // Radio Browser asks for a meaningful User-Agent (app + version).
+    request.setHeader(QNetworkRequest::UserAgentHeader,
+                      QStringLiteral("BearWave/%1").arg(QStringLiteral(BEARWAVE_VERSION)));
     request.setTransferTimeout(10000);
 
     QNetworkReply *reply = m_networkManager->get(request);
