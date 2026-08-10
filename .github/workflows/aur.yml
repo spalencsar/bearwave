@@ -1,14 +1,23 @@
 name: Publish to AUR
 
+# Temporarily disabled (2026-08): AUR community Git/SSH pushes are blocked while
+# Arch responds to the AUR supply-chain / malware incident. Web UI may still load,
+# but maintainer pushes get "The AUR is down due to maintenance."
+# Ref: https://bbs.archlinux.org/viewtopic.php?id=314496
+#      https://lists.archlinux.org/archives/list/aur-general@lists.archlinux.org/
+#
+# Re-enable push/release triggers below once community AUR write access is restored.
 on:
-  push:
-    branches: [ main ]
-  release:
-    types: [ published ]
+  # push:
+  #   branches: [ main ]
+  # release:
+  #   types: [ published ]
   workflow_dispatch:
 
 jobs:
   aur-publish:
+    # Hard-off until AUR accepts community pushes again (avoids failed manual runs).
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
