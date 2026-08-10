@@ -7,6 +7,7 @@
 #include "stationimagecache.h"
 #include "stationlogostyle.h"
 #include "streamurl.h"
+#include "bearwavepaths.h"
 
 #include <QDebug>
 #include <algorithm>
@@ -17,7 +18,6 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QClipboard>
-#include <QStandardPaths>
 #include <QLocale>
 #include <QUrl>
 #include <QUuid>
@@ -27,7 +27,7 @@ constexpr int kRecentLimit = 20;
 
 QString appConfigDir()
 {
-    return QDir::homePath() + QStringLiteral("/.config/bearwave");
+    return BearwavePaths::configDir();
 }
 
 }
@@ -42,6 +42,7 @@ RadioBackend::RadioBackend(QObject *parent)
     m_player = new BearPlayer(this);
     setupConnections();
     buildCountryPickerOptions();
+    BearwavePaths::maybeMigrateLegacyConfig();
     loadFavorites();
     loadManualStations();
     loadState();

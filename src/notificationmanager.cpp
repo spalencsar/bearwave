@@ -4,6 +4,7 @@
 #include "notificationmanager.h"
 #include "radiobackend.h"
 #include "bearplayer.h"
+#include "bearwavepaths.h"
 
 #include <QDBusInterface>
 #include <QDBusReply>
@@ -14,7 +15,6 @@
 #include <QDir>
 #include <QFile>
 #include <QCryptographicHash>
-#include <QStandardPaths>
 #include <QDebug>
 
 NotificationManager::NotificationManager(RadioBackend *backend, QObject *parent)
@@ -23,7 +23,7 @@ NotificationManager::NotificationManager(RadioBackend *backend, QObject *parent)
     , m_player(backend->player())
     , m_notificationShown(false)
 {
-    m_coversDir = QDir::homePath() + QStringLiteral("/.cache/bearwave/covers");
+    m_coversDir = BearwavePaths::coversCacheDir();
     QDir().mkpath(m_coversDir);
 
     m_networkManager = new QNetworkAccessManager(this);

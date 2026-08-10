@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "stationimagecache.h"
+#include "bearwavepaths.h"
 
 #include <algorithm>
 #include <QBuffer>
@@ -24,7 +25,7 @@ const QString fallbackSource = QStringLiteral("qrc:/assets/app/bearwave.svg");
 
 QString defaultCacheDirectory()
 {
-    return QDir::homePath() + QStringLiteral("/.cache/bearwave/covers");
+    return BearwavePaths::coversCacheDir();
 }
 
 bool isPrivateLiteralHost(const QString &host)

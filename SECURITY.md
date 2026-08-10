@@ -14,8 +14,9 @@ We **do not verify, support, or guarantee** the security of any other third-part
 
 | Version | Supported |
 |---------|-----------|
-| **1.3.x** (latest) | Yes |
-| 1.2.x | Security fixes only if practical; prefer upgrade to 1.3.x |
+| **1.3.1+** (latest) | Yes |
+| 1.3.0 | Prefer upgrade to 1.3.1 (Flatpak persistence) |
+| 1.2.x | Prefer upgrade to 1.3.x |
 | &lt; 1.2 | No |
 
 During the public beta phase, fixes primarily target the latest code on `main`

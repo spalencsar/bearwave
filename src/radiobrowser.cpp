@@ -8,7 +8,7 @@
 #include <QJsonObject>
 #include <QUrl>
 #include <QUrlQuery>
-#include <QStandardPaths>
+#include "bearwavepaths.h"
 #include <QDir>
 #include <QFile>
 #include <QCryptographicHash>
@@ -28,7 +28,7 @@ QHash<QString, qint64> s_failedNodeUntil;
 
 QString apiCacheDir()
 {
-    return QDir::homePath() + QStringLiteral("/.cache/bearwave/api_cache");
+    return BearwavePaths::apiCacheDir();
 }
 
 QString httpErrorMessage(QNetworkReply *reply)

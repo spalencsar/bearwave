@@ -11,14 +11,13 @@ on common Linux desktops and integrates through Wayland, MPRIS, and the system t
 ![Desktop](https://img.shields.io/badge/desktop-Linux%20(Qt%206)-1f6feb)
 ![Qt 6](https://img.shields.io/badge/Qt-6-41cd52)
 ![License: GPL--3.0--or--later](https://img.shields.io/badge/license-GPL--3.0--or--later-lightgrey)
-![Version](https://img.shields.io/badge/version-1.3.0-blue)
+![Version](https://img.shields.io/badge/version-1.3.1-blue)
 
-**Current release:** [1.3.0](CHANGELOG.md#130---2026-08-10) (2026-08-10)
+**Current release:** [1.3.1](CHANGELOG.md#131---2026-08-10) (2026-08-10)
 
-BearWave **1.3.0** is a multi-desktop UI release: Now Playing stage, My stations,
-responsive transport (stage dock / compact bottom strip / full bar), redesigned
-station list and sidebar, and universal Qt-only product framing. See the
-[changelog](CHANGELOG.md#130---2026-08-10) for the full list.
+BearWave **1.3.1** fixes Flatpak persistence for favorites and state ([#7](https://github.com/spalencsar/bearwave/issues/7)).
+**1.3.0** was the multi-desktop UI release (Now Playing stage, My stations,
+responsive transport, redesigned list/sidebar). See the [changelog](CHANGELOG.md).
 
 > **Android version:** BearWave is also available as a separate Android app
 > with Android Auto and Google Cast support. See BearWave Android on
@@ -367,11 +366,15 @@ Sort station lists by:
 
 BearWave stores user state under:
 
-- favorites: `~/.config/bearwave/favorites.json`
-- my stations (manual): `~/.config/bearwave/my_stations.json`
-- last station + volume + recent: `~/.config/bearwave/state.json`
-- API cache: `~/.cache/bearwave/api_cache/`
-- validated station-image and cover-art cache: `~/.cache/bearwave/covers/`
+- favorites: `$XDG_CONFIG_HOME/bearwave/favorites.json` (native default: `~/.config/bearwave/`)
+- my stations (manual): `…/bearwave/my_stations.json`
+- last station + volume + recent: `…/bearwave/state.json`
+- API cache: `$XDG_CACHE_HOME/bearwave/api_cache/`
+- cover art cache: `$XDG_CACHE_HOME/bearwave/covers/`
+
+Under **Flatpak**, config/cache live in the app sandbox
+(`~/.var/app/de.nerdbear.bearwave/config/bearwave/` and `…/cache/bearwave/`)
+and persist across restarts without host filesystem overrides.
 
 The image cache is capped at 50 MiB. Entries that have not been used for more
 than 30 days are removed automatically. Station logos shorter than 64 pixels

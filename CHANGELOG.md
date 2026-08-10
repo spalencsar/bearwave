@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-08-10
+
+### Fixed
+
+- **Flatpak:** persist favorites, My stations, and state via XDG config/cache
+  paths (`GenericConfigLocation` / `GenericCacheLocation`) instead of a hard-coded
+  `~/.config/bearwave` under `$HOME`, which the sandbox cannot write without
+  overrides ([#7](https://github.com/spalencsar/bearwave/issues/7)).
+- Migrate existing host `~/.config/bearwave` files into the XDG location when the
+  new directory is empty and the legacy path is readable.
+
 ## [1.3.0] - 2026-08-10
 
 Major multi-desktop UI release: universal Linux positioning, Now Playing stage,
