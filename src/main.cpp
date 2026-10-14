@@ -152,11 +152,6 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("bearwaveChangelog", changelogText);
     // Light/dark: portal / gsettings / optional shell session (ColorSchemeController).
     engine.rootContext()->setContextProperty(QStringLiteral("bearwaveColorScheme"), &colorScheme);
-    // Frameless client chrome outside KDE sessions (own BearTheme bar).
-    engine.rootContext()->setContextProperty(
-        QStringLiteral("bearwaveClientChrome"),
-        QVariant(!isPlasmaDesktopSession()));
-
     auto *mprisRoot = new MprisRootAdaptor(&backend, &app);
     auto *mprisPlayer = new MprisPlayerAdaptor(&backend);
     auto *controlAdaptor = new BearWaveControlAdaptor(&backend);

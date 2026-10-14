@@ -10,11 +10,11 @@
 #include <QJsonArray>
 #include <QTemporaryDir>
 #include <QCryptographicHash>
-#include <QEventLoop>
-#include <QTimer>
+#include <QStandardPaths>
 
 #include "radiobackend.h"
 #include "bearplayer.h"
+#include "bearwavepaths.h"
 #include "nowplayingstate.h"
 
 class RadioBackendPlaybackTest : public QObject
@@ -42,11 +42,9 @@ private slots:
 };
 
 namespace {
-QTemporaryDir *s_tempHome = nullptr;
-
 QString cachePathForEndpoint(const QString &endpoint)
 {
-    const QString cacheDir = QDir::homePath() + QStringLiteral("/.cache/bearwave/api_cache");
+    const QString cacheDir = BearwavePaths::apiCacheDir();
     const QString hash = QString(QCryptographicHash::hash(endpoint.toUtf8(), QCryptographicHash::Md5).toHex());
     return cacheDir + QStringLiteral("/") + hash + QStringLiteral(".json");
 }
@@ -54,8 +52,6 @@ QString cachePathForEndpoint(const QString &endpoint)
 void writeStationCache(const QString &endpoint, const QString &name,
                        const QString &url = QString(), const QString &uuid = QString())
 {
-    QDir().mkpath(QDir::homePath() + QStringLiteral("/.cache/bearwave/api_cache"));
-
     QJsonObject station;
     station.insert(QStringLiteral("name"), name);
     station.insert(QStringLiteral("url_resolved"),
@@ -76,7 +72,6 @@ void writeStationCache(const QString &endpoint, const QString &name,
 
 void writeStationListCache(const QString &endpoint, const QJsonArray &stations)
 {
-    QDir().mkpath(QDir::homePath() + QStringLiteral("/.cache/bearwave/api_cache"));
     QFile file(cachePathForEndpoint(endpoint));
     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         return;
@@ -85,28 +80,9 @@ void writeStationListCache(const QString &endpoint, const QJsonArray &stations)
     file.close();
 }
 
-int visibleIndexForUrl(RadioBackend &backend, const QString &url)
+void writeDefaultState()
 {
-    const QList<QObject*> stations = backend.stations();
-    for (int i = 0; i < stations.size(); ++i) {
-        QObject *station = stations[i];
-        const QString resolved = station->property("urlResolved").toString();
-        if (resolved == url) {
-            return i;
-        }
-    }
-    return -1;
-}
-}
-
-void RadioBackendPlaybackTest::initTestCase()
-{
-    s_tempHome = new QTemporaryDir();
-    QVERIFY(s_tempHome->isValid());
-    qputenv("HOME", s_tempHome->path().toUtf8());
-
-    const QString configDir = QDir::homePath() + QStringLiteral("/.config/bearwave");
-    QDir().mkpath(configDir);
+    const QString configDir = BearwavePaths::configDir();
 
     QJsonObject state;
     state.insert(QStringLiteral("lastStationName"), QStringLiteral("Station A"));
@@ -134,12 +110,46 @@ void RadioBackendPlaybackTest::initTestCase()
     QFile file(configDir + QStringLiteral("/state.json"));
     QVERIFY(file.open(QIODevice::WriteOnly | QIODevice::Truncate));
     file.write(QJsonDocument(state).toJson());
-    file.close();
+}
+
+void writeEmptyFile(const QString &path)
+{
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::WriteOnly | QIODevice::Truncate));
+}
+
+int visibleIndexForUrl(RadioBackend &backend, const QString &url)
+{
+    const QList<QObject*> stations = backend.stations();
+    for (int i = 0; i < stations.size(); ++i) {
+        QObject *station = stations[i];
+        const QString resolved = station->property("urlResolved").toString();
+        if (resolved == url) {
+            return i;
+        }
+    }
+    return -1;
+}
+}
+
+void RadioBackendPlaybackTest::initTestCase()
+{
+    QStandardPaths::setTestModeEnabled(true);
 }
 
 void RadioBackendPlaybackTest::init()
 {
-    initTestCase();
+    const QString configDir = BearwavePaths::configDir();
+    const QString cacheDir = BearwavePaths::cacheDir();
+    QDir(configDir).removeRecursively();
+    QDir(cacheDir).removeRecursively();
+    QDir().mkpath(configDir);
+    QDir().mkpath(cacheDir);
+
+    // Populate every persisted file so legacy migration cannot import user data.
+    writeEmptyFile(configDir + QStringLiteral("/favorites.json"));
+    writeEmptyFile(configDir + QStringLiteral("/my_stations.json"));
+    writeDefaultState();
 }
 
 void RadioBackendPlaybackTest::history_next_navigates_older_entries()
@@ -221,16 +231,15 @@ void RadioBackendPlaybackTest::cached_load_keeps_error_clear_after_network_failu
     writeStationCache(QStringLiteral("/stations/topvote/100"), QStringLiteral("Cached Top Station"));
 
     RadioBackend backend;
-    QVERIFY(QFile::exists(QDir::homePath() + QStringLiteral("/.cache/bearwave/api_cache")));
+    QVERIFY(QFile::exists(BearwavePaths::apiCacheDir()));
     backend.loadTopStations();
 
     QTRY_VERIFY_WITH_TIMEOUT(backend.stations().size() > 0, 2000);
     QCOMPARE(backend.lastError(), QString());
 
-    QEventLoop loop;
-    QTimer::singleShot(11000, &loop, &QEventLoop::quit);
-    loop.exec();
-
+    // Cached data is delivered synchronously. Network retry behavior and the
+    // guarantee that a cache suppresses errors are covered with a local HTTP
+    // server in radiobrowser_race_test, so this test stays offline and fast.
     QCOMPARE(backend.lastError(), QString());
     QVERIFY(backend.stations().size() > 0);
 }
@@ -372,8 +381,7 @@ void RadioBackendPlaybackTest::playback_rejects_unsafe_url_from_station_list()
 
 void RadioBackendPlaybackTest::favorites_and_state_skip_unsafe_urls()
 {
-    const QString configDir =
-        QDir::homePath() + QStringLiteral("/.config/bearwave");
+    const QString configDir = BearwavePaths::configDir();
     QDir().mkpath(configDir);
 
     QJsonArray favorites;

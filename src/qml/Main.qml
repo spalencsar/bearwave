@@ -12,11 +12,9 @@ import components 1.0
 ApplicationWindow {
     id: root
     title: qsTr("BearWave")
-    // Outside KDE: own chrome. KDE sessions keep system window decorations.
-    readonly property bool clientChrome: (typeof bearwaveClientChrome !== "undefined")
-                                         ? !!bearwaveClientChrome
-                                         : false
-    flags: clientChrome ? (Qt.Window | Qt.FramelessWindowHint) : Qt.Window
+    // Keep native window decorations on every desktop.  In particular, Cinnamon
+    // (Linux Mint) needs the system title bar to expose its close button.
+    flags: Qt.Window
     color: BearTheme.bgA
     readonly property int preferredWindowWidth: 1440
     // Sidebar hides only when very narrow.
@@ -198,14 +196,6 @@ ApplicationWindow {
                 height: 1
                 color: BearTheme.cardBorder
                 opacity: 0.55
-            }
-
-            // Drag the frameless window from the toolbar (Wayland: startSystemMove).
-            DragHandler {
-                enabled: root.clientChrome
-                target: null
-                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-                onActiveChanged: if (active) root.startSystemMove()
             }
 
             ColumnLayout {

@@ -4,7 +4,6 @@
 #include <QtTest>
 #include <QCoreApplication>
 #include <QSignalSpy>
-#include <QTemporaryDir>
 #include <QDir>
 #include <QFile>
 #include <QCryptographicHash>
@@ -16,8 +15,10 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QTimer>
+#include <QStandardPaths>
 
 #include "radiobrowser.h"
+#include "bearwavepaths.h"
 
 class RadioBrowserRaceTest : public QObject
 {
@@ -35,8 +36,6 @@ private slots:
 };
 
 namespace {
-QTemporaryDir *s_tempHome = nullptr;
-
 class HttpTestServer : public QTcpServer
 {
 public:
@@ -101,15 +100,13 @@ private:
 
 QString cachePathForEndpoint(const QString &endpoint)
 {
-    const QString cacheDir = QDir::homePath() + QStringLiteral("/.cache/bearwave/api_cache");
+    const QString cacheDir = BearwavePaths::apiCacheDir();
     const QString hash = QString(QCryptographicHash::hash(endpoint.toUtf8(), QCryptographicHash::Md5).toHex());
     return cacheDir + QStringLiteral("/") + hash + QStringLiteral(".json");
 }
 
 void writeStationCache(const QString &endpoint, const QString &name, const QString &country)
 {
-    QDir().mkpath(QDir::homePath() + QStringLiteral("/.cache/bearwave/api_cache"));
-
     QJsonObject station;
     station.insert(QStringLiteral("name"), name);
     station.insert(QStringLiteral("url_resolved"), QStringLiteral("http://example.com/") + name);
@@ -127,8 +124,6 @@ void writeStationCache(const QString &endpoint, const QString &name, const QStri
 
 void writeCountryCache()
 {
-    QDir().mkpath(QDir::homePath() + QStringLiteral("/.cache/bearwave/api_cache"));
-
     QJsonObject country;
     country.insert(QStringLiteral("name"), QStringLiteral("Germany"));
     country.insert(QStringLiteral("iso_3166_1"), QStringLiteral("DE"));
@@ -153,9 +148,10 @@ QByteArray stationResponse(const QString &name)
 
 void RadioBrowserRaceTest::initTestCase()
 {
-    s_tempHome = new QTemporaryDir();
-    QVERIFY(s_tempHome->isValid());
-    qputenv("HOME", s_tempHome->path().toUtf8());
+    QStandardPaths::setTestModeEnabled(true);
+    const QString cacheDir = BearwavePaths::cacheDir();
+    QDir(cacheDir).removeRecursively();
+    QDir().mkpath(cacheDir);
 
     writeStationCache(QStringLiteral("/stations/topvote/5"), QStringLiteral("Top Station"), QStringLiteral("Global"));
     writeStationCache(QStringLiteral("/stations/bycountrycodeexact/DE?limit=50&order=votes&reverse=true"),
