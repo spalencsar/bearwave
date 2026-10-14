@@ -72,6 +72,7 @@ ctest --test-dir build --output-on-failure
 Please smoke-test the area you changed when possible:
 
 - app launches successfully
+- window decorations, minimize, and close behavior work on the desktop changed
 - station list loads
 - search and filtering behave correctly
 - play/pause/stop work

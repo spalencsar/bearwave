@@ -18,6 +18,8 @@ on common Linux desktops and integrates through Wayland, MPRIS, and the system t
 BearWave **1.3.0** is a multi-desktop UI release: Now Playing stage, My stations,
 responsive transport, redesigned list/sidebar, universal Qt framing, and Flatpak
 config persistence via XDG paths ([#7](https://github.com/spalencsar/bearwave/issues/7)).
+Native window decorations are used across Linux desktops, including Linux Mint
+Cinnamon.
 See the [changelog](CHANGELOG.md#130---2026-08-10).
 
 ## Screenshots
@@ -101,6 +103,9 @@ flatpak remote-delete bearwave-repo
 **Notes:**
 
 - BearWave is a single-instance app. Starting it again while it is already running raises the existing window instead of opening a second copy.
+- **Window controls:** BearWave uses the desktop's native title bar and window
+  buttons, including on Linux Mint Cinnamon. Closing the window keeps playback
+  available in the system tray; choose **Quit** from the tray menu to exit.
 - **Runtime:** Flatpak builds against `org.kde.Platform` / `org.kde.Sdk` because that is the [documented Qt runtime](https://docs.flatpak.org/en/latest/qt.html) on Flathub (Qt modules + multimedia). There is no separate “Qt-only” platform for C++/QML apps. The app still does not depend on Plasma or KDE Frameworks at the application level.
 - Sandbox permissions stay DE-neutral: network, GPU, Wayland/X11, PulseAudio, MPRIS, notifications, and StatusNotifier (system tray). StatusNotifier’s bus name is historically `org.kde.*` on Linux; that is a protocol name, not a Plasma dependency.
 - If the UI behaves oddly right after an update, clear the Flatpak QML cache and restart:

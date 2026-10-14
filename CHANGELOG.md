@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Restore native window decorations on non-Plasma desktops. In particular,
+  Linux Mint Cinnamon now exposes the system title bar and close button again.
+- Make playback and Radio Browser tests use isolated XDG test paths instead of
+  user data, cached API responses, or live network timing.
+
 ## [1.3.0] - 2026-08-10
 
 Major multi-desktop UI release: universal Linux positioning, Now Playing stage,

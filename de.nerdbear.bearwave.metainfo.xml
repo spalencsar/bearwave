@@ -85,6 +85,7 @@
           <li>System light/dark theme; ICY and live-stream connection status fixes</li>
           <li>Flatpak: persist favorites and state via XDG config paths (issue #7)</li>
           <li>Universal Qt 6 product framing (not KDE-only); Flatpak remains on org.kde.Platform as the Qt runtime</li>
+          <li>Use native window decorations across desktops, including Linux Mint Cinnamon</li>
         </ul>
       </description>
     </release>
