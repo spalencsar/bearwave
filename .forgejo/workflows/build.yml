@@ -8,47 +8,38 @@ on:
   pull_request:
 
 jobs:
-  arch-build:
+  flatpak-build-and-test:
     runs-on: linux-amd64
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Build and test with Qt 6
-        run: |
-          set -euo pipefail
-          export DEBIAN_FRONTEND=noninteractive
-          apt-get update
-          apt-get install -y --no-install-recommends \
-            cmake \
-            ninja-build \
-            pkg-config \
-            qt6-base-dev \
-            qt6-declarative-dev \
-            qt6-multimedia-dev \
-            qt6-tools-dev \
-            qt6-tools-dev-tools
-          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
-          cmake --build build -j"$(nproc)"
-          QT_QPA_PLATFORM=offscreen QT_MEDIA_BACKEND=ffmpeg \
-            ctest --test-dir build --output-on-failure
-          /usr/lib/qt6/bin/qmllint src/qml/Main.qml src/qml/components/*.qml src/qml/theme/BearTheme.qml
-
-  flatpak-build:
-    runs-on: linux-amd64
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Build Flatpak manifest
+      - name: Install Flatpak tooling and KDE SDK
         run: |
           set -euo pipefail
           apt-get update
           apt-get install -y --no-install-recommends flatpak flatpak-builder
           flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
           flatpak install --user -y flathub org.kde.Sdk//6.10 org.kde.Platform//6.10
+
+      - name: Build and test with KDE SDK 6.10
+        run: |
+          set -euo pipefail
+          flatpak run --user \
+            --filesystem="${GITHUB_WORKSPACE}:ro" \
+            --env=SOURCE_DIR="${GITHUB_WORKSPACE}" \
+            --command=sh org.kde.Sdk//6.10 -c '
+              cmake -S "$SOURCE_DIR" -B /tmp/bearwave-build -G Ninja -DCMAKE_BUILD_TYPE=Release
+              cmake --build /tmp/bearwave-build -j"$(nproc)"
+              QT_QPA_PLATFORM=offscreen QT_MEDIA_BACKEND=ffmpeg \
+                ctest --test-dir /tmp/bearwave-build --output-on-failure
+              qmllint "$SOURCE_DIR"/src/qml/Main.qml "$SOURCE_DIR"/src/qml/components/*.qml "$SOURCE_DIR"/src/qml/theme/BearTheme.qml
+            '
+
+      - name: Build Flatpak manifest
+        run: |
+          set -euo pipefail
           flatpak-builder --user --force-clean flatpak_build de.nerdbear.bearwave.json
           grep -q '"runtime-version" : "6.10"' flatpak_build/files/manifest.json
           test "$(grep '^runtime=' flatpak_build/metadata)" = "runtime=org.kde.Platform/x86_64/6.10"
