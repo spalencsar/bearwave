@@ -9,7 +9,7 @@ on:
 
 jobs:
   arch-build:
-    runs-on: ubuntu-24.04
+    runs-on: linux-amd64
 
     steps:
       - name: Check out repository
@@ -42,7 +42,7 @@ jobs:
             '
 
   flatpak-build:
-    runs-on: ubuntu-24.04
+    runs-on: linux-amd64
 
     steps:
       - name: Check out repository
