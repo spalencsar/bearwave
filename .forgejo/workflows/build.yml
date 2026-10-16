@@ -1,0 +1,54 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  arch-build:
+    runs-on: linux-amd64
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build and test with Qt 6
+        run: |
+          set -euo pipefail
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            cmake \
+            ninja-build \
+            pkg-config \
+            qt6-base-dev \
+            qt6-declarative-dev \
+            qt6-multimedia-dev \
+            qt6-tools-dev \
+            qt6-tools-dev-tools
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build -j"$(nproc)"
+          QT_QPA_PLATFORM=offscreen QT_MEDIA_BACKEND=ffmpeg \
+            ctest --test-dir build --output-on-failure
+          /usr/lib/qt6/bin/qmllint src/qml/Main.qml src/qml/components/*.qml src/qml/theme/BearTheme.qml
+
+  flatpak-build:
+    runs-on: linux-amd64
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build Flatpak manifest
+        run: |
+          set -euo pipefail
+          apt-get update
+          apt-get install -y --no-install-recommends flatpak flatpak-builder
+          flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y flathub org.kde.Sdk//6.10 org.kde.Platform//6.10
+          flatpak-builder --user --force-clean flatpak_build de.nerdbear.bearwave.json
+          grep -q '"runtime-version" : "6.10"' flatpak_build/files/manifest.json
+          test "$(grep '^runtime=' flatpak_build/metadata)" = "runtime=org.kde.Platform/x86_64/6.10"
