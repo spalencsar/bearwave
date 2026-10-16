@@ -21,8 +21,8 @@ jobs:
           set -euo pipefail
           apt-get update
           # flatpak-builder uses eu-strip to split debug symbols after the
-          # manifest build; it is supplied by Debian/Ubuntu's elfutils package.
-          apt-get install -y --no-install-recommends elfutils flatpak flatpak-builder
+          # manifest build, while AppStream validation needs appstream-compose.
+          apt-get install -y --no-install-recommends appstream-compose elfutils flatpak flatpak-builder
           flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
           flatpak install --user -y flathub org.kde.Sdk//6.10 org.kde.Platform//6.10
 
