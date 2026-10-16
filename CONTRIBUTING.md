@@ -57,6 +57,10 @@ Run unit tests after backend changes:
 ctest --test-dir build --output-on-failure
 ```
 
+Tests must keep their XDG configuration and cache state isolated. Never run
+fixtures against or leave fixture data in a contributor's real
+`~/.config/bearwave` profile.
+
 ## Change Guidelines
 
 - Follow the existing style in each file.

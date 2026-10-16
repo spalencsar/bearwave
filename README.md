@@ -46,7 +46,7 @@ Screenshots: Linux desktop.
 > ### Official Distribution & Security Notice
 > We only guarantee the security and integrity of our official distribution channels:
 > 1. **Our official Flatpak repository** (`https://flatpak.bearwave.app/`), which is GPG-signed by the author.
-> 2. **Our official AUR package** (`bearwave-git`), where the source code is cloned from this GitHub repository and built locally — **package metadata updates are currently paused** while the AUR restricts community maintainer pushes (see Option B).
+> 2. **Our official AUR package** (`bearwave-git`), where the source code is cloned from this GitHub repository and built locally.
 >
 > We **do not verify, support, or guarantee** the security of any other third-party binary repositories (such as unofficial repositories on the openSUSE Build Service, private arch repositories, or other third-party package mirrors). Installing from unofficial sources carries security risks, as the binaries are not compiled or controlled by the original author.
 
@@ -121,23 +121,14 @@ flatpak run de.nerdbear.bearwave
 BearWave is listed in the Arch User Repository as `bearwave-git`. The package clones this GitHub repository and builds on your machine.
 
 > [!IMPORTANT]
-> **AUR package updates are currently paused.** After a large supply-chain /
-> malware campaign against the AUR (“Atomic Arch” and follow-up cleanup),
-> Arch has restricted community Git/SSH write access: maintainer pushes to
-> `aur.archlinux.org` fail with maintenance / read-only errors. Until that
-> write access is restored for community maintainers, **`bearwave-git` on the
-> AUR will not receive new package updates** from us (our automated AUR
-> publish workflow is disabled for the same reason).
->
-> For **current releases**, prefer **Flatpak** (Option A) or a **local source /
-> PKGBUILD build** (Option C) from this repository. If you already use
-> `bearwave-git`, it still builds whatever Git commit the AUR `PKGBUILD`
-> points at — it may lag behind `main` / the latest tag until we can push again.
+> `bearwave-git` is maintained from this repository. The publish workflow runs
+> after pushes to `main` and published releases. As with every `-git` package,
+> it builds the current upstream Git state locally during installation.
 
 > [!WARNING]
 > The AUR is community-driven and packages are not officially vetted. Always inspect the `PKGBUILD` and its source files before building/installing.
 
-Install using an AUR helper like `yay` or `paru` (may install an older snapshot until the AUR is writable again):
+Install using an AUR helper like `yay` or `paru`:
 
 ```bash
 yay -S bearwave-git
@@ -174,7 +165,7 @@ BearWave focuses on:
 - favorites, **My stations** (manual URLs), and resume support
 - responsive UI: Now Playing stage on wide layouts; works on short screens (e.g. 1440×900)
 - lightweight desktop integration through tray + MPRIS
-- Flatpak (recommended) and source / local PKGBUILD install paths (AUR updates paused; see above)
+- Flatpak (recommended), AUR, and source / local PKGBUILD install paths
 
 BearWave intentionally does not aim to be:
 
@@ -208,8 +199,8 @@ BearWave intentionally does not aim to be:
 ## Project Status
 
 BearWave is a public, source-first desktop project. **Flatpak (signed repo)** is
-the primary install path for end users. On Arch, a local source/`PKGBUILD`
-build is preferred while the AUR remains write-restricted (see Option B).
+the primary install path for end users. On Arch, `bearwave-git` and a local
+source/`PKGBUILD` build are also supported.
 
 Current priorities:
 
@@ -275,16 +266,15 @@ Close an already running BearWave instance first because the application otherwi
 
 BearWave should currently be understood as:
 
-- officially documented for Flatpak and source builds; AUR package exists but
-  **maintainer updates are paused** while community AUR write access is locked
+- officially documented for Flatpak, AUR, and source builds
 - primarily developed on Arch Linux
 - usable on other distributions via Flatpak or a local Qt 6 build
 - not yet positioned as a broadly packaged consumer desktop app beyond the Flatpak repository
 
 If you want the least surprising path today, use either:
 
-- **Flatpak** (recommended on all distributions, including Arch while AUR updates lag)
-- a local source build or the included Arch `PKGBUILD` on Arch Linux
+- **Flatpak** (recommended on all distributions)
+- **AUR** (`bearwave-git`) or a local source build on Arch Linux
 
 ## Dependencies
 
