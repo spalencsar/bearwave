@@ -123,6 +123,7 @@ ScrollView {
                             Label {
                                 width: parent.width
                                 text: modelData.name
+                                textFormat: Text.PlainText
                                 color: BearTheme.textMain
                                 font.bold: true
                                 font.pixelSize: 13
@@ -210,6 +211,7 @@ ScrollView {
                             Label {
                                 width: parent.width - 34
                                 text: modelData.name
+                                textFormat: Text.PlainText
                                 color: BearTheme.textMain
                                 font.bold: true
                                 font.pixelSize: 13

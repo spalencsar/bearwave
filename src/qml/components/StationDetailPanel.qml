@@ -273,6 +273,7 @@ Rectangle {
                 Label {
                     Layout.fillWidth: true
                     text: root.stationName.length > 0 ? root.stationName : qsTr("Unknown station")
+                    textFormat: Text.PlainText
                     color: BearTheme.textMain
                     font.pixelSize: 17
                     font.bold: true
@@ -284,6 +285,7 @@ Rectangle {
                 Label {
                     Layout.fillWidth: true
                     text: root.country
+                    textFormat: Text.PlainText
                     visible: text.length > 0
                     color: BearTheme.textMuted
                     font.pixelSize: 12
@@ -360,6 +362,7 @@ Rectangle {
                         Layout.fillWidth: true
                         visible: root.trackArtist.length > 0
                         text: root.trackArtist
+                        textFormat: Text.PlainText
                         color: BearTheme.textMain
                         font.pixelSize: 16
                         font.bold: true
@@ -371,6 +374,7 @@ Rectangle {
                         Layout.fillWidth: true
                         visible: root.trackTitle.length > 0
                         text: root.trackTitle
+                        textFormat: Text.PlainText
                         color: BearTheme.textMain
                         font.pixelSize: 15
                         wrapMode: Text.WordWrap
@@ -383,6 +387,7 @@ Rectangle {
                                  && root.trackArtist.length === 0
                                  && root.trackTitle.length === 0
                         text: root.nowPlayingLine
+                        textFormat: Text.PlainText
                         color: BearTheme.textMain
                         font.pixelSize: 15
                         font.bold: true
@@ -436,6 +441,7 @@ Rectangle {
                         visible: root.previousTrack
                                  && (root.previousTrack.artist || "").length > 0
                         text: root.previousTrack ? (root.previousTrack.artist || "") : ""
+                        textFormat: Text.PlainText
                         color: BearTheme.textMuted
                         font.pixelSize: 13
                         font.bold: true
@@ -448,6 +454,7 @@ Rectangle {
                         visible: root.previousTrack
                                  && (root.previousTrack.title || "").length > 0
                         text: root.previousTrack ? (root.previousTrack.title || "") : ""
+                        textFormat: Text.PlainText
                         color: BearTheme.textMuted
                         font.pixelSize: 13
                         wrapMode: Text.WordWrap
@@ -460,6 +467,7 @@ Rectangle {
                                  && (root.previousTrack.artist || "").length === 0
                                  && (root.previousTrack.title || "").length === 0
                         text: root.trackLine(root.previousTrack)
+                        textFormat: Text.PlainText
                         color: BearTheme.textMuted
                         font.pixelSize: 13
                         wrapMode: Text.WordWrap
@@ -494,6 +502,7 @@ Rectangle {
                         required property var modelData
                         Layout.fillWidth: true
                         text: "·  " + root.trackLine(modelData)
+                        textFormat: Text.PlainText
                         color: BearTheme.textMuted
                         font.pixelSize: 11
                         wrapMode: Text.WordWrap
@@ -523,6 +532,7 @@ Rectangle {
                             id: chipLabel
                             anchors.centerIn: parent
                             text: parent.modelData
+                            textFormat: Text.PlainText
                             color: BearTheme.textMuted
                             font.pixelSize: 10
                         }
@@ -549,6 +559,7 @@ Rectangle {
                         id: codecPill
                         anchors.centerIn: parent
                         text: root.codec.toUpperCase()
+                        textFormat: Text.PlainText
                         color: BearTheme.accent
                         font.pixelSize: 9
                         font.bold: true

@@ -143,6 +143,7 @@ Rectangle {
                             return qsTr("No station selected")
                         return name
                     }
+                    textFormat: Text.PlainText
                     color: BearTheme.textMain
                     font.pixelSize: 14
                     font.bold: true
@@ -165,6 +166,7 @@ Rectangle {
                         anchors.centerIn: parent
                         text: (app.backend && app.backend.currentStation && app.backend.currentStation.codec)
                               ? app.backend.currentStation.codec.toUpperCase() : ""
+                        textFormat: Text.PlainText
                         color: BearTheme.accent
                         font.pixelSize: 9
                         font.bold: true
@@ -195,6 +197,7 @@ Rectangle {
             Label {
                 Layout.fillWidth: true
                 text: root.connectionStatusText()
+                textFormat: Text.PlainText
                 color: root.player && root.player.connectionState === "error"
                        ? BearTheme.warn
                        : (root.player && root.player.playing

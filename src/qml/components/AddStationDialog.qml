@@ -193,6 +193,7 @@ Dialog {
                         highlighted: countryCombo.highlightedIndex === index
                         contentItem: Label {
                             text: modelData.name
+                            textFormat: Text.PlainText
                             color: BearTheme.textMain
                             font.pixelSize: 13
                             elide: Text.ElideRight

@@ -53,6 +53,7 @@ Rectangle {
             anchors.centerIn: parent
             text: root.app.backend
                   ? root.app.backend.stationInitials(root.stationName) : "♫"
+            textFormat: Text.PlainText
             color: "white"
             font.bold: true
             font.pixelSize: Math.max(12, Math.round(root.height * 0.34))

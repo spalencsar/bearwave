@@ -187,6 +187,7 @@ Rectangle {
                 Label {
                     Layout.fillWidth: true
                     text: root.modelData.name || ""
+                    textFormat: Text.PlainText
                     color: root.isCurrent ? BearTheme.accent : BearTheme.textMain
                     font.bold: true
                     font.pixelSize: 14
@@ -369,6 +370,7 @@ Rectangle {
             id: chipLabel
             anchors.centerIn: parent
             text: parent.text
+            textFormat: Text.PlainText
             color: parent.filled ? "#ffffff" : BearTheme.textMuted
             font.pixelSize: 10
             font.bold: parent.filled
