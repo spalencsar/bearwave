@@ -4,6 +4,7 @@
 #pragma once
 
 #include <QHash>
+#include <QHostAddress>
 #include <QList>
 #include <QObject>
 #include <QQueue>
@@ -34,7 +35,6 @@ public:
                                       QStringList *openGraphImages = nullptr);
     static QStringList manifestCandidates(const QByteArray &json,
                                           const QUrl &manifestUrl);
-    static bool isSafeNetworkUrl(const QUrl &url, bool allowHttp);
 
 signals:
     void revisionChanged();
@@ -73,6 +73,8 @@ private:
     void startDiscovery(const QString &stationKey);
     void pumpDiscoveryQueue();
     void fetchDiscovery(const DiscoveryJob &job);
+    void issueDiscoveryRequest(const DiscoveryJob &job,
+                               const QHostAddress &resolvedAddress);
     void finishDiscoveryReply(QNetworkReply *reply);
     void completeDiscovery(const DiscoveryJob &job,
                            const QStringList &manifestIcons = {});

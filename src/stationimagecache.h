@@ -5,8 +5,10 @@
 
 #include <QObject>
 #include <QHash>
+#include <QHostAddress>
 #include <QSet>
 #include <QString>
+#include <QUrl>
 
 class QNetworkAccessManager;
 class QNetworkReply;
@@ -42,8 +44,13 @@ private:
     QString cachePathForUrl(const QString &remoteUrl) const;
     QString localSourceForPath(const QString &path) const;
     bool cachedFileIsValid(const QString &path) const;
-    bool isAllowedRemoteUrl(const QString &remoteUrl) const;
+    bool hasAllowedRemoteUrlShape(const QString &remoteUrl) const;
     void startDownload(const QString &remoteUrl);
+    void resolveDownload(const QString &remoteUrl, const QUrl &requestUrl,
+                         int redirectCount);
+    void issueDownload(const QString &remoteUrl, const QUrl &requestUrl,
+                       int redirectCount,
+                       const QHostAddress &resolvedAddress);
     void finishDownload(QNetworkReply *reply);
     void reject(const QString &remoteUrl);
     void advanceRevision();

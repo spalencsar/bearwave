@@ -3,6 +3,7 @@
 
 #include "stationimagecache.h"
 #include "bearwavepaths.h"
+#include "networkurlguard.h"
 
 #include <algorithm>
 #include <QBuffer>
@@ -12,8 +13,8 @@
 #include <QFileInfo>
 #include <QImage>
 #include <QImageReader>
-#include <QHostAddress>
 #include <QNetworkAccessManager>
+#include <QNetworkProxy>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QSaveFile>
@@ -22,31 +23,11 @@
 
 namespace {
 const QString fallbackSource = QStringLiteral("qrc:/assets/app/bearwave.svg");
+constexpr int maximumRedirects = 5;
 
 QString defaultCacheDirectory()
 {
     return BearwavePaths::coversCacheDir();
-}
-
-bool isPrivateLiteralHost(const QString &host)
-{
-    QHostAddress address;
-    if (!address.setAddress(host)) {
-        return false;
-    }
-    if (address.protocol() == QAbstractSocket::IPv4Protocol) {
-        const quint32 ip = address.toIPv4Address();
-        return (ip & 0xff000000u) == 0x00000000u
-               || (ip & 0xff000000u) == 0x0a000000u
-               || (ip & 0xff000000u) == 0x7f000000u
-               || (ip & 0xffff0000u) == 0xa9fe0000u
-               || (ip & 0xfff00000u) == 0xac100000u
-               || (ip & 0xffff0000u) == 0xc0a80000u
-               || (ip & 0xf0000000u) == 0xe0000000u;
-    }
-    return address.isNull() || address == QHostAddress::LocalHostIPv6
-           || address.isLinkLocal() || address.isMulticast()
-           || (address.toIPv6Address().c[0] & 0xfe) == 0xfc;
 }
 }
 
@@ -62,6 +43,7 @@ StationImageCache::StationImageCache(const QString &cacheDirectory, bool allowHt
     , m_cacheDirectory(cacheDirectory)
     , m_allowHttpForTests(allowHttpForTests)
 {
+    m_networkManager->setProxy(QNetworkProxy::NoProxy);
     QDir().mkpath(m_cacheDirectory);
     pruneCacheDirectory(m_cacheDirectory);
 }
@@ -69,7 +51,8 @@ StationImageCache::StationImageCache(const QString &cacheDirectory, bool allowHt
 QString StationImageCache::sourceForUrl(const QString &remoteUrl)
 {
     const QString normalizedUrl = remoteUrl.trimmed();
-    if (!isAllowedRemoteUrl(normalizedUrl) || m_blocked.contains(normalizedUrl)) {
+    if (!hasAllowedRemoteUrlShape(normalizedUrl)
+        || m_blocked.contains(normalizedUrl)) {
         return fallbackSource;
     }
 
@@ -173,7 +156,7 @@ bool StationImageCache::cachedFileIsValid(const QString &path) const
     return !reader.read().isNull();
 }
 
-bool StationImageCache::isAllowedRemoteUrl(const QString &remoteUrl) const
+bool StationImageCache::hasAllowedRemoteUrlShape(const QString &remoteUrl) const
 {
     const QUrl url(remoteUrl);
     if (!url.isValid() || url.host().isEmpty()) {
@@ -183,32 +166,55 @@ bool StationImageCache::isAllowedRemoteUrl(const QString &remoteUrl) const
     if (scheme != QStringLiteral("https") && scheme != QStringLiteral("http")) {
         return false;
     }
-    return !isPrivateLiteralHost(url.host())
-           || (m_allowHttpForTests && scheme == QStringLiteral("http"));
+    return url.userInfo().isEmpty();
 }
 
 void StationImageCache::startDownload(const QString &remoteUrl)
 {
     m_pending.insert(remoteUrl);
+    resolveDownload(remoteUrl, QUrl(remoteUrl), 0);
+}
 
-    QNetworkRequest request{QUrl(remoteUrl)};
+void StationImageCache::resolveDownload(const QString &remoteUrl,
+                                        const QUrl &requestUrl,
+                                        int redirectCount)
+{
+    const bool allowPrivate =
+        m_allowHttpForTests
+        && requestUrl.scheme().compare(QStringLiteral("http"),
+                                       Qt::CaseInsensitive) == 0;
+    NetworkUrlGuard::resolve(
+        requestUrl, true, allowPrivate, this,
+        [this, remoteUrl, requestUrl, redirectCount](
+            bool allowed, const QList<QHostAddress> &addresses) {
+            if (!allowed) {
+                m_pending.remove(remoteUrl);
+                reject(remoteUrl);
+                return;
+            }
+            issueDownload(remoteUrl, requestUrl, redirectCount,
+                          addresses.constFirst());
+        });
+}
+
+void StationImageCache::issueDownload(const QString &remoteUrl,
+                                      const QUrl &requestUrl,
+                                      int redirectCount,
+                                      const QHostAddress &resolvedAddress)
+{
+
+    QNetworkRequest request =
+        NetworkUrlGuard::requestForResolvedUrl(requestUrl, resolvedAddress);
     request.setTransferTimeout(10000);
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
-                         QNetworkRequest::UserVerifiedRedirectPolicy);
+                         QNetworkRequest::ManualRedirectPolicy);
     request.setHeader(QNetworkRequest::UserAgentHeader,
                       QStringLiteral("BearWave/1.0 station image cache"));
 
     QNetworkReply *reply = m_networkManager->get(request);
     reply->setProperty("stationImageUrl", remoteUrl);
-    connect(reply, &QNetworkReply::redirected, this,
-            [this, reply](const QUrl &target) {
-        if (isAllowedRemoteUrl(target.toString())) {
-            reply->redirectAllowed();
-        } else {
-            reply->setProperty("stationImageRejected", true);
-            reply->abort();
-        }
-    });
+    reply->setProperty("stationImageRequestUrl", requestUrl);
+    reply->setProperty("stationImageRedirectCount", redirectCount);
     connect(reply, &QNetworkReply::readyRead, this, [this, reply]() {
         if (reply->bytesAvailable() > maximumDownloadBytes) {
             reply->setProperty("stationImageRejected", true);
@@ -231,10 +237,26 @@ void StationImageCache::startDownload(const QString &remoteUrl)
 void StationImageCache::finishDownload(QNetworkReply *reply)
 {
     const QString remoteUrl = reply->property("stationImageUrl").toString();
+
+    const QVariant redirect =
+        reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
+    const int redirectCount =
+        reply->property("stationImageRedirectCount").toInt();
+    if (redirect.isValid() && redirectCount < maximumRedirects
+        && reply->error() == QNetworkReply::NoError) {
+        const QUrl requestUrl =
+            reply->property("stationImageRequestUrl").toUrl();
+        const QUrl target = requestUrl.resolved(redirect.toUrl());
+        reply->deleteLater();
+        resolveDownload(remoteUrl, target, redirectCount + 1);
+        return;
+    }
+
     m_pending.remove(remoteUrl);
 
     if (reply->error() != QNetworkReply::NoError
-        || reply->property("stationImageRejected").toBool()) {
+        || reply->property("stationImageRejected").toBool()
+        || redirect.isValid()) {
         reply->deleteLater();
         reject(remoteUrl);
         return;

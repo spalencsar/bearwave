@@ -12,6 +12,7 @@ set(TEST_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/countrynames.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/stationimagecache.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/stationartworkservice.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/networkurlguard.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/stationlogostyle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/radiobrowser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/bearplayer.cpp
@@ -107,6 +108,7 @@ add_test(NAME appsettings_test COMMAND appsettings_test)
 add_executable(station_image_cache_test
     station_image_cache_test.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/stationimagecache.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/networkurlguard.cpp
 )
 
 target_include_directories(station_image_cache_test PRIVATE
@@ -126,6 +128,7 @@ add_executable(station_artwork_service_test
     station_artwork_service_test.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/stationartworkservice.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/stationimagecache.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/networkurlguard.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/stationlogostyle.cpp
 )
 

@@ -3,15 +3,16 @@
 
 #include "stationartworkservice.h"
 
+#include "networkurlguard.h"
 #include "stationimagecache.h"
 
 #include <algorithm>
-#include <QHostAddress>
 #include <QImageReader>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QNetworkAccessManager>
+#include <QNetworkProxy>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QRegularExpression>
@@ -79,6 +80,7 @@ StationArtworkService::StationArtworkService(StationImageCache *imageCache,
     , m_allowHttpForTests(allowHttpForTests)
 {
     Q_ASSERT(m_imageCache);
+    m_networkManager->setProxy(QNetworkProxy::NoProxy);
     connect(m_imageCache, &StationImageCache::imageReady,
             this, &StationArtworkService::handleImageReady);
     connect(m_imageCache, &StationImageCache::imageRejected,
@@ -178,10 +180,6 @@ void StationArtworkService::startDiscovery(const QString &stationKey)
     }
     state.discoveryAttempted = true;
     const QUrl homepage(state.homepage);
-    if (!isSafeNetworkUrl(homepage, m_allowHttpForTests)) {
-        completeWithoutLogo(stationKey);
-        return;
-    }
     const QString normalized = homepage.adjusted(QUrl::RemoveFragment).toString();
     if (m_discoveryCache.contains(normalized)) {
         state.candidates = m_discoveryCache.value(normalized);
@@ -216,7 +214,22 @@ void StationArtworkService::pumpDiscoveryQueue()
 
 void StationArtworkService::fetchDiscovery(const DiscoveryJob &job)
 {
-    QNetworkRequest request(job.url);
+    NetworkUrlGuard::resolve(
+        job.url, m_allowHttpForTests, false, this,
+        [this, job](bool allowed, const QList<QHostAddress> &addresses) {
+            if (!allowed) {
+                completeDiscovery(job);
+                return;
+            }
+            issueDiscoveryRequest(job, addresses.constFirst());
+        });
+}
+
+void StationArtworkService::issueDiscoveryRequest(
+    const DiscoveryJob &job, const QHostAddress &resolvedAddress)
+{
+    QNetworkRequest request =
+        NetworkUrlGuard::requestForResolvedUrl(job.url, resolvedAddress);
     request.setTransferTimeout(5000);
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
                          QNetworkRequest::ManualRedirectPolicy);
@@ -258,13 +271,11 @@ void StationArtworkService::finishDiscoveryReply(QNetworkReply *reply)
     const QVariant redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
     if (redirect.isValid() && job.redirectCount < maximumRedirects) {
         const QUrl target = job.url.resolved(redirect.toUrl());
-        if (isSafeNetworkUrl(target, m_allowHttpForTests)) {
-            job.url = target;
-            ++job.redirectCount;
-            reply->deleteLater();
-            fetchDiscovery(job);
-            return;
-        }
+        job.url = target;
+        ++job.redirectCount;
+        reply->deleteLater();
+        fetchDiscovery(job);
+        return;
     }
 
     const qint64 limit =
@@ -290,7 +301,7 @@ void StationArtworkService::finishDiscoveryReply(QNetworkReply *reply)
     job.primaryCandidates =
         htmlCandidates(data, job.pageUrl, &job.manifestUrl,
                        &job.openGraphCandidates);
-    if (isSafeNetworkUrl(job.manifestUrl, m_allowHttpForTests)) {
+    if (!job.manifestUrl.isEmpty()) {
         job.url = job.manifestUrl;
         job.manifestPhase = true;
         job.redirectCount = 0;
@@ -480,31 +491,4 @@ QStringList StationArtworkService::manifestCandidates(
         result.append(icon.url);
     }
     return uniqueUrls(result);
-}
-
-bool StationArtworkService::isSafeNetworkUrl(const QUrl &url, bool allowHttp)
-{
-    const QString scheme = url.scheme().toLower();
-    if (!url.isValid() || url.host().isEmpty()
-        || (scheme != QStringLiteral("https")
-            && !(allowHttp && scheme == QStringLiteral("http")))) {
-        return false;
-    }
-    QHostAddress address;
-    if (!address.setAddress(url.host())) {
-        return true;
-    }
-    if (address.protocol() == QAbstractSocket::IPv4Protocol) {
-        const quint32 ip = address.toIPv4Address();
-        return (ip & 0xff000000u) != 0x00000000u
-               && (ip & 0xff000000u) != 0x0a000000u
-               && (ip & 0xff000000u) != 0x7f000000u
-               && (ip & 0xffff0000u) != 0xa9fe0000u
-               && (ip & 0xfff00000u) != 0xac100000u
-               && (ip & 0xffff0000u) != 0xc0a80000u
-               && (ip & 0xf0000000u) != 0xe0000000u;
-    }
-    return !address.isNull() && address != QHostAddress::LocalHostIPv6
-           && !address.isLinkLocal() && !address.isMulticast()
-           && (address.toIPv6Address().c[0] & 0xfe) != 0xfc;
 }

@@ -104,6 +104,7 @@ private slots:
     void blocksUndecodableImageForSession();
     void rejectsNonImageMimeTypeAndOversizedDownload();
     void rejectsPrivateHttpOutsideTestMode();
+    void rejectsPrivateHostnameOutsideTestMode();
     void prunesExpiredAndLeastRecentlyUsedFiles();
 };
 
@@ -183,6 +184,22 @@ void StationImageCacheTest::rejectsPrivateHttpOutsideTestMode()
     QCOMPARE(cache.sourceForUrl(server.url()), fallbackSource);
     QTest::qWait(50);
     QCOMPARE(server.requestCount(), 0);
+}
+
+void StationImageCacheTest::rejectsPrivateHostnameOutsideTestMode()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    ImageTestServer server(QByteArrayLiteral("image/png"), pngImageData());
+    StationImageCache cache(directory.path(), false);
+    QSignalSpy rejectedSpy(&cache, &StationImageCache::imageRejected);
+    const QString hostnameUrl = server.url().replace(
+        QStringLiteral("127.0.0.1"), QStringLiteral("localhost"));
+
+    QCOMPARE(cache.sourceForUrl(hostnameUrl), fallbackSource);
+    QTRY_COMPARE_WITH_TIMEOUT(rejectedSpy.count(), 1, 2000);
+    QCOMPARE(server.requestCount(), 0);
+    QVERIFY(cache.isBlocked(hostnameUrl));
 }
 
 void StationImageCacheTest::prunesExpiredAndLeastRecentlyUsedFiles()

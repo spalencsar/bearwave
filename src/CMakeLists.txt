@@ -4,6 +4,7 @@
 set(SOURCES
     main.cpp
     appsettings.cpp
+    networkurlguard.cpp
     stationimagecache.cpp
     stationartworkservice.cpp
     stationlogostyle.cpp

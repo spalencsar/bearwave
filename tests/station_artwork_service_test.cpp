@@ -4,10 +4,12 @@
 #include <QtTest>
 
 #include <QHostAddress>
+#include <QNetworkRequest>
 #include <QUrl>
 
 #include "stationartworkservice.h"
 #include "stationlogostyle.h"
+#include "networkurlguard.h"
 
 class StationArtworkServiceTest : public QObject
 {
@@ -17,7 +19,9 @@ private slots:
     void createsDeterministicInitialsAndPalette();
     void parsesHomepageCandidatesInQualityOrder();
     void parsesManifestAndResolvesRelativeUrls();
-    void rejectsLiteralPrivateNetworkTargets();
+    void rejectsPrivateAndSpecialNetworkTargets();
+    void rejectsHostnameResolvingToLoopback();
+    void pinsRequestsToResolvedAddress();
     void toleratesMalformedDocuments();
 };
 
@@ -77,22 +81,76 @@ void StationArtworkServiceTest::parsesManifestAndResolvesRelativeUrls()
                           QStringLiteral("https://radio.example/app/small.png")}));
 }
 
-void StationArtworkServiceTest::rejectsLiteralPrivateNetworkTargets()
+void StationArtworkServiceTest::rejectsPrivateAndSpecialNetworkTargets()
 {
-    QVERIFY(StationArtworkService::isSafeNetworkUrl(
-        QUrl(QStringLiteral("https://radio.example/logo")), false));
-    QVERIFY(!StationArtworkService::isSafeNetworkUrl(
-        QUrl(QStringLiteral("http://radio.example/logo")), false));
-    QVERIFY(StationArtworkService::isSafeNetworkUrl(
-        QUrl(QStringLiteral("http://radio.example/logo")), true));
-    QVERIFY(!StationArtworkService::isSafeNetworkUrl(
-        QUrl(QStringLiteral("https://127.0.0.1/logo")), false));
-    QVERIFY(!StationArtworkService::isSafeNetworkUrl(
-        QUrl(QStringLiteral("https://192.168.1.20/logo")), false));
-    QVERIFY(!StationArtworkService::isSafeNetworkUrl(
-        QUrl(QStringLiteral("https://[::1]/logo")), false));
-    QVERIFY(!StationArtworkService::isSafeNetworkUrl(
-        QUrl(QStringLiteral("http://127.0.0.1/logo")), true));
+    const QUrl httpsUrl(QStringLiteral("https://radio.example/logo"));
+    const QUrl httpUrl(QStringLiteral("http://radio.example/logo"));
+    QVERIFY(NetworkUrlGuard::isSafeUrl(
+        httpsUrl, {QHostAddress(QStringLiteral("93.184.216.34"))}, false));
+    QVERIFY(!NetworkUrlGuard::isSafeUrl(
+        httpUrl, {QHostAddress(QStringLiteral("93.184.216.34"))}, false));
+    QVERIFY(NetworkUrlGuard::isSafeUrl(
+        httpUrl, {QHostAddress(QStringLiteral("93.184.216.34"))}, true));
+
+    const QStringList unsafeAddresses{
+        QStringLiteral("0.0.0.0"),       QStringLiteral("10.0.0.1"),
+        QStringLiteral("100.64.0.1"),    QStringLiteral("127.0.0.1"),
+        QStringLiteral("169.254.1.1"),   QStringLiteral("172.16.0.1"),
+        QStringLiteral("192.168.1.20"),  QStringLiteral("198.18.0.1"),
+        QStringLiteral("224.0.0.1"),     QStringLiteral("::"),
+        QStringLiteral("::1"),           QStringLiteral("fe80::1"),
+        QStringLiteral("fc00::1"),       QStringLiteral("ff02::1"),
+        QStringLiteral("::ffff:127.0.0.1")};
+    for (const QString &address : unsafeAddresses) {
+        const QHostAddress parsed(address);
+        QVERIFY2(!NetworkUrlGuard::isPublicAddress(parsed),
+                 qPrintable(address));
+        QVERIFY(!NetworkUrlGuard::isSafeUrl(httpsUrl, {parsed}, false));
+    }
+
+    QVERIFY(!NetworkUrlGuard::isSafeUrl(
+        httpsUrl,
+        {QHostAddress(QStringLiteral("93.184.216.34")),
+         QHostAddress(QStringLiteral("127.0.0.1"))},
+        false));
+    QVERIFY(!NetworkUrlGuard::isSafeUrl(httpsUrl, {}, false));
+}
+
+void StationArtworkServiceTest::rejectsHostnameResolvingToLoopback()
+{
+    bool completed = false;
+    bool allowed = true;
+    NetworkUrlGuard::resolve(
+        QUrl(QStringLiteral("http://localhost:8123/logo")), true, false, this,
+        [&completed, &allowed](bool result, const QList<QHostAddress> &) {
+            allowed = result;
+            completed = true;
+        });
+    QTRY_VERIFY_WITH_TIMEOUT(completed, 2000);
+    QVERIFY(!allowed);
+}
+
+void StationArtworkServiceTest::pinsRequestsToResolvedAddress()
+{
+    const QNetworkRequest request = NetworkUrlGuard::requestForResolvedUrl(
+        QUrl(QStringLiteral("http://radio.example:8080/logo")),
+        QHostAddress(QStringLiteral("93.184.216.34")));
+    QCOMPARE(request.url(),
+             QUrl(QStringLiteral("http://93.184.216.34:8080/logo")));
+    QCOMPARE(request.rawHeader(QByteArrayLiteral("Host")),
+             QByteArrayLiteral("radio.example:8080"));
+    QCOMPARE(request.attribute(QNetworkRequest::Http2AllowedAttribute).toBool(),
+             false);
+
+    const QNetworkRequest secureRequest =
+        NetworkUrlGuard::requestForResolvedUrl(
+            QUrl(QStringLiteral("https://radio.example/logo")),
+            QHostAddress(QStringLiteral("2001:4860:4860::8888")));
+    QCOMPARE(secureRequest.url(),
+             QUrl(QStringLiteral("https://[2001:4860:4860::8888]/logo")));
+    QCOMPARE(secureRequest.rawHeader(QByteArrayLiteral("Host")),
+             QByteArrayLiteral("radio.example"));
+    QCOMPARE(secureRequest.peerVerifyName(), QStringLiteral("radio.example"));
 }
 
 void StationArtworkServiceTest::toleratesMalformedDocuments()
