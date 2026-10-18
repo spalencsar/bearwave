@@ -76,6 +76,17 @@
   </provides>
   
   <releases>
+    <release version="1.3.1" date="2026-10-18">
+      <description>
+        <ul>
+          <li>Security: block private, loopback, and special network targets during artwork discovery with DNS validation and address pinning</li>
+          <li>Security: protect persisted stream credentials with owner-only configuration permissions (0700/0600) and atomic writes</li>
+          <li>Security: render all untrusted remote station metadata, ICY status, tags, and codecs as plain text</li>
+          <li>Restore native window decorations across desktops, including Linux Mint Cinnamon</li>
+          <li>Isolate unit tests using dedicated XDG test environments</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.3.0" date="2026-08-10">
       <description>
         <ul>

@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-10-18
+
+Security and maintenance release: SSRF defense for station artwork and discovery,
+protected permissions for persisted stream credentials, plain-text metadata
+rendering against rich-text injection, and native desktop window decorations.
+
+### Security
+
+- Block private, loopback, link-local, and special network targets during station
+  artwork and icon discovery (`NetworkUrlGuard`). Resolve hostnames asynchronously
+  before requests, reject unsafe DNS answers, pin requests to validated addresses,
+  and re-validate every redirect and manifest request.
+- Protect persisted stream credentials in `my_stations.json`, `favorites.json`,
+  and `state.json`. Restrict the BearWave configuration directory to owner-only
+  (`0700`) and JSON files to `0600` using atomic `QSaveFile` writes.
+- Render all untrusted remote station metadata, ICY playback status, track history,
+  tags, and codec information as literal plain text (`Text.PlainText`) across
+  QML components to prevent rich-text HTML/SSRF injection.
+
 ### Fixed
 
 - Restore native window decorations on non-Plasma desktops. In particular,

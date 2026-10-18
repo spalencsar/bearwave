@@ -11,16 +11,15 @@ on common Linux desktops and integrates through Wayland, MPRIS, and the system t
 ![Desktop](https://img.shields.io/badge/desktop-Linux%20(Qt%206)-1f6feb)
 ![Qt 6](https://img.shields.io/badge/Qt-6-41cd52)
 ![License: GPL--3.0--or--later](https://img.shields.io/badge/license-GPL--3.0--or--later-lightgrey)
-![Version](https://img.shields.io/badge/version-1.3.0-blue)
+![Version](https://img.shields.io/badge/version-1.3.1-blue)
 
-**Current release:** [1.3.0](CHANGELOG.md#130---2026-08-10) (2026-08-10)
+**Current release:** [1.3.1](CHANGELOG.md#131---2026-10-18) (2026-10-18)
 
-BearWave **1.3.0** is a multi-desktop UI release: Now Playing stage, My stations,
-responsive transport, redesigned list/sidebar, universal Qt framing, and Flatpak
-config persistence via XDG paths ([#7](https://github.com/spalencsar/bearwave/issues/7)).
-Native window decorations are used across Linux desktops, including Linux Mint
-Cinnamon.
-See the [changelog](CHANGELOG.md#130---2026-08-10).
+BearWave **1.3.1** is a security and maintenance release: SSRF defense for
+station artwork discovery with DNS validation and address pinning, owner-only
+configuration permissions (`0700`/`0600`) with atomic writes, literal plain-text
+metadata rendering across QML, and native desktop window decorations.
+See the [changelog](CHANGELOG.md#131---2026-10-18).
 
 ## Screenshots
 
