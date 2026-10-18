@@ -17,6 +17,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QSaveFile>
 #include <QClipboard>
 #include <QLocale>
 #include <QUrl>
@@ -28,6 +29,23 @@ constexpr int kRecentLimit = 20;
 QString appConfigDir()
 {
     return BearwavePaths::configDir();
+}
+
+bool writePrivateJson(const QString &path, const QJsonDocument &document)
+{
+    QSaveFile file(path);
+    file.setDirectWriteFallback(false);
+    if (!file.open(QIODevice::WriteOnly)) {
+        return false;
+    }
+    if (!file.setPermissions(BearwavePaths::privateFilePermissions)) {
+        return false;
+    }
+    const QByteArray data = document.toJson(QJsonDocument::Indented);
+    if (file.write(data) != data.size() || !file.commit()) {
+        return false;
+    }
+    return BearwavePaths::secureConfigFile(path);
 }
 
 }
@@ -819,11 +837,6 @@ void RadioBackend::loadFavorites()
 void RadioBackend::saveFavorites() const
 {
     const QString configDir = appConfigDir();
-    QDir().mkpath(configDir);
-    QFile file(configDir + "/favorites.json");
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        return;
-    }
 
     QJsonArray arr;
     for (RadioStation *s : m_favorites) {
@@ -835,7 +848,8 @@ void RadioBackend::saveFavorites() const
         o.insert("country", s->country());
         arr.append(o);
     }
-    file.write(QJsonDocument(arr).toJson(QJsonDocument::Indented));
+    writePrivateJson(configDir + QStringLiteral("/favorites.json"),
+                     QJsonDocument(arr));
 }
 
 void RadioBackend::loadManualStations()
@@ -888,11 +902,6 @@ void RadioBackend::loadManualStations()
 void RadioBackend::saveManualStations() const
 {
     const QString configDir = appConfigDir();
-    QDir().mkpath(configDir);
-    QFile file(configDir + "/my_stations.json");
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        return;
-    }
 
     QJsonArray arr;
     for (RadioStation *s : m_manualStations) {
@@ -904,7 +913,8 @@ void RadioBackend::saveManualStations() const
         o.insert("country", s->country());
         arr.append(o);
     }
-    file.write(QJsonDocument(arr).toJson(QJsonDocument::Indented));
+    writePrivateJson(configDir + QStringLiteral("/my_stations.json"),
+                     QJsonDocument(arr));
 }
 
 void RadioBackend::buildCountryPickerOptions()
@@ -1020,18 +1030,14 @@ void RadioBackend::loadState()
 void RadioBackend::saveState() const
 {
     const QString configDir = appConfigDir();
-    QDir().mkpath(configDir);
-    QFile file(configDir + "/state.json");
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        return;
-    }
 
     QJsonObject obj;
     obj.insert("lastStationName", m_lastStationName);
     obj.insert("lastStationUrl", m_lastStationUrl);
     obj.insert("volume", m_player->volume());
     obj.insert("recentStations", QJsonArray::fromVariantList(m_recentStations));
-    file.write(QJsonDocument(obj).toJson(QJsonDocument::Indented));
+    writePrivateJson(configDir + QStringLiteral("/state.json"),
+                     QJsonDocument(obj));
 }
 
 void RadioBackend::setLoading(bool loading)

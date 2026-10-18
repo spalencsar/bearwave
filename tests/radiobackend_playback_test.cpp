@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -35,6 +36,7 @@ private slots:
     void manual_station_accepts_http_and_https();
     void playback_rejects_unsafe_url_from_station_list();
     void favorites_and_state_skip_unsafe_urls();
+    void persistedStationDataUsesOwnerOnlyPermissions();
     void selected_station_tracks_visible_list_selection();
     void play_selected_station_uses_selection_without_prior_playback();
     void source_change_clears_cover_and_rejects_stale_results();
@@ -437,6 +439,57 @@ void RadioBackendPlaybackTest::favorites_and_state_skip_unsafe_urls()
                  .value(QStringLiteral("uuid"))
                  .toString(),
              QStringLiteral("good-r"));
+}
+
+void RadioBackendPlaybackTest::persistedStationDataUsesOwnerOnlyPermissions()
+{
+    const QString configDir = BearwavePaths::configDir();
+    const QFileDevice::Permissions exposedDirectoryPermissions =
+        BearwavePaths::privateDirectoryPermissions
+        | QFileDevice::ReadGroup | QFileDevice::ExeGroup
+        | QFileDevice::ReadOther | QFileDevice::ExeOther;
+    QVERIFY(QFile::setPermissions(configDir, exposedDirectoryPermissions));
+    for (const QString &name : {QStringLiteral("favorites.json"),
+                                QStringLiteral("my_stations.json"),
+                                QStringLiteral("state.json")}) {
+        QVERIFY(QFile::setPermissions(
+            configDir + QLatin1Char('/') + name,
+            BearwavePaths::privateFilePermissions | QFileDevice::ReadGroup
+                | QFileDevice::ReadOther));
+    }
+
+    RadioBackend backend;
+    const QString credentialUrl =
+        QStringLiteral("https://listener:access-token@example.com/stream");
+    backend.addManualStation(QStringLiteral("Private stream"), credentialUrl,
+                             QStringLiteral("DE"));
+
+    const QFileDevice::Permissions forbiddenDirectoryPermissions =
+        QFileDevice::ReadGroup | QFileDevice::WriteGroup | QFileDevice::ExeGroup
+        | QFileDevice::ReadOther | QFileDevice::WriteOther | QFileDevice::ExeOther;
+    const QFileDevice::Permissions forbiddenFilePermissions =
+        QFileDevice::ReadGroup | QFileDevice::WriteGroup | QFileDevice::ExeGroup
+        | QFileDevice::ReadOther | QFileDevice::WriteOther | QFileDevice::ExeOther;
+    const QFileDevice::Permissions directoryPermissions =
+        QFileInfo(configDir).permissions();
+    QVERIFY(directoryPermissions.testFlag(QFileDevice::ReadOwner));
+    QVERIFY(directoryPermissions.testFlag(QFileDevice::WriteOwner));
+    QVERIFY(directoryPermissions.testFlag(QFileDevice::ExeOwner));
+    QVERIFY(!(directoryPermissions & forbiddenDirectoryPermissions));
+
+    for (const QString &name : {QStringLiteral("favorites.json"),
+                                QStringLiteral("my_stations.json"),
+                                QStringLiteral("state.json")}) {
+        const QFileDevice::Permissions permissions =
+            QFileInfo(configDir + QLatin1Char('/') + name).permissions();
+        QVERIFY(permissions.testFlag(QFileDevice::ReadOwner));
+        QVERIFY(permissions.testFlag(QFileDevice::WriteOwner));
+        QVERIFY(!(permissions & forbiddenFilePermissions));
+    }
+
+    QFile manualStations(configDir + QStringLiteral("/my_stations.json"));
+    QVERIFY(manualStations.open(QIODevice::ReadOnly));
+    QVERIFY(manualStations.readAll().contains(credentialUrl.toUtf8()));
 }
 
 void RadioBackendPlaybackTest::selected_station_tracks_visible_list_selection()

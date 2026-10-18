@@ -17,12 +17,31 @@
 
 namespace BearwavePaths {
 
+inline constexpr QFileDevice::Permissions privateDirectoryPermissions =
+    QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner;
+inline constexpr QFileDevice::Permissions privateFilePermissions =
+    QFileDevice::ReadOwner | QFileDevice::WriteOwner;
+
+inline bool secureConfigFile(const QString &path)
+{
+    if (QFileInfo::exists(path)) {
+        return QFile::setPermissions(path, privateFilePermissions);
+    }
+    return true;
+}
+
 inline QString configDir()
 {
     const QString base =
         QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation);
     const QString dir = base + QStringLiteral("/bearwave");
     QDir().mkpath(dir);
+    QFile::setPermissions(dir, privateDirectoryPermissions);
+    for (const QString &name : {QStringLiteral("favorites.json"),
+                                QStringLiteral("my_stations.json"),
+                                QStringLiteral("state.json")}) {
+        secureConfigFile(dir + QLatin1Char('/') + name);
+    }
     return dir;
 }
 
@@ -84,6 +103,7 @@ inline void maybeMigrateLegacyConfig()
         const QString dst = target + QLatin1Char('/') + name;
         if (QFile::exists(src) && !QFile::exists(dst)) {
             QFile::copy(src, dst);
+            secureConfigFile(dst);
         }
     }
 }
