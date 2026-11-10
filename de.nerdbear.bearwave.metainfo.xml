@@ -76,6 +76,14 @@
   </provides>
   
   <releases>
+    <release version="1.3.2" date="2026-11-10">
+      <description>
+        <ul>
+          <li>Publish official x86_64 Linux runtime payloads with SHA-256 checksums for each release</li>
+          <li>Prepare distribution through third-party Flatpak registries while keeping the signed BearWave repository as the primary channel</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.3.1" date="2026-10-18">
       <description>
         <ul>

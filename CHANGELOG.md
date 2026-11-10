@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.2] - 2026-11-10
+
+### Added
+
+- Publish an official `x86_64` Linux runtime payload and SHA-256 checksum for
+  each matching `vX.Y.Z` GitHub release tag. The payload is built against KDE
+  Runtime 6.11 and enables distribution through registries that package
+  upstream-provided binaries, including FlatPark.
+
 ## [1.3.1] - 2026-10-18
 
 Security and maintenance release: SSRF defense for station artwork and discovery,

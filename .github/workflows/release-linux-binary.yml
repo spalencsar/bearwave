@@ -1,0 +1,84 @@
+name: Publish Linux binary release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing vX.Y.Z tag to publish"
+        required: true
+        type: string
+
+# Creates the upstream-owned payload used by third-party package registries.
+# It is intentionally separate from the source-built Flatpak manifest.
+permissions:
+  contents: write
+
+jobs:
+  linux-x86_64:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - name: Validate release version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${{ inputs.tag || github.ref_name }}"
+          case "$tag" in
+            v[0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "Expected a vX.Y.Z tag, got '$tag'." >&2; exit 1 ;;
+          esac
+          version="${tag#v}"
+          project_version="$(sed -n 's/^project(bearwave VERSION \([^ ]*\) LANGUAGES CXX)$/\1/p' CMakeLists.txt)"
+          test "$version" = "$project_version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Install KDE SDK runtime
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y flatpak
+          flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y flathub org.kde.Sdk//6.11 org.kde.Platform//6.11
+
+      - name: Build runtime-compatible payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf release-stage release-dist
+          mkdir -p release-stage release-dist
+          flatpak run --user \
+            --filesystem="$GITHUB_WORKSPACE" \
+            --env=SOURCE_DIR="$GITHUB_WORKSPACE" \
+            --command=sh org.kde.Sdk//6.11 -c '
+              cmake -S "$SOURCE_DIR" -B "$SOURCE_DIR/release-build" -G Ninja \
+                -DCMAKE_BUILD_TYPE=Release -DBEARWAVE_BUILD_TESTS=OFF
+              cmake --build "$SOURCE_DIR/release-build" -j"$(nproc)"
+              cmake --install "$SOURCE_DIR/release-build" \
+                --prefix "$SOURCE_DIR/release-stage"
+            '
+          test -x release-stage/bin/bearwave
+          tar --owner=0 --group=0 --numeric-owner \
+            -C release-stage -cJf "release-dist/bearwave-${{ steps.version.outputs.version }}-linux-x86_64.tar.xz" .
+          sha256sum "release-dist/bearwave-${{ steps.version.outputs.version }}-linux-x86_64.tar.xz" \
+            > "release-dist/bearwave-${{ steps.version.outputs.version }}-linux-x86_64.tar.xz.sha256"
+
+      - name: Publish official release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release view "${{ steps.version.outputs.tag }}" >/dev/null 2>&1 \
+            || gh release create "${{ steps.version.outputs.tag }}" \
+              --title "BearWave ${{ steps.version.outputs.version }}" --generate-notes
+          gh release upload "${{ steps.version.outputs.tag }}" release-dist/* --clobber

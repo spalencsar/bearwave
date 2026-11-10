@@ -13,6 +13,9 @@ build-maclayout/
 build-test/
 build-arch-ci/
 build-dir/
+release-build/
+release-stage/
+release-dist/
 cmake-build-*/
 
 ## CMake artifacts

@@ -11,15 +11,14 @@ on common Linux desktops and integrates through Wayland, MPRIS, and the system t
 ![Desktop](https://img.shields.io/badge/desktop-Linux%20(Qt%206)-1f6feb)
 ![Qt 6](https://img.shields.io/badge/Qt-6-41cd52)
 ![License: GPL--3.0--or--later](https://img.shields.io/badge/license-GPL--3.0--or--later-lightgrey)
-![Version](https://img.shields.io/badge/version-1.3.1-blue)
+![Version](https://img.shields.io/badge/version-1.3.2-blue)
 
-**Current release:** [1.3.1](CHANGELOG.md#131---2026-10-18) (2026-10-18)
+**Current release:** [1.3.2](CHANGELOG.md#132---2026-11-10) (2026-11-10)
 
-BearWave **1.3.1** is a security and maintenance release: SSRF defense for
-station artwork discovery with DNS validation and address pinning, owner-only
-configuration permissions (`0700`/`0600`) with atomic writes, literal plain-text
-metadata rendering across QML, and native desktop window decorations.
-See the [changelog](CHANGELOG.md#131---2026-10-18).
+BearWave **1.3.2** adds reproducible official Linux binary release artifacts for
+third-party Flatpak registries while retaining the signed BearWave Flatpak
+repository as the primary distribution channel. See the
+[changelog](CHANGELOG.md#132---2026-11-10).
 
 ## Screenshots
 
@@ -511,6 +510,20 @@ flatpak install -y flathub org.kde.Sdk//6.10 org.kde.Platform//6.10
 ```
 
 See [CHANGELOG.md](CHANGELOG.md) for release history. For contributor and agent guardrails, see `AGENTS.md`.
+
+### Official Linux binary releases
+
+Pushing a matching `vX.Y.Z` tag runs the **Publish Linux binary release** GitHub
+workflow. It builds BearWave against the KDE 6.11 runtime and attaches these
+official upstream artifacts to the GitHub release:
+
+- `bearwave-X.Y.Z-linux-x86_64.tar.xz`
+- `bearwave-X.Y.Z-linux-x86_64.tar.xz.sha256`
+
+The archive is deliberately a runtime payload, rather than a self-contained
+desktop installer: it is intended for registries that provide the matching Qt
+runtime, including a prospective FlatPark package. The existing signed Flatpak
+repository remains the recommended end-user distribution channel.
 
 ## License
 
